@@ -319,6 +319,79 @@ All endpoints accept and return JSON.
 
 ---
 
+# Organization Endpoints
+
+Organization endpoints are grouped under the `/api/organizations/*` prefix.
+
+## Organization Identity From Authentication
+
+The organization identity is **never supplied by the client** for these endpoints.
+
+- The authenticated organization ID is obtained from `req.user.org`.
+- `req.user.org` originates from the validated JWT `org` claim.
+- Clients cannot request another organization's data by providing an organization ID.
+- This is part of the platform's tenant isolation strategy.
+
+Since every authenticated user belongs to exactly one organization, the API derives the organization context from authentication instead of a URL parameter. This reduces the attack surface and prevents cross-organization access caused by user-controlled organization identifiers.
+
+## GET /api/organizations/me
+
+- **Purpose:** Retrieve the current authenticated user's organization.
+- **Request headers:** `Authorization: Bearer <accessToken>`
+- **Success response:** `200 OK`
+  ```json
+  {
+    "data": {
+      "id": "...",
+      "name": "My Company",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  }
+  ```
+- **Error responses:**
+  - `401` Authentication required
+  - `404` Organization not found
+
+## PATCH /api/organizations/me
+
+- **Purpose:** Update the current authenticated user's organization.
+- **Request headers:** `Authorization: Bearer <accessToken>`
+- **Request body:**
+  ```json
+  {
+    "name": "My Renamed Company"
+  }
+  ```
+- **Success response:** `200 OK`
+  ```json
+  {
+    "data": {
+      "id": "...",
+      "name": "My Renamed Company",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  }
+  ```
+- **Error responses:**
+  - `401` Authentication required
+  - `403` Insufficient permissions
+  - `404` Organization not found
+  - `422` Validation failed
+
+## DELETE /api/organizations/me
+
+- **Purpose:** Soft-delete the current authenticated user's organization.
+- **Request headers:** `Authorization: Bearer <accessToken>`
+- **Success response:** `204 No Content` (no body)
+- **Error responses:**
+  - `401` Authentication required
+  - `403` Insufficient permissions
+  - `404` Organization not found
+
+---
+
 # Authorization
 
 Authentication identifies the user.

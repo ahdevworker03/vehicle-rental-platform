@@ -95,6 +95,8 @@ All protected requests execute within that organization's context.
 
 Users can only access data that belongs to their own organization.
 
+The organization identity is derived from authentication. The authenticated organization ID is obtained from `req.user.org`, which originates from the validated JWT `org` claim. Clients cannot request another organization's data by providing an organization ID. Organization-managed endpoints such as `GET /api/organizations/me` operate on the authenticated user's own organization.
+
 Organization boundaries are enforced by the backend and the database.
 
 ---

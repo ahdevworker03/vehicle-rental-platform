@@ -26,11 +26,11 @@ Users authenticate with their email and password. On successful authentication, 
 
 Required claims:
 
-| Claim | Purpose |
-| ----- | ------- |
-| `sub` | The authenticated user ID. Identifies which user the token represents. |
-| `org` | The user's organization ID. Carries the organization context for the request. |
-| `role` | The user's assigned role. Used for authorization decisions. |
+| Claim  | Purpose                                                                       |
+| ------ | ----------------------------------------------------------------------------- |
+| `sub`  | The authenticated user ID. Identifies which user the token represents.        |
+| `org`  | The user's organization ID. Carries the organization context for the request. |
+| `role` | The user's assigned role. Used for authorization decisions.                   |
 
 Every access token must include all three claims. The backend validates the algorithm, issuer, and audience on every verification.
 
@@ -119,6 +119,14 @@ Permissions are determined by the user's assigned role. The backend is responsib
 - Every authenticated request carries the organization context.
 - Users cannot access data outside their own organization.
 
+The organization identity is derived from authentication, not supplied by the client.
+
+- The authenticated organization ID is obtained from `req.user.org`.
+- `req.user.org` originates from the validated JWT `org` claim.
+- Clients cannot request another organization's data by providing an organization ID.
+
+Because every authenticated user belongs to exactly one organization, the API derives the organization context from authentication instead of a URL parameter. This reduces the attack surface and prevents cross-organization access caused by user-controlled organization identifiers.
+
 Organization boundaries are enforced by the backend and the database.
 
 ---
@@ -134,6 +142,18 @@ Organization boundaries are enforced by the backend and the database.
 - Use HTTPS in production.
 - Never trust client input.
 - Follow secure defaults.
+
+---
+
+### Tenant Context Rule
+
+The authenticated organization (`req.user.org`) is the single source of truth for tenant context.
+
+Repositories, services, and controllers must never trust a client-supplied organization identifier when the authenticated organization is already known.
+
+Organization-owned resources must always be queried using the authenticated organization context to guarantee tenant isolation.
+
+Exceptions must be explicitly documented and justified in the architecture.
 
 ---
 

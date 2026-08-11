@@ -1,186 +1,90 @@
-# Step 4.3 — Authorization: Complete
+# Documentation Update: Organization API Endpoints
 
 ---
 
-## Files Created
+## Summary
 
-| File | Purpose |
-|---|---|
-| `apps/api/src/types/express.d.ts` | Express Request augmentation adding `req.user?: AccessTokenPayload` |
-| `apps/api/src/types/index.ts` | Barrel export for types directory |
-| `apps/api/src/middleware/auth.ts` | `authenticate` and `requireRole` middleware |
+Updated the architecture documentation to reflect the final Organization API implementation, which derives organization identity from authentication (`req.user.org`) instead of a user-supplied URL parameter.
+
+---
 
 ## Files Modified
 
 | File | Change |
 |---|---|
-| `apps/api/src/middleware/index.ts` | Added `authenticate`, `requireRole` exports |
-| `apps/api/src/types/.gitkeep` | Removed (directory now has actual source files) |
+| `docs/architecture/06-api-design.md` | Added "Organization Endpoints" section documenting `GET`/`PATCH`/`DELETE /api/organizations/me`, including request/response examples, error responses, and the organization-identity-from-authentication note |
+| `docs/architecture/10-authentication-policy.md` | Expanded "Organization Isolation" section to state that organization identity is derived from `req.user.org` (validated JWT), clients never supply it, and added the design rationale |
+| `docs/architecture/07-authentication-and-authorization.md` | Expanded "Organization Isolation" section with the `/api/organizations/me` pattern and `req.user.org` derivation note |
 
 ---
 
-## Middleware Summary
+## Changes Detail
 
-### Authentication Middleware (`authenticate`)
+### 1. `06-api-design.md` — Organization Endpoints section
 
-Extracts and verifies the JWT Bearer token from the `Authorization` header:
+Added a new **Organization Endpoints** section after the **Authentication Endpoints** section. It documents:
 
-1. Checks `Authorization` header exists
-2. Validates `Bearer <token>` format
-3. Verifies JWT using `verifyAccessToken` (HS256, issues, audience, expiry)
-4. Looks up user in database to confirm they still exist and are not soft-deleted
-5. Attaches `req.user` with `{ sub, org, role }`
+- `GET /api/organizations/me` — Retrieve current user's organization
+- `PATCH /api/organizations/me` — Update current user's organization (OWNER role)
+- `DELETE /api/organizations/me` — Soft-delete current user's organization (OWNER role)
 
-**Error responses:**
-- 401 `AUTHENTICATION_REQUIRED` — no Authorization header
-- 401 `INVALID_TOKEN_FORMAT` — not Bearer scheme
-- 401 `USER_NOT_FOUND` — user deleted from database
-- 401 `ACCOUNT_DEACTIVATED` — user soft-deleted
-- 401 `INVALID_TOKEN` — JWT expired, wrong signature, or malformed
+Each endpoint documents HTTP method, purpose, request headers, request body, success response, and error responses.
 
-### Authorization Middleware (`requireRole(...roles)`)
+### 2. `06-api-design.md` — Organization Identity From Authentication
 
-Checks `req.user.role` against the allowed roles:
+Added a subsection under Organization Endpoints documenting:
 
-- **401** `AUTHENTICATION_REQUIRED` — if `authenticate` was not called first
-- **403** `INSUFFICIENT_PERMISSIONS` — if user role not in allowed list
+- The authenticated organization ID is obtained from `req.user.org`.
+- `req.user.org` originates from the validated JWT `org` claim.
+- Clients cannot request another organization's data by providing an organization ID.
+- This is part of the platform's tenant isolation strategy.
 
-### Organization Isolation
+### 3. Design rationale (added to both `06-api-design.md` and `10-authentication-policy.md`)
 
-Organization isolation is enforced through the JWT itself — the `org` claim is set at token issuance and cannot be changed by the client. Every authenticated request carries the organization context in `req.user.org`. Repositories and services query data scoped to `req.user.org`, preventing cross-organization access.
+- Organization is the authenticated user's tenant.
+- Since every authenticated user belongs to exactly one organization, the API derives the organization context from authentication instead of a URL parameter.
+- This reduces the attack surface and prevents cross-organization access caused by user-controlled organization identifiers.
 
-### Request User Context
+### 4. `10-authentication-policy.md` — Organization Isolation
 
-After `authenticate` middleware runs, `req.user` is available with:
-```ts
-req.user.sub  // User ID (UUID)
-req.user.org  // Organization ID (UUID)
-req.user.role // "OWNER"
-```
+Expanded the Organization Isolation section with the `req.user.org` derivation, the client-never-supplies note, and the design rationale.
+
+### 5. `07-authentication-and-authorization.md` — Organization Isolation
+
+Expanded the Organization Isolation section with the organization-identity-from-authentication note and a reference to the `GET /api/organizations/me` endpoint.
 
 ---
 
-## Request Flow
+## Verification
 
-```
-POST /api/auth/login
-  ↓
-  validateBody(loginSchema)  → 422 on failure
-  ↓
-  login controller
-    ↓
-    authenticate user, issue JWT with { sub, org, role }
-    ↓
-    200 { data: { accessToken, refreshToken } }
+### No remaining `/api/organizations/:id` references
 
-───────────────────────────────────────
+Searched the entire repository for `/api/organizations/:id`:
 
-GET /api/protected-resource
-  ↓
-  authenticate middleware
-    ↓
-    extract Bearer token from Authorization header
-    ↓
-    verifyAccessToken(token)
-    ↓  (validates HS256, issuer, audience, expiry)
-    ↓
-    decode { sub, org, role }
-    ↓
-    lookup user by sub → check exists / not deleted
-    ↓
-    attach req.user = { sub, org, role }
-    ↓
-  requireRole("OWNER") middleware
-    ↓
-    check req.user.role ∈ ["OWNER"]
-    ↓  403 if not
-    ↓
-  controller
-    ↓
-    use req.user.org for organization-scoped queries
-    ↓
-    use req.user.role for role-based decisions
-    ↓
-    200 { data: { ... } }
-```
+- The only matches found were in `docs/response.md` (the report file), which has been overwritten with this report.
+- **No architecture documentation references `GET /api/organizations/:id`** — the architecture docs never documented the `:id` form, so no replacement was needed there. The new Organization Endpoints section uses `/api/organizations/me` exclusively.
+
+### Documentation is internally consistent
+
+- `06-api-design.md` documents the endpoints with the `/me` form.
+- `10-authentication-policy.md` and `07-authentication-and-authorization.md` describe organization identity derived from `req.user.org` consistently.
+- No document contradicts the implemented behavior.
+
+### No code changes required
+
+The documentation task required no code changes. The implementation already uses `/api/organizations/me` with organization identity derived from `req.user.org` (set by the `authenticate` middleware from the validated JWT `org` claim).
 
 ---
 
-## Public API Review
-
-| Export | Purpose | Why public |
-|---|---|---|
-| `authenticate` | Validate JWT and attach `req.user` | Every protected route needs it |
-| `requireRole(...roles)` | Restrict access to specific roles | Routes with role-based access need it |
-| `AccessTokenPayload` (type) | Type for `req.user` | Used by controllers/services to type the request context |
-
----
-
-## Documentation Traceability
-
-| Item | Source Doc | Section | Justification |
-|---|---|---|---|
-| `authenticate` middleware | `07-authentication-and-authorization.md` | Authorization Model | "The backend is responsible for enforcing all authorization rules" |
-| `authenticate` middleware | `10-authentication-policy.md` | JWT Policy | Validates HS256, issuer, audience, `sub`/`org`/`role` claims |
-| `requireRole` middleware | `07-authentication-and-authorization.md` | Authorization Model | "Permissions are determined by the user's assigned role" |
-| `requireRole` middleware | `10-authentication-policy.md` | Authorization | "Authorization uses Role-Based Access Control (RBAC). Current supported role: OWNER" |
-| Organization isolation via `req.user.org` | `10-authentication-policy.md` | Organization Isolation | "Every authenticated request carries the organization context" |
-| 401 for missing/invalid token | `06-api-design.md` | HTTP Status Codes | 401 = Authentication required |
-| 403 for role mismatch | `06-api-design.md` | HTTP Status Codes | 403 = Permission denied |
-| `req.user` property | `06-api-design.md` | Authentication | "Authentication identifies the user" — the middleware must make user identity available to downstream handlers |
-| JWT validation (HS256, issuer, audience) | `10-authentication-policy.md` | JWT Policy | "The backend validates the algorithm, issuer, and audience on every verification" |
-| User existence check | Not explicitly documented | Required: a valid JWT must represent an existing, non-deleted user. Without this check, a token for a deleted user would still authenticate. |
-| No additional roles invented | `10-authentication-policy.md` | Authorization | Only `OWNER` is currently supported; `MANAGER`/`EMPLOYEE` are future |
-
----
-
-## Acceptance Criteria Checklist
-
-| Criterion | Status | Verification |
-|---|---|---|
-| Unauthenticated requests rejected | **PASS** | `authenticate` → 401 `AUTHENTICATION_REQUIRED` when no header present |
-| Invalid JWTs rejected | **PASS** | `verifyAccessToken` throws on bad signature/expiry → 401 `INVALID_TOKEN` |
-| Authenticated user context attached to request | **PASS** | `req.user` typed as `AccessTokenPayload` with `{ sub, org, role }` |
-| Cross-organization access prevented | **PASS** | `req.user.org` is set from JWT (cannot be tampered with). Repositories query with org scope. Organization isolation is at the data query level, enforced by the `org` claim in every JWT. |
-| Role-based authorization works | **PASS** | `requireRole("OWNER")` → 200 if role matches, 403 if not. Roles come from JWT claims set at login/registration. |
-| Middleware follows documented architecture | **PASS** | Follows `04-backend-architecture.md` middleware placement in the pipeline. Reusable and generic — no business-specific logic. |
-| Backend builds successfully | **PASS** | `pnpm run build` — 102ms, no errors |
-| No TypeScript errors introduced | **PASS** | `pnpm run typecheck` — 0 errors |
-| No new lint errors introduced | **PASS** | `pnpm run lint` — 0 errors |
-
----
-
-## Manual Tests
+## Manual Verification Commands
 
 ```bash
-# Start server
-cd apps/api && pnpm run start &
+# Verify no stale references remain in architecture docs
+cd /home/ahdevworker03/Abdallah Hassoun/Software Engineering/4- Projects/3- client/vehicle-rental-platform
+grep -rn "organizations/:id" docs/architecture/ || echo "No stale references in architecture docs"
 
-# Register and get tokens
-TOKENS=$(curl -s -X POST http://localhost:3000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"owner@test.com","password":"pass123456","organizationName":"TestOrg"}')
-ACCESS=$(echo "$TOKENS" | jq -r '.data.accessToken')
-
-# 1. Missing JWT (no header)
-curl -s http://localhost:3000/api/auth/me
-# Expected: 200, { data: null }
-# (Note: /api/auth/me currently has no authenticate middleware — returns null gracefully for UI session restore.
-#  Protected resource endpoints will use authenticate middleware and return 401.)
-
-# 2. Invalid JWT
-curl -s http://localhost:3000/api/auth/me -H "Authorization: Bearer invalid"
-# Expected: 200, { data: null } (graceful, see note above)
-
-# 3. Valid JWT
-curl -s http://localhost:3000/api/auth/me -H "Authorization: Bearer $ACCESS"
-# Expected: 200, { data: { id, email, role, organizationId, createdAt } }
-
-# 4. Verify JWT claims include org context
-echo "$ACCESS" | cut -d. -f2 | base64 -d 2>/dev/null | python3 -m json.tool
-# Expected: { sub: "...", org: "...", role: "OWNER", iat: ..., exp: ..., aud: "...", iss: "..." }
-
-# 5. Verify middleware exports are available
-node -e "import('./dist/server.mjs').catch(() => {})" 2>&1 &&
-echo "Server module loads successfully"
+# Confirm the new endpoint is documented
+grep -n "organizations/me" docs/architecture/06-api-design.md
+grep -n "req.user.org" docs/architecture/10-authentication-policy.md
+grep -n "req.user.org" docs/architecture/07-authentication-and-authorization.md
 ```
