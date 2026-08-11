@@ -46,3 +46,19 @@ Never allow general knowledge to override repository facts.
 - Prefer solutions that remain understandable and maintainable.
 - Preserve existing architectural boundaries unless the user approves changing them.
 - Leave the codebase as clean as or cleaner than you found it.
+
+## Response Report
+
+- After completing every implementation, review, or planning task, generate a complete Markdown report.
+
+- Write the report to:
+
+```
+docs/response.md
+```
+
+- The report should overwrite the previous contents unless the task explicitly requires preserving history.
+
+- The response shown in chat and the contents of `docs/response.md` should be identical.
+
+- This report is intended to make it easy for the developer to review, copy, archive, or commit implementation summaries.

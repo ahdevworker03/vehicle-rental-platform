@@ -10,13 +10,15 @@
     "dev": "pnpm --filter @workspace/car-rental run dev",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "doctor": "npx react-doctor@latest"
   },
   "private": true,
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.8.0",
     "prettier": "^3.9.5",
+    "react-doctor": "^0.9.11",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.66.0"
   }
