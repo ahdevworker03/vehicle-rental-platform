@@ -1,5 +1,7 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client.js";
+import type { ITXClientDenyList } from "@prisma/client/runtime/client.js";
 
 const connectionString = process.env["DATABASE_URL"];
 
@@ -12,5 +14,10 @@ if (!connectionString) {
 const adapter = new PrismaPg({ connectionString });
 
 const prisma = new PrismaClient({ adapter });
+
+type TransactionClient = Omit<PrismaClient, ITXClientDenyList>;
+
+export { PrismaClientKnownRequestError };
+export type { TransactionClient };
 
 export default prisma;
