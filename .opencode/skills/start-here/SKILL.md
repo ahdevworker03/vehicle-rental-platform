@@ -61,3 +61,23 @@ Never let assumptions override repository facts.
 - Follow references only when they are directly relevant to the task.
 
 ---
+
+## Response Report
+
+At the end of every implementation task:
+
+1. Write the complete implementation report to:
+
+```
+docs/response.md
+```
+
+2. Replace the entire contents of the file with the current report.
+
+3. Do **not** append to the file.
+
+4. Do **not** keep previous reports.
+
+5. The file must always contain **only the latest task report**.
+
+The report written to `docs/response.md` must match the final response provided to the user.
