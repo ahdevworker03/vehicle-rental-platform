@@ -5,6 +5,87 @@ import { prisma } from "../../database";
 import { AppError } from "../../shared";
 import type { AuthTokens, AccessTokenPayload } from "./auth.types";
 
+async function registerOrganization(
+  email: string,
+  password: string,
+  organizationName: string,
+): Promise<AuthTokens> {
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+
+  if (existingUser) {
+    throw new AppError(409, "EMAIL_ALREADY_EXISTS", "A user with this email already exists.");
+  }
+
+  const passwordHash = await hashPassword(password);
+
+  const organization = await prisma.organization.create({
+    data: {
+      name: organizationName,
+    },
+  });
+
+  const user = await prisma.user.create({
+    data: {
+      email,
+      password_hash: passwordHash,
+      role: "OWNER",
+      organization_id: organization.id,
+    },
+  });
+
+  return issueTokens(user.id, user.organization_id, user.role);
+}
+
+async function login(email: string, password: string): Promise<AuthTokens> {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      email: true,
+      password_hash: true,
+      role: true,
+      organization_id: true,
+      deleted_at: true,
+    },
+  });
+
+  if (!user) {
+    throw new AppError(401, "INVALID_CREDENTIALS", "Invalid email or password.");
+  }
+
+  if (user.deleted_at) {
+    throw new AppError(401, "ACCOUNT_DEACTIVATED", "This account has been deactivated.");
+  }
+
+  const valid = await verifyPassword(password, user.password_hash);
+
+  if (!valid) {
+    throw new AppError(401, "INVALID_CREDENTIALS", "Invalid email or password.");
+  }
+
+  return issueTokens(user.id, user.organization_id, user.role);
+}
+
+async function getCurrentUser(accessToken: string) {
+  const payload = verifyAccessToken(accessToken);
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: payload.sub },
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      organization_id: true,
+      created_at: true,
+    },
+  });
+
+  return user;
+}
+
 async function issueTokens(
   userId: string,
   organizationId: string,
@@ -63,5 +144,17 @@ async function revokeAllUserTokens(userId: string): Promise<void> {
   });
 }
 
-export { hashPassword, verifyPassword, generateAccessToken, verifyAccessToken, issueTokens, rotateRefreshToken, revokeRefreshToken, revokeAllUserTokens };
+export {
+  hashPassword,
+  verifyPassword,
+  generateAccessToken,
+  verifyAccessToken,
+  registerOrganization,
+  login,
+  getCurrentUser,
+  issueTokens,
+  rotateRefreshToken,
+  revokeRefreshToken,
+  revokeAllUserTokens,
+};
 export type { AuthTokens, AccessTokenPayload };

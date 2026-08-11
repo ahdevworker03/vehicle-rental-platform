@@ -6,36 +6,44 @@ function generateRefreshTokenValue(): string {
   return crypto.randomBytes(authConfig.REFRESH_TOKEN_LENGTH).toString("hex");
 }
 
+function hashToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
 async function storeRefreshToken(userId: string): Promise<string> {
-  const token = generateRefreshTokenValue();
+  const rawToken = generateRefreshTokenValue();
+  const hashedToken = hashToken(rawToken);
   const expiresAt = new Date(Date.now() + authConfig.REFRESH_TOKEN_EXPIRY_MS);
 
   await prisma.refreshToken.create({
     data: {
-      token,
+      token: hashedToken,
       user_id: userId,
       expires_at: expiresAt,
     },
   });
 
-  return token;
+  return rawToken;
 }
 
-async function findRefreshToken(token: string) {
+async function findRefreshToken(rawToken: string) {
+  const hashedToken = hashToken(rawToken);
+
   return prisma.refreshToken.findUnique({
-    where: { token },
+    where: { token: hashedToken },
     select: {
       id: true,
-      token: true,
       user_id: true,
       expires_at: true,
     },
   });
 }
 
-async function deleteRefreshToken(token: string): Promise<void> {
+async function deleteRefreshToken(rawToken: string): Promise<void> {
+  const hashedToken = hashToken(rawToken);
+
   await prisma.refreshToken.delete({
-    where: { token },
+    where: { token: hashedToken },
   });
 }
 

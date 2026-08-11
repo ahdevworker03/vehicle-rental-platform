@@ -13,6 +13,7 @@
     "format:check": "pnpm exec prettier --check src"
   },
   "dependencies": {
+    "@prisma/client": "7.9.1",
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",
     "argon2": "^0.45.1",

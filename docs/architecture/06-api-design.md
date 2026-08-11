@@ -204,6 +204,121 @@ Authentication details are documented separately in the Authentication Architect
 
 ---
 
+# Authentication Endpoints
+
+Authentication endpoints are grouped under the `/api/auth/*` prefix.
+
+All endpoints accept and return JSON.
+
+## POST /api/auth/register
+
+- **Purpose:** Register a new organization and its first user (OWNER role).
+- **Request body:**
+  ```json
+  {
+    "email": "owner@example.com",
+    "password": "securepassword",
+    "organizationName": "My Company"
+  }
+  ```
+- **Success response:** `201 Created`
+  ```json
+  {
+    "data": {
+      "accessToken": "...",
+      "refreshToken": "...",
+      "expiresAt": "2026-01-01T00:00:00.000Z"
+    }
+  }
+  ```
+- **Error responses:**
+  - `400` Invalid request
+  - `409` Email already exists
+  - `422` Validation failed
+
+## POST /api/auth/login
+
+- **Purpose:** Authenticate a user and issue access and refresh tokens.
+- **Request body:**
+  ```json
+  {
+    "email": "owner@example.com",
+    "password": "securepassword"
+  }
+  ```
+- **Success response:** `200 OK`
+  ```json
+  {
+    "data": {
+      "accessToken": "...",
+      "refreshToken": "...",
+      "expiresAt": "2026-01-01T00:00:00.000Z"
+    }
+  }
+  ```
+- **Error responses:**
+  - `401` Invalid credentials
+  - `422` Validation failed
+
+## POST /api/auth/refresh
+
+- **Purpose:** Exchange a valid refresh token for a new access and refresh token pair. The previous refresh token is invalidated.
+- **Request body:**
+  ```json
+  {
+    "refreshToken": "..."
+  }
+  ```
+- **Success response:** `200 OK`
+  ```json
+  {
+    "data": {
+      "accessToken": "...",
+      "refreshToken": "...",
+      "expiresAt": "2026-01-01T00:00:00.000Z"
+    }
+  }
+  ```
+- **Error responses:**
+  - `401` Invalid or expired refresh token
+  - `422` Validation failed
+
+## POST /api/auth/logout
+
+- **Purpose:** Revoke the provided refresh token and end the authenticated session.
+- **Request body:**
+  ```json
+  {
+    "refreshToken": "..."
+  }
+  ```
+- **Success response:** `204 No Content` (no body)
+- **Error responses:**
+  - `422` Validation failed
+
+## GET /api/auth/me
+
+- **Purpose:** Retrieve the current authenticated user. Used by clients to restore the active session.
+- **Request headers:** `Authorization: Bearer <accessToken>`
+- **Success responses:**
+  - `200 OK` with authenticated user information when the access token is valid:
+    ```json
+    {
+      "data": {
+        "id": "...",
+        "email": "owner@example.com",
+        "role": "OWNER",
+        "organizationId": "...",
+        "createdAt": "2026-01-01T00:00:00.000Z"
+      }
+    }
+    ```
+  - `200 OK` with `{ "data": null }` when no authenticated user exists (no token provided).
+- **Error responses:**
+  - `401` Unauthorized when an authentication attempt is made with an invalid or malformed token.
+
+---
+
 # Authorization
 
 Authentication identifies the user.

@@ -164,6 +164,47 @@ Future requests require authentication again.
 
 ---
 
+# Authentication API
+
+Authentication is exposed through the `/api/auth/*` endpoint group.
+
+## Registration
+
+`POST /api/auth/register`
+
+Registers a new organization and its first user (OWNER role). On success, access and refresh tokens are issued and returned to the client.
+
+## Login
+
+`POST /api/auth/login`
+
+Authenticates a user with email and password. Credentials are validated, the user identity is verified, and access and refresh tokens are issued.
+
+## Refresh
+
+`POST /api/auth/refresh`
+
+Exchanges a valid refresh token for a new access and refresh token pair. The previous refresh token is invalidated (rotation).
+
+## Logout
+
+`POST /api/auth/logout`
+
+Revokes the provided refresh token, ending the authenticated session.
+
+## Current User
+
+`GET /api/auth/me`
+
+Returns the current authenticated user. This endpoint is used by clients to restore the current authenticated session, for example when the application loads.
+
+The endpoint:
+- Returns the authenticated user information when a valid access token is provided.
+- Returns `{ "data": null }` when no authenticated user exists.
+- Returns `401` when an authentication attempt is made with an invalid or malformed token.
+
+---
+
 # Protected Resources
 
 Authentication is required for all business operations, including:
