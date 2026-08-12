@@ -138,6 +138,16 @@ Notes: Default value is `AVAILABLE`. Availability is derived from `status` and a
 | `ELECTRIC` | Approved |
 | `HYBRID` | Approved |
 
+## DocumentCategory
+
+**Source:** approved architecture decision for Media (Documents & Photos).
+
+| Value | Status |
+|---|---|
+| `REGISTRATION` | Approved |
+| `INSURANCE` | Approved |
+| `OTHER` | Approved |
+
 ## RentalStatus
 
 **Source:** `04-domain-model.md` lists rental responsibilities but no status enum.
@@ -1064,29 +1074,285 @@ System-generated reminders.
 
 ## Purpose
 
-Vehicles have documents and photos. Customers may have documents.
+Vehicles have documents and photos. Customers may have documents in the future.
 
-## Open Decisions (Requires Architectural Approval)
+## Model Structure
 
-- Whether `Document` and `Photo` are separate models or one shared media/attachment model.
-- Storage mechanism (local filesystem, object storage, database BLOB, external service).
-- File metadata fields (name, mime type, size, URL/path, checksum).
-- Whether photos are a single image or a collection per vehicle.
-- Organization scoping of media records.
+Two separate models:
+
+- `Document`
+- `Photo`
+
+A shared `Attachment` model is **not** used.
+
+## Storage Abstraction
+
+Media uses a **provider-independent storage abstraction**. Domain logic never depends on a specific storage provider.
+
+Conceptual interface:
+
+```ts
+interface StorageProvider {
+  store(key: string, data: Buffer, contentType: string): Promise<void>;
+  getUrl(key: string): Promise<string>;
+  retrieve(key: string): Promise<Buffer>;
+  delete(key: string): Promise<void>;
+}
+```
+
+The first implementation will eventually use a local filesystem provider for development and testing. No cloud storage provider is selected.
+
+Storage references use:
+
+- `storage_key: String`
+- generated server-side
+- never supplied directly by the client
+- globally unique
+- opaque to the client
+
+Conceptual key format:
+
+```
+<organization_id>/<entity>/<uuid>.<extension>
+```
+
+The extension is derived from the validated MIME type.
+
+---
+
+# Document
+
+## Purpose
+
+Represents a file attached to a Vehicle (e.g., registration or insurance document).
+
+## Relationships
+
+- Belongs to one `Organization`
+- Belongs to one `Vehicle`
+
+## Fields
+
+| Field | Column | Type | Required | Default | Notes |
+|---|---|---|---|---|---|
+| id | id | UUID | ✅ | uuid() | PK |
+| organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
+| vehicle_id | vehicle_id | UUID | ✅ | — | FK → Vehicle.id |
+| category | category | DocumentCategory | ✅ | OTHER | REGISTRATION / INSURANCE / OTHER |
+| original_filename | original_filename | String | ✅ | — | Client filename (sanitized) |
+| mime_type | mime_type | String | ✅ | — | Content type |
+| file_size | file_size | Int | ✅ | — | Size in bytes |
+| storage_key | storage_key | String | ✅ | — | Globally unique storage reference |
+| created_at | created_at | DateTime | ✅ | now() | Audit |
+| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
+| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete |
+
+## Constraints
+
+- FK `organization_id` → `Organization.id`.
+- FK `vehicle_id` → `Vehicle.id`.
+- `file_size` must be a non-negative integer.
+
+## Unique Constraints
+
+- `@@unique([storage_key])` — globally unique storage reference.
+
+## Indexes
+
+- `@@index([organization_id])`
+- `@@index([vehicle_id])`
+- `@@index([category])`
+- `@@index([deleted_at])`
+
+## Foreign Keys
+
+- `organization_id` → `Organization.id`, onDelete RESTRICT.
+- `vehicle_id` → `Vehicle.id`, onDelete RESTRICT.
+
+## onDelete Behavior
+
+- RESTRICT for both FKs (business-record convention).
+
+## Soft Delete Strategy
+
+- `deleted_at` timestamp. Soft-deleted documents are excluded from normal list queries and return 404 on direct retrieval, but remain in the database for audit/recovery.
+- Physical storage files are **not** deleted during soft delete. Physical cleanup may be handled by a future storage lifecycle process.
+
+## Business Rules
+
+- A document belongs to exactly one Vehicle.
+- The document's organization must match the owning Vehicle's organization.
+- `category` identifies registration, insurance, or other document types.
+
+## Validation Rules
+
+- `original_filename` is required, non-empty, sanitized, with path separators removed.
+- `mime_type` is required, must be in the supported MIME types.
+- `file_size` is required, non-negative integer, maximum 10 MB.
+- `category` is required, must be a valid `DocumentCategory`.
+- `storage_key` is generated server-side (never client-supplied).
+
+## API Notes
+
+- Planned: `/api/vehicles/:id/documents` (upload, list, get, delete) in a later step.
+- Upload/download endpoints are **not** part of Step 9.1.
+
+---
+
+# Photo
+
+## Purpose
+
+Represents a photo attached to a Vehicle.
+
+## Relationships
+
+- Belongs to one `Organization`
+- Belongs to one `Vehicle`
+
+## Fields
+
+| Field | Column | Type | Required | Default | Notes |
+|---|---|---|---|---|---|
+| id | id | UUID | ✅ | uuid() | PK |
+| organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
+| vehicle_id | vehicle_id | UUID | ✅ | — | FK → Vehicle.id |
+| sort_order | sort_order | Int | ✅ | 0 | Display ordering within a vehicle |
+| caption | caption | String? | ❌ | null | Optional description |
+| original_filename | original_filename | String | ✅ | — | Client filename (sanitized) |
+| mime_type | mime_type | String | ✅ | — | Content type |
+| file_size | file_size | Int | ✅ | — | Size in bytes |
+| storage_key | storage_key | String | ✅ | — | Globally unique storage reference |
+| created_at | created_at | DateTime | ✅ | now() | Audit |
+| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
+| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete |
+
+## Constraints
+
+- FK `organization_id` → `Organization.id`.
+- FK `vehicle_id` → `Vehicle.id`.
+- `file_size` must be a non-negative integer.
+- `sort_order` must be an integer.
+
+## Unique Constraints
+
+- `@@unique([storage_key])` — globally unique storage reference.
+
+## Indexes
+
+- `@@index([organization_id])`
+- `@@index([vehicle_id])`
+- `@@index([vehicle_id, sort_order])`
+- `@@index([deleted_at])`
+
+## Foreign Keys
+
+- `organization_id` → `Organization.id`, onDelete RESTRICT.
+- `vehicle_id` → `Vehicle.id`, onDelete RESTRICT.
+
+## onDelete Behavior
+
+- RESTRICT for both FKs (business-record convention).
+
+## Soft Delete Strategy
+
+- `deleted_at` timestamp. Soft-deleted photos are excluded from normal list queries and return 404 on direct retrieval, but remain in the database for audit/recovery.
+- Physical storage files are **not** deleted during soft delete. Physical cleanup may be handled by a future storage lifecycle process.
+
+## Business Rules
+
+- A photo belongs to exactly one Vehicle.
+- The photo's organization must match the owning Vehicle's organization.
+- Photos are ordered by ascending `sort_order`.
+- The lowest `sort_order` is the primary / display-first photo.
+- No `primary` boolean field is stored.
+
+## Validation Rules
+
+- `original_filename` is required, non-empty, sanitized, with path separators removed.
+- `mime_type` is required, must be in the supported MIME types.
+- `file_size` is required, non-negative integer, maximum 10 MB.
+- `sort_order` is an integer, default 0.
+- `caption` is optional; when present, must be a non-empty string.
+- `storage_key` is generated server-side (never client-supplied).
+
+## API Notes
+
+- Planned: `/api/vehicles/:id/photos` (upload, list, get, delete) in a later step.
+- Upload/download endpoints are **not** part of Step 9.1.
+
+---
+
+# Entity Ownership
+
+For the current scope, both models use **explicit foreign keys**:
+
+- `vehicle_id` → `Vehicle.id`
+
+Polymorphic `entity_type + entity_id` is **not** used. Speculative `customer_id` or `contract_id` fields are **not** added yet.
+
+The architecture is extensible: future entities (Customer documents, Contract documents) may receive explicit FK relationships through future migrations without redesign.
+
+---
+
+# Organization Isolation
+
+- Both models contain a required `organization_id` FK → `Organization.id`.
+- The organization must come from the authenticated server context, never client input.
+- The service layer must verify `media.organization_id === vehicle.organization_id` before creating media.
+
+---
+
+# Supported MIME Types
+
+Photos:
+
+- `image/jpeg`
+- `image/png`
+- `image/webp`
+
+Documents:
+
+- `application/pdf`
+- `image/jpeg`
+- `image/png`
+
+---
+
+# Step 9.1 Scope
+
+Step 9.1 provides:
+
+- `Document` model
+- `Photo` model
+- `DocumentCategory` enum
+- `StorageProvider` abstraction
+- local filesystem provider architecture for development/testing
+- migration
+
+It does **not** implement:
+
+- upload APIs
+- download APIs
+- media controllers
+- frontend media UI
+- cloud storage
+- background cleanup jobs
+
+Those belong to later steps.
 
 ---
 
 # Open Decisions Summary (Requires Architectural Approval)
 
 1. **Rental field set and status enum** — period structure, pricing, status values.
-3. **Contract representation** — content vs file reference vs template.
-4. **Payment field set** — method enum, amount precision, balance stored vs derived.
-5. **Expense field set** — amount precision, currency, category enum representation.
-6. **Maintenance field set** — parts representation, vendor representation, cost format.
-7. **Task field set** — recurrence representation, completion status enum.
-8. **Notification field set** — type enum, read state, stored vs generated.
-9. **Media model design** — separate vs shared models, storage mechanism, metadata fields.
-10. **Role permission matrix** — exact per-module permissions for OWNER/MANAGER/EMPLOYEE.
+2. **Contract representation** — content vs file reference vs template.
+3. **Payment field set** — method enum, amount precision, balance stored vs derived.
+4. **Expense field set** — amount precision, currency, category enum representation.
+5. **Maintenance field set** — parts representation, vendor representation, cost format.
+6. **Task field set** — recurrence representation, completion status enum.
+7. **Notification field set** — type enum, read state, stored vs generated.
+8. **Role permission matrix** — exact per-module permissions for OWNER/MANAGER/EMPLOYEE.
 
 Each open decision must be resolved and approved before the corresponding model is implemented.
 

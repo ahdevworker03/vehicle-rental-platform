@@ -16,6 +16,8 @@ model Organization {
   users      User[]
   customers  Customer[]
   vehicles   Vehicle[]
+  documents  Document[]
+  photos     Photo[]
 
   @@index([deleted_at])
 }
@@ -45,6 +47,12 @@ enum FuelType {
   DIESEL
   ELECTRIC
   HYBRID
+}
+
+enum DocumentCategory {
+  REGISTRATION
+  INSURANCE
+  OTHER
 }
 
 model User {
@@ -121,6 +129,9 @@ model Vehicle {
   updated_at       DateTime       @updatedAt
   deleted_at       DateTime?
 
+  documents Document[]
+  photos    Photo[]
+
   @@unique([organization_id, plate_number])
   @@index([organization_id])
   @@index([deleted_at])
@@ -128,4 +139,47 @@ model Vehicle {
   @@index([make])
   @@index([model])
   @@index([plate_number])
+}
+
+model Document {
+  id                String           @id @default(uuid()) @db.Uuid
+  organization_id   String           @db.Uuid
+  organization      Organization     @relation(fields: [organization_id], references: [id])
+  vehicle_id        String           @db.Uuid
+  vehicle           Vehicle          @relation(fields: [vehicle_id], references: [id])
+  category          DocumentCategory @default(OTHER)
+  original_filename String
+  mime_type         String
+  file_size         Int
+  storage_key       String           @unique
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+  deleted_at        DateTime?
+
+  @@index([organization_id])
+  @@index([vehicle_id])
+  @@index([category])
+  @@index([deleted_at])
+}
+
+model Photo {
+  id                String   @id @default(uuid()) @db.Uuid
+  organization_id   String   @db.Uuid
+  organization      Organization @relation(fields: [organization_id], references: [id])
+  vehicle_id        String   @db.Uuid
+  vehicle           Vehicle  @relation(fields: [vehicle_id], references: [id])
+  sort_order        Int      @default(0)
+  caption           String?
+  original_filename String
+  mime_type         String
+  file_size         Int
+  storage_key       String   @unique
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  deleted_at        DateTime?
+
+  @@index([organization_id])
+  @@index([vehicle_id])
+  @@index([vehicle_id, sort_order])
+  @@index([deleted_at])
 }
