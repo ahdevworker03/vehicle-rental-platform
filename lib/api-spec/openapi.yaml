@@ -10,6 +10,14 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: organizations
+    description: Organization operations
+  - name: users
+    description: User operations
+  - name: customers
+    description: Customer operations
 paths:
   /healthz:
     get:
@@ -24,7 +32,614 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: registerOrganization
+      tags: [auth]
+      summary: Register a new organization and its first user
+      description: Registers an organization with an OWNER user and returns access and refresh tokens.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Organization registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokensResponse"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      description: Authenticates a user and returns access and refresh tokens.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokensResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/refresh:
+    post:
+      operationId: refreshToken
+      tags: [auth]
+      summary: Refresh access token
+      description: Exchanges a valid refresh token for a new access and refresh token pair. The previous refresh token is invalidated.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: New token pair issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokensResponse"
+        "401":
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      description: Revokes the provided refresh token and ends the authenticated session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutRequest"
+      responses:
+        "204":
+          description: Logged out
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Get current user
+      description: Returns the current authenticated user, or null when no valid access token is provided.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user or null
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponseWrapper"
+
+  /organizations/me:
+    get:
+      operationId: getMyOrganization
+      tags: [organizations]
+      summary: Get current organization
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current organization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateMyOrganization
+      tags: [organizations]
+      summary: Update current organization
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrganizationRequest"
+      responses:
+        "200":
+          description: Organization updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteMyOrganization
+      tags: [organizations]
+      summary: Soft delete current organization
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Organization deleted
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List users in the current organization
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Create a user in the current organization
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/{id}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get a user in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Update a user role in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      summary: Soft delete a user in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: User ID
+      responses:
+        "204":
+          description: User deleted
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List customers in the current organization
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of customers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create a customer in the current organization
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerRequest"
+      responses:
+        "201":
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate customer (national ID or license number already exists)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      summary: Get a customer in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Customer ID
+      responses:
+        "200":
+          description: Customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateCustomer
+      tags: [customers]
+      summary: Update a customer in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Customer ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCustomerRequest"
+      responses:
+        "200":
+          description: Customer updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate customer (national ID or license number already exists)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      summary: Soft delete a customer in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Customer ID
+      responses:
+        "204":
+          description: Customer deleted
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     HealthStatus:
       type: object
@@ -34,3 +649,312 @@ components:
       required:
         - status
 
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+          minLength: 8
+        organizationName:
+          type: string
+          minLength: 1
+      required:
+        - email
+        - password
+        - organizationName
+
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+          minLength: 1
+      required:
+        - email
+        - password
+
+    RefreshRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+      required:
+        - refreshToken
+
+    LogoutRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          minLength: 1
+      required:
+        - refreshToken
+
+    AuthTokensResponse:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/AuthTokens"
+      required:
+        - data
+
+    AuthTokens:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+      required:
+        - accessToken
+        - refreshToken
+        - expiresAt
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - role
+        - createdAt
+        - updatedAt
+
+    UserResponseWrapper:
+      type: object
+      properties:
+        data:
+          oneOf:
+            - $ref: "#/components/schemas/UserResponse"
+            - type: "null"
+      required:
+        - data
+
+    UserListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserResponse"
+      required:
+        - data
+
+    CreateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+          minLength: 8
+        role:
+          type: string
+          enum: [MANAGER, EMPLOYEE]
+      required:
+        - email
+        - password
+        - role
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [MANAGER, EMPLOYEE]
+      required:
+        - role
+
+    OrganizationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - createdAt
+        - updatedAt
+
+    OrganizationResponseWrapper:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/OrganizationResponse"
+      required:
+        - data
+
+    UpdateOrganizationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+      required:
+        - name
+
+    CustomerResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        nationalId:
+          type: string
+        licenseNumber:
+          type: string
+        licenseExpiryDate:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - firstName
+        - lastName
+        - phone
+        - address
+        - nationalId
+        - licenseNumber
+        - licenseExpiryDate
+        - createdAt
+        - updatedAt
+
+    CustomerResponseWrapper:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/CustomerResponse"
+      required:
+        - data
+
+    CustomerListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomerResponse"
+      required:
+        - data
+
+    CreateCustomerRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          minLength: 1
+        last_name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+          minLength: 1
+        address:
+          type: string
+          minLength: 1
+        national_id:
+          type: string
+          minLength: 1
+        license_number:
+          type: string
+          minLength: 1
+        license_expiry_date:
+          type: string
+          format: date-time
+      required:
+        - first_name
+        - last_name
+        - phone
+        - address
+        - national_id
+        - license_number
+        - license_expiry_date
+
+    UpdateCustomerRequest:
+      type: object
+      properties:
+        first_name:
+          type: string
+          minLength: 1
+        last_name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+          minLength: 1
+        address:
+          type: string
+          minLength: 1
+        national_id:
+          type: string
+          minLength: 1
+        license_number:
+          type: string
+          minLength: 1
+        license_expiry_date:
+          type: string
+          format: date-time
+      required:
+        - first_name
+        - last_name
+        - phone
+        - address
+        - national_id
+        - license_number
+        - license_expiry_date
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+          required:
+            - code
+            - message
+      required:
+        - error
