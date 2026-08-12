@@ -1,145 +1,127 @@
-# Step 7.1 — Customer Model: Complete
+# Step 7.2 — Final Implementation Review
 
 ---
 
-## Files Created
+## 1. PATCH Semantics: Full-Resource Update
 
-| File | Purpose |
+**Verdict: ✅ Correct — no correction required.**
+
+### Execution path
+
+```
+PATCH /api/customers/:id
+  → validateBody(updateCustomerSchema)
+      → requires all 7 fields (first_name, last_name, phone, address,
+        national_id, license_number, license_expiry_date)
+  → controller.update
+  → service.updateCustomer → passes all 7 fields to repo.update
+  → repo.update → prisma.customer.update({ where: { id }, data: { all 7 fields } })
+```
+
+### Analysis
+
+- `06-api-design.md` (HTTP Methods) documents `PATCH | Update existing resources` but does **not** specify partial vs full update semantics.
+- The existing codebase treats PATCH as a full update of the updateable fields:
+  - **Organization**: `updateOrganizationSchema` requires `name` (full update)
+  - **User**: `updateUserSchema` requires `role` (full update)
+- The Customer module follows the same convention: all 7 updateable fields are required.
+- The `UpdateCustomerInput` type in `customer.types.ts` and the service both pass all fields through.
+
+This is consistent with the existing codebase pattern. If partial updates are desired in the future, the schema could be changed to `.partial()`, but that would be a new decision, not a correction of a bug.
+
+---
+
+## 2. Duplicate Detection Scope
+
+**Verdict: ✅ Correct — duplicate detection only fires on actual unique-constraint violations.**
+
+### Execution path
+
+```
+createCustomer / updateCustomer (service)
+  → try { repo.create(...) / repo.update(...) }
+  → catch (err)
+      → if (isUniqueConstraintError(err))  // PrismaClientKnownRequestError, code === "P2002"
+          → throw AppError(409, "DUPLICATE_CUSTOMER", ...)
+      → throw err  // all other errors re-thrown unchanged
+```
+
+### Analysis
+
+- `isUniqueConstraintError` checks `error instanceof PrismaClientKnownRequestError && error.code === "P2002"`.
+- P2002 is specifically "Unique constraint failed on the fields" — it fires only when a unique constraint is actually violated.
+- The Customer model has exactly two unique constraints:
+  - `@@unique([organization_id, national_id])`
+  - `@@unique([organization_id, license_number])`
+- An **update that keeps a customer's own values** does NOT fire P2002 (updating a row to its own current values does not collide with another row).
+- Only a genuine collision with a **different** customer's `national_id` or `license_number` within the same org triggers P2002 → 409.
+- **Unrelated errors** (connection failures, DB errors, validation) are re-thrown as-is — they are never converted to a 409.
+
+Verified at runtime: duplicate national_id in same org → `409 DUPLICATE_CUSTOMER`. No false positives.
+
+---
+
+## 3. `license_expiry_date` Flow
+
+**Verdict: ⚠️ One real issue found and corrected — date validity was not enforced.**
+
+### Full execution path
+
+| Stage | Code | Input Type | Notes |
+|---|---|---|---|
+| **Validation** | `customer.validation.ts` — `license_expiry_date: z.string().min(1, ...)` | `string` | **Before fix:** only checked non-empty. **After fix:** `refine((v) => !isNaN(new Date(v).getTime()))` rejects invalid dates |
+| **Service conversion** | `customer.service.ts:60,93` — `new Date(input.license_expiry_date)` | `string → Date` | Converts ISO string to Date |
+| **Repository input** | `customer.repository.ts:24,41` — `license_expiry_date: Date` | `Date` | Typed as `Date` |
+| **Prisma write** | `prisma.customer.create/update({ data: { license_expiry_date } })` | `Date → timestamp` | Prisma maps Date to PostgreSQL TIMESTAMP(3) |
+
+### Issue found
+
+Before the fix, the validation `z.string().min(1)` accepted any non-empty string (e.g., `"not-a-date"`). Then `new Date("not-a-date")` produced `Invalid Date`, which would fail at the Prisma write or store an invalid timestamp. This violated the documented validation rule:
+
+> `11-domain-model-specification.md` (Customer, Validation Rules): "`license_expiry_date` is required, must be a valid date."
+
+### Fix applied
+
+Added a shared `validDate` refine to both create and update schemas:
+
+```ts
+const validDate = z.string().refine(
+  (value) => !isNaN(new Date(value).getTime()),
+  { message: "License expiry date must be a valid date" },
+);
+```
+
+### Post-fix runtime verification
+
+| Test | Input | Result |
+|---|---|---|
+| Invalid date | `"not-a-date"` | **422** `VALIDATION_ERROR: license_expiry_date: License expiry date must be a valid date` |
+| Valid date | `"2028-12-31T00:00:00.000Z"` | **201** created, expiry stored correctly |
+| Duplicate detection | same `national_id` | **409** `DUPLICATE_CUSTOMER` (unchanged) |
+
+---
+
+## Summary of Findings
+
+| Item | Status |
 |---|---|
-| `lib/db/prisma/migrations/20260812054816_add_customer_model/migration.sql` | Migration creating the Customer table |
+| 1. PATCH full-resource update | ✅ Consistent with codebase pattern; no correction required |
+| 2. Duplicate detection scope | ✅ Only P2002 → 409; unrelated errors re-thrown |
+| 3. license_expiry_date flow | ⚠️ Issue found (invalid dates accepted) and **corrected** with `validDate` refine |
 
-## Files Modified
+## Files Modified (review fix)
 
 | File | Change |
 |---|---|
-| `lib/db/prisma/schema.prisma` | Added `Customer` model; added `customers Customer[]` relation to `Organization` |
+| `apps/api/src/modules/customers/customer.validation.ts` | Added `validDate` refine to enforce valid date format on create and update |
 
----
+## Verification After Fix
 
-## Database Design Summary
-
-### Customer Model
-
-| Field | Type | Constraints | Notes |
-|---|---|---|---|
-| `id` | `UUID` | `@id`, `@default(uuid())` | Primary key |
-| `organization_id` | `UUID` | FK → `Organization.id`, RESTRICT | Tenant isolation |
-| `first_name` | `String` | Required, indexed | Identity (name part 1) |
-| `last_name` | `String` | Required, indexed | Identity (name part 2) |
-| `phone` | `String` | Required, indexed | Primary contact |
-| `address` | `String` | Required | Contact address |
-| `national_id` | `String` | Required, unique with org_id, indexed | National identification |
-| `license_number` | `String` | Required, unique with org_id, indexed | Driver's license |
-| `license_expiry_date` | `DateTime` | Required | Driver's license expiry |
-| `created_at` | `DateTime` | `@default(now())` | Audit |
-| `updated_at` | `DateTime` | `@updatedAt` | Audit |
-| `deleted_at` | `DateTime?` | Nullable, indexed | Soft delete ("archive") |
-
-### Relationships
-
-- Belongs to one `Organization` (`organization Organization @relation(...)`)
-- Organization has many `Customer` (`customers Customer[]`)
-
-### Unique Constraints
-
-- `@@unique([organization_id, national_id])` — national ID is unique per organization
-- `@@unique([organization_id, license_number])` — license number is unique per organization
-
-### Indexes
-
-- `@@index([organization_id])` — FK index
-- `@@index([deleted_at])` — soft delete filter
-- `@@index([first_name])` — search
-- `@@index([last_name])` — search
-- `@@index([phone])` — search
-- `@@index([national_id])` — search
-- `@@index([license_number])` — search
-
-### onDelete
-
-- `organization_id` → `Organization.id` on delete RESTRICT
-
-### Soft Delete
-
-- `deleted_at` — used to archive inactive customers; excluded from active lists/searches
-
----
-
-## Documentation Traceability
-
-Every field, constraint, index, and architectural decision is traceable to `docs/architecture/11-domain-model-specification.md`, Customer section.
-
-| Item | Spec Reference |
+| Check | Result |
 |---|---|
-| `id` | Fields table (row 1) |
-| `organization_id` | Fields table (row 2), Relationships, Foreign Keys |
-| `first_name` | Fields table (row 3), Validation Rules |
-| `last_name` | Fields table (row 4), Validation Rules |
-| `phone` | Fields table (row 5), Validation Rules |
-| `address` | Fields table (row 6), Validation Rules |
-| `national_id` | Fields table (row 7), Unique Constraints (`@@unique([organization_id, national_id])`) |
-| `license_number` | Fields table (row 8), Unique Constraints (`@@unique([organization_id, license_number])`) |
-| `license_expiry_date` | Fields table (row 9) |
-| `created_at` / `updated_at` | Shared Conventions (Audit Fields) |
-| `deleted_at` | Fields table (row 10), Soft Delete Strategy |
-| `@@unique([organization_id, national_id])` | Unique Constraints (item 1) |
-| `@@unique([organization_id, license_number])` | Unique Constraints (item 2) |
-| `@@index([organization_id])` | Indexes (item 1) |
-| `@@index([deleted_at])` | Indexes (item 2) |
-| `@@index([first_name])` | Indexes (item 3) |
-| `@@index([last_name])` | Indexes (item 4) |
-| `@@index([phone])` | Indexes (item 5) |
-| `@@index([national_id])` | Indexes (item 6) |
-| `@@index([license_number])` | Indexes (item 7) |
-| onDelete RESTRICT | onDelete Behavior |
-
----
-
-## Migration Summary
-
-The migration creates the `Customer` table with:
-- 12 columns (id, organization_id, first_name, last_name, phone, address, national_id, license_number, license_expiry_date, created_at, updated_at, deleted_at)
-- 7 non-unique indexes (organization_id, deleted_at, first_name, last_name, phone, national_id, license_number)
-- 2 composite unique indexes (organization_id + national_id, organization_id + license_number)
-- 1 foreign key (organization_id → Organization.id, RESTRICT on delete)
-- No existing tables or data are modified.
-
----
-
-## Acceptance Criteria Checklist
-
-| Criterion | Status | Verification |
-|---|---|---|
-| Model matches architecture | **PASS** | All 12 fields, 2 unique constraints, 7 indexes, 1 FK match `11-domain-model-specification.md` Customer section exactly |
-| Migration succeeds | **PASS** | `pnpm db:migrate --name add_customer_model` — applied without errors |
-| Organization isolation present | **PASS** | `organization_id` FK + `@@index([organization_id])`, plus org-scoped unique constraints |
-| All constraints verified | **PASS** | 2 composite unique, RESTRICT on FK, non-null on 9 required fields |
-| All indexes verified | **PASS** | 7 non-unique indexes, 2 unique indexes (all visible in migration SQL and schema) |
-| Prisma Client generates | **PASS** | `pnpm db:generate` — generated in 97ms, no errors |
-| TypeScript passes | **PASS** | `pnpm run typecheck` — 0 errors |
-| Build passes | **PASS** | `pnpm run build` — 164ms, no errors |
-| Lint passes | **PASS** | `pnpm run lint` — 0 errors |
-
----
-
-## Manual Verification Commands
-
-```bash
-# Verify migration status (no pending migrations)
-cd lib/db && pnpm db:migrate
-# Expected: "Already in sync, no schema change or pending migration was found."
-
-# Verify Prisma Client generation
-cd lib/db && pnpm db:generate
-# Expected: "Generated Prisma Client"
-
-# Verify backend still builds
-cd apps/api && pnpm run typecheck && pnpm run build && pnpm run lint
-
-# Inspect the Customer table structure
-cd lib/db && pnpm db:studio
-# Navigate to Customer model to verify columns, indexes, and constraints
-
-# Verify migration SQL created correctly
-cat lib/db/prisma/migrations/20260812054816_add_customer_model/migration.sql
-```
+| Typecheck | ✅ 0 errors |
+| Build | ✅ 106ms |
+| Lint | ✅ 0 errors |
+| Invalid date → 422 | ✅ |
+| Valid date → 201 | ✅ |
+| Duplicate → 409 | ✅ |

@@ -3,6 +3,7 @@ import healthRouter from "../modules/health/health.routes";
 import authRouter from "../modules/auth/auth.routes";
 import organizationsRouter from "../modules/organizations/organization.routes";
 import usersRouter from "../modules/users/user.routes";
+import customersRouter from "../modules/customers/customer.routes";
 
 const router: IRouter = Router();
 
@@ -10,5 +11,6 @@ router.use(healthRouter);
 router.use("/auth", authRouter);
 router.use(organizationsRouter);
 router.use(usersRouter);
+router.use(customersRouter);
 
 export default router;
