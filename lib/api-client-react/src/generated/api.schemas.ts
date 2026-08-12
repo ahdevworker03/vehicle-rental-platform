@@ -309,6 +309,57 @@ export interface UpdateVehicleRequest {
   status: UpdateVehicleRequestStatus;
 }
 
+export interface PhotoResponse {
+  id: string;
+  vehicleId: string;
+  sortOrder: number;
+  caption?: string | null;
+  originalFilename: string;
+  mimeType: string;
+  fileSize: number;
+  url: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PhotoResponseWrapper {
+  data: PhotoResponse;
+}
+
+export interface PhotoListResponse {
+  data: PhotoResponse[];
+}
+
+export type DocumentResponseCategory = typeof DocumentResponseCategory[keyof typeof DocumentResponseCategory];
+
+
+export const DocumentResponseCategory = {
+  REGISTRATION: 'REGISTRATION',
+  INSURANCE: 'INSURANCE',
+  OTHER: 'OTHER',
+} as const;
+
+export interface DocumentResponse {
+  id: string;
+  vehicleId?: string | null;
+  customerId?: string | null;
+  category: DocumentResponseCategory;
+  originalFilename: string;
+  mimeType: string;
+  fileSize: number;
+  url: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DocumentResponseWrapper {
+  data: DocumentResponse;
+}
+
+export interface DocumentListResponse {
+  data: DocumentResponse[];
+}
+
 export type ErrorResponseError = {
   code: string;
   message: string;
@@ -317,4 +368,38 @@ export type ErrorResponseError = {
 export interface ErrorResponse {
   error: ErrorResponseError;
 }
+
+export type UploadVehiclePhotoBody = {
+  file?: Blob;
+  caption?: string;
+  sort_order?: number;
+};
+
+export type UploadVehicleDocumentBodyCategory = typeof UploadVehicleDocumentBodyCategory[keyof typeof UploadVehicleDocumentBodyCategory];
+
+
+export const UploadVehicleDocumentBodyCategory = {
+  REGISTRATION: 'REGISTRATION',
+  INSURANCE: 'INSURANCE',
+  OTHER: 'OTHER',
+} as const;
+
+export type UploadVehicleDocumentBody = {
+  file?: Blob;
+  category?: UploadVehicleDocumentBodyCategory;
+};
+
+export type UploadCustomerDocumentBodyCategory = typeof UploadCustomerDocumentBodyCategory[keyof typeof UploadCustomerDocumentBodyCategory];
+
+
+export const UploadCustomerDocumentBodyCategory = {
+  REGISTRATION: 'REGISTRATION',
+  INSURANCE: 'INSURANCE',
+  OTHER: 'OTHER',
+} as const;
+
+export type UploadCustomerDocumentBody = {
+  file?: Blob;
+  category?: UploadCustomerDocumentBodyCategory;
+};
 

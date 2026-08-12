@@ -268,6 +268,57 @@ export async function deleteCustomerDocument(documentId: string, customerId: str
   await repo.softDeleteDocument(documentId);
 }
 
+export interface DownloadResult {
+  buffer: Buffer;
+  mimeType: string;
+  filename: string;
+  size: number;
+}
+
+export async function downloadVehicleDocument(
+  documentId: string,
+  vehicleId: string,
+  orgId: string,
+): Promise<DownloadResult> {
+  await ensureVehicleInOrg(vehicleId, orgId);
+  const document = await repo.findDocument(documentId, vehicleId, orgId);
+
+  if (!document || document.deleted_at) {
+    throw new AppError(404, "DOCUMENT_NOT_FOUND", "Document not found.");
+  }
+
+  const buffer = await storageProvider.retrieve(document.storage_key);
+
+  return {
+    buffer,
+    mimeType: document.mime_type,
+    filename: document.original_filename,
+    size: buffer.length,
+  };
+}
+
+export async function downloadCustomerDocument(
+  documentId: string,
+  customerId: string,
+  orgId: string,
+): Promise<DownloadResult> {
+  await ensureCustomerInOrg(customerId, orgId);
+  const document = await repo.findCustomerDocument(documentId, customerId, orgId);
+
+  if (!document || document.deleted_at) {
+    throw new AppError(404, "DOCUMENT_NOT_FOUND", "Document not found.");
+  }
+
+  const buffer = await storageProvider.retrieve(document.storage_key);
+
+  return {
+    buffer,
+    mimeType: document.mime_type,
+    filename: document.original_filename,
+    size: buffer.length,
+  };
+}
+
 export const mediaService = {
   listVehiclePhotos,
   getVehiclePhoto,
@@ -277,8 +328,10 @@ export const mediaService = {
   getVehicleDocument,
   uploadVehicleDocument,
   deleteVehicleDocument,
+  downloadVehicleDocument,
   listCustomerDocuments,
   getCustomerDocument,
   uploadCustomerDocument,
   deleteCustomerDocument,
+  downloadCustomerDocument,
 };

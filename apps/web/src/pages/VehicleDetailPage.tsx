@@ -6,10 +6,13 @@ import { InfoRow } from "@/components/ui/InfoRow";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { VehicleStatusBadge } from "@/components/ui/VehicleStatusBadge";
+import { MediaGallery } from "@/components/ui/MediaGallery";
+import { DocumentList } from "@/components/ui/DocumentList";
 import { useGetVehicle, useDeleteVehicle, getListVehiclesQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/providers/AuthProvider";
 import { getApiErrorMessage } from "@/lib/api-error";
+import { useVehiclePhotos, useVehicleDocuments } from "@/features/media/hooks";
 import { TRANSMISSION_LABELS, FUEL_TYPE_LABELS } from "@/lib/vehicle-labels";
 
 interface DetailPageParams {
@@ -35,6 +38,31 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
       },
     },
   });
+
+  const photos = useVehiclePhotos(id);
+  const documents = useVehicleDocuments(id);
+
+  async function handleUploadPhoto(file: File) {
+    await photos.upload.mutateAsync({ vehicleId: id, data: { file } });
+  }
+
+  async function handleDeletePhoto(photoId: string) {
+    await photos.remove.mutateAsync({ vehicleId: id, id: photoId });
+  }
+
+  async function handleUploadDocument(file: File, category: string) {
+    await documents.upload.mutateAsync({
+      vehicleId: id,
+      data: {
+        file,
+        category: category as "REGISTRATION" | "INSURANCE" | "OTHER",
+      },
+    });
+  }
+
+  async function handleDeleteDocument(documentId: string) {
+    await documents.remove.mutateAsync({ vehicleId: id, id: documentId });
+  }
 
   if (isLoading) {
     return (
@@ -121,6 +149,36 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
           <InfoRow label="عدد المقاعد" value={vehicle.seats} />
           <InfoRow label="المسافة المقطوعة" value={`${vehicle.currentMileage.toLocaleString("ar-LB")} كم`} />
           <InfoRow label="الحالة" value={<VehicleStatusBadge status={vehicle.status} />} />
+        </div>
+
+        {/* Photos */}
+        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
+          <MediaGallery
+            photos={photos.query.data?.data ?? []}
+            isLoading={photos.query.isLoading}
+            isError={photos.query.isError}
+            error={photos.query.error}
+            isOwner={isOwner}
+            uploading={photos.upload.isPending}
+            deleting={photos.remove.isPending}
+            onUpload={handleUploadPhoto}
+            onDelete={handleDeletePhoto}
+          />
+        </div>
+
+        {/* Documents */}
+        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
+          <DocumentList
+            documents={documents.query.data?.data ?? []}
+            isLoading={documents.query.isLoading}
+            isError={documents.query.isError}
+            error={documents.query.error}
+            isOwner={isOwner}
+            uploading={documents.upload.isPending}
+            deleting={documents.remove.isPending}
+            onUpload={handleUploadDocument}
+            onDelete={handleDeleteDocument}
+          />
         </div>
 
         {/* Delete (OWNER only) */}

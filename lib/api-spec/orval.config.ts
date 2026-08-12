@@ -13,6 +13,29 @@ const titleTransformer: InputTransformerFn = (config) => {
   return config;
 };
 
+// The zod output is used by the backend for JSON request/response validation.
+// Multipart upload bodies are not validated with zod (multer handles uploads),
+// and generating them emits File/Blob DOM types that conflict in a backend lib.
+// Strip multipart request bodies only from the zod input.
+const zodTransformer: InputTransformerFn = (config) => {
+  titleTransformer(config);
+
+  const paths = (config as { paths?: Record<string, unknown> }).paths ?? {};
+
+  for (const item of Object.values(paths) as Array<Record<string, unknown>>) {
+    for (const method of ["get", "post", "put", "patch", "delete"] as const) {
+      const operation = item[method] as { requestBody?: { content?: Record<string, unknown> } } | undefined;
+      const content = operation?.requestBody?.content;
+
+      if (content && "multipart/form-data" in content) {
+        delete operation.requestBody;
+      }
+    }
+  }
+
+  return config;
+};
+
 export default defineConfig({
   "api-client-react": {
     input: {
@@ -44,7 +67,7 @@ export default defineConfig({
     input: {
       target: "./openapi.yaml",
       override: {
-        transformer: titleTransformer,
+        transformer: zodTransformer,
       },
     },
     output: {

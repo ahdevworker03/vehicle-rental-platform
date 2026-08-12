@@ -524,3 +524,268 @@ export const DeleteVehicleParams = zod.object({
 export const DeleteVehicleResponse = zod.void()
 
 
+/**
+ * @summary List photos for a vehicle
+ */
+export const ListVehiclePhotosParams = zod.object({
+  "vehicleId": zod.coerce.string()
+})
+
+export const ListVehiclePhotosResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string(),
+  "sortOrder": zod.number(),
+  "caption": zod.string().nullish(),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Upload a photo for a vehicle
+ */
+export const UploadVehiclePhotoParams = zod.object({
+  "vehicleId": zod.coerce.string()
+})
+
+export const UploadVehiclePhotoResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string(),
+  "sortOrder": zod.number(),
+  "caption": zod.string().nullish(),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Get a vehicle photo
+ */
+export const GetVehiclePhotoParams = zod.object({
+  "vehicleId": zod.coerce.string(),
+  "id": zod.coerce.string()
+})
+
+export const GetVehiclePhotoResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string(),
+  "sortOrder": zod.number(),
+  "caption": zod.string().nullish(),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Soft delete a vehicle photo
+ */
+export const DeleteVehiclePhotoParams = zod.object({
+  "vehicleId": zod.coerce.string(),
+  "id": zod.coerce.string()
+})
+
+export const DeleteVehiclePhotoResponse = zod.void()
+
+
+/**
+ * @summary List documents for a vehicle
+ */
+export const ListVehicleDocumentsParams = zod.object({
+  "vehicleId": zod.coerce.string()
+})
+
+export const ListVehicleDocumentsResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string().nullish(),
+  "customerId": zod.string().nullish(),
+  "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Upload a document for a vehicle
+ */
+export const UploadVehicleDocumentParams = zod.object({
+  "vehicleId": zod.coerce.string()
+})
+
+export const UploadVehicleDocumentResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string().nullish(),
+  "customerId": zod.string().nullish(),
+  "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Get a vehicle document
+ */
+export const GetVehicleDocumentParams = zod.object({
+  "vehicleId": zod.coerce.string(),
+  "id": zod.coerce.string()
+})
+
+export const GetVehicleDocumentResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string().nullish(),
+  "customerId": zod.string().nullish(),
+  "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Soft delete a vehicle document
+ */
+export const DeleteVehicleDocumentParams = zod.object({
+  "vehicleId": zod.coerce.string(),
+  "id": zod.coerce.string()
+})
+
+export const DeleteVehicleDocumentResponse = zod.void()
+
+
+/**
+ * @summary Download a vehicle document
+ */
+export const DownloadVehicleDocumentParams = zod.object({
+  "vehicleId": zod.coerce.string(),
+  "id": zod.coerce.string()
+})
+
+export const DownloadVehicleDocumentResponse = zod.unknown()
+
+
+/**
+ * @summary List documents for a customer
+ */
+export const ListCustomerDocumentsParams = zod.object({
+  "customerId": zod.coerce.string()
+})
+
+export const ListCustomerDocumentsResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string().nullish(),
+  "customerId": zod.string().nullish(),
+  "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Upload a document for a customer
+ */
+export const UploadCustomerDocumentParams = zod.object({
+  "customerId": zod.coerce.string()
+})
+
+export const UploadCustomerDocumentResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string().nullish(),
+  "customerId": zod.string().nullish(),
+  "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Get a customer document
+ */
+export const GetCustomerDocumentParams = zod.object({
+  "customerId": zod.coerce.string(),
+  "id": zod.coerce.string()
+})
+
+export const GetCustomerDocumentResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string().nullish(),
+  "customerId": zod.string().nullish(),
+  "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Soft delete a customer document
+ */
+export const DeleteCustomerDocumentParams = zod.object({
+  "customerId": zod.coerce.string(),
+  "id": zod.coerce.string()
+})
+
+export const DeleteCustomerDocumentResponse = zod.void()
+
+
+/**
+ * @summary Download a customer document
+ */
+export const DownloadCustomerDocumentParams = zod.object({
+  "customerId": zod.coerce.string(),
+  "id": zod.coerce.string()
+})
+
+export const DownloadCustomerDocumentResponse = zod.unknown()
+
+

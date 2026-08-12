@@ -13,6 +13,8 @@ import {
   getCustomerDocument,
   uploadCustomerDocument,
   deleteCustomerDocument,
+  downloadVehicleDocument,
+  downloadCustomerDocument,
 } from "./media.controller";
 import { authenticate, requireRole } from "../../middleware";
 
@@ -33,6 +35,7 @@ router.delete("/vehicles/:vehicleId/photos/:id", authenticate, requireRole("OWNE
 // Documents
 router.get("/vehicles/:vehicleId/documents", authenticate, listDocuments);
 router.get("/vehicles/:vehicleId/documents/:id", authenticate, getDocument);
+router.get("/vehicles/:vehicleId/documents/:id/download", authenticate, downloadVehicleDocument);
 router.post(
   "/vehicles/:vehicleId/documents",
   authenticate,
@@ -45,6 +48,7 @@ router.delete("/vehicles/:vehicleId/documents/:id", authenticate, requireRole("O
 // Customer documents
 router.get("/customers/:customerId/documents", authenticate, listCustomerDocuments);
 router.get("/customers/:customerId/documents/:id", authenticate, getCustomerDocument);
+router.get("/customers/:customerId/documents/:id/download", authenticate, downloadCustomerDocument);
 router.post(
   "/customers/:customerId/documents",
   authenticate,

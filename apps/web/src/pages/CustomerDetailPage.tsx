@@ -4,7 +4,10 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { InfoRow } from "@/components/ui/InfoRow";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { DocumentList } from "@/components/ui/DocumentList";
 import { formatCurrency, formatDateAr, formatInitials } from "@/lib/format";
+import { useAuth } from "@/providers/AuthProvider";
+import { useCustomerDocuments } from "@/features/media/hooks";
 import { useCustomer } from "@/features/customers/hooks";
 import { useRentalsForCustomer, useTotalRemaining } from "@/features/rentals/hooks";
 import { useVehicle } from "@/features/vehicles/hooks";
@@ -27,6 +30,23 @@ export default function CustomerDetailPage({
   const getVehicleById = useVehicle;
   const getTotalRemaining = useTotalRemaining;
   const customer = getCustomerById(params.id);
+  const { user } = useAuth();
+  const isOwner = user?.role === "OWNER";
+  const documents = useCustomerDocuments(params.id);
+
+  async function handleUploadDocument(file: File, category: string) {
+    await documents.upload.mutateAsync({
+      customerId: params.id,
+      data: {
+        file,
+        category: category as "REGISTRATION" | "INSURANCE" | "OTHER",
+      },
+    });
+  }
+
+  async function handleDeleteDocument(documentId: string) {
+    await documents.remove.mutateAsync({ customerId: params.id, id: documentId });
+  }
 
   if (!customer) {
     return (
@@ -136,6 +156,21 @@ export default function CustomerDetailPage({
             />
           </div>
         )}
+
+        {/* ── Documents ────────────────────────────────────────────────── */}
+        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
+          <DocumentList
+            documents={documents.query.data?.data ?? []}
+            isLoading={documents.query.isLoading}
+            isError={documents.query.isError}
+            error={documents.query.error}
+            isOwner={isOwner}
+            uploading={documents.upload.isPending}
+            deleting={documents.remove.isPending}
+            onUpload={handleUploadDocument}
+            onDelete={handleDeleteDocument}
+          />
+        </div>
 
         {/* ── Active Rentals ────────────────────────────────────────────── */}
         <section>

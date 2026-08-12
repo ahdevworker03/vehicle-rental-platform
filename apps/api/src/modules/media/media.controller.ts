@@ -206,6 +206,38 @@ async function deleteCustomerDocument(req: Request, res: Response, next: NextFun
   }
 }
 
+function sendFile(res: Response, result: Awaited<ReturnType<typeof mediaService.downloadVehicleDocument>>): void {
+  res.setHeader("Content-Type", result.mimeType);
+  res.setHeader("Content-Length", String(result.size));
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${result.filename.replace(/["\\]/g, "")}"`,
+  );
+  res.status(200).send(result.buffer);
+}
+
+async function downloadVehicleDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const vehicleId = req.params.vehicleId as string;
+    const id = req.params.id as string;
+    const result = await mediaService.downloadVehicleDocument(id, vehicleId, req.user!.org);
+    sendFile(res, result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function downloadCustomerDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const customerId = req.params.customerId as string;
+    const id = req.params.id as string;
+    const result = await mediaService.downloadCustomerDocument(id, customerId, req.user!.org);
+    sendFile(res, result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export {
   handleUpload,
   listPhotos,
@@ -220,4 +252,6 @@ export {
   getCustomerDocument,
   uploadCustomerDocument,
   deleteCustomerDocument,
+  downloadVehicleDocument,
+  downloadCustomerDocument,
 };

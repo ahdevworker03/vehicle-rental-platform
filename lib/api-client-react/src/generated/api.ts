@@ -26,17 +26,24 @@ import type {
   CreateVehicleRequest,
   CustomerListResponse,
   CustomerResponseWrapper,
+  DocumentListResponse,
+  DocumentResponseWrapper,
   ErrorResponse,
   HealthStatus,
   LoginRequest,
   LogoutRequest,
   OrganizationResponseWrapper,
+  PhotoListResponse,
+  PhotoResponseWrapper,
   RefreshRequest,
   RegisterRequest,
   UpdateCustomerRequest,
   UpdateOrganizationRequest,
   UpdateUserRequest,
   UpdateVehicleRequest,
+  UploadCustomerDocumentBody,
+  UploadVehicleDocumentBody,
+  UploadVehiclePhotoBody,
   UserListResponse,
   UserResponseWrapper,
   VehicleListResponse,
@@ -1836,4 +1843,1104 @@ export const useDeleteVehicle = <TError = ErrorType<ErrorResponse>,
       > => {
       return useMutation(getDeleteVehicleMutationOptions(options));
     }
+
+export const getListVehiclePhotosUrl = (vehicleId: string,) => {
+
+
+
+
+  return `/api/vehicles/${vehicleId}/photos`
+}
+
+/**
+ * @summary List photos for a vehicle
+ */
+export const listVehiclePhotos = async (vehicleId: string, options?: RequestInit): Promise<PhotoListResponse> => {
+
+  return customFetch<PhotoListResponse>(getListVehiclePhotosUrl(vehicleId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListVehiclePhotosQueryKey = (vehicleId: string,) => {
+    return [
+    `/api/vehicles/${vehicleId}/photos`
+    ] as const;
+    }
+
+
+export const getListVehiclePhotosQueryOptions = <TData = Awaited<ReturnType<typeof listVehiclePhotos>>, TError = ErrorType<ErrorResponse>>(vehicleId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listVehiclePhotos>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListVehiclePhotosQueryKey(vehicleId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listVehiclePhotos>>> = ({ signal }) => listVehiclePhotos(vehicleId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: vehicleId !== null && vehicleId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listVehiclePhotos>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListVehiclePhotosQueryResult = NonNullable<Awaited<ReturnType<typeof listVehiclePhotos>>>
+export type ListVehiclePhotosQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary List photos for a vehicle
+ */
+
+export function useListVehiclePhotos<TData = Awaited<ReturnType<typeof listVehiclePhotos>>, TError = ErrorType<ErrorResponse>>(
+ vehicleId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listVehiclePhotos>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListVehiclePhotosQueryOptions(vehicleId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUploadVehiclePhotoUrl = (vehicleId: string,) => {
+
+
+
+
+  return `/api/vehicles/${vehicleId}/photos`
+}
+
+/**
+ * @summary Upload a photo for a vehicle
+ */
+export const uploadVehiclePhoto = async (vehicleId: string,
+    uploadVehiclePhotoBody: UploadVehiclePhotoBody, options?: RequestInit): Promise<PhotoResponseWrapper> => {
+    const formData = new FormData();
+if(uploadVehiclePhotoBody.file !== undefined) {
+ formData.append(`file`, uploadVehiclePhotoBody.file);
+ }
+if(uploadVehiclePhotoBody.caption !== undefined) {
+ formData.append(`caption`, uploadVehiclePhotoBody.caption);
+ }
+if(uploadVehiclePhotoBody.sort_order !== undefined) {
+ formData.append(`sort_order`, uploadVehiclePhotoBody.sort_order.toString())
+ }
+
+  return customFetch<PhotoResponseWrapper>(getUploadVehiclePhotoUrl(vehicleId),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getUploadVehiclePhotoMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadVehiclePhoto>>, TError,{vehicleId: string;data: BodyType<UploadVehiclePhotoBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadVehiclePhoto>>, TError,{vehicleId: string;data: BodyType<UploadVehiclePhotoBody>}, TContext> => {
+
+const mutationKey = ['uploadVehiclePhoto'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadVehiclePhoto>>, {vehicleId: string;data: BodyType<UploadVehiclePhotoBody>}> = (props) => {
+          const {vehicleId,data} = props ?? {};
+
+          return  uploadVehiclePhoto(vehicleId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadVehiclePhotoMutationResult = NonNullable<Awaited<ReturnType<typeof uploadVehiclePhoto>>>
+    export type UploadVehiclePhotoMutationBody = BodyType<UploadVehiclePhotoBody>
+    export type UploadVehiclePhotoMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Upload a photo for a vehicle
+ */
+export const useUploadVehiclePhoto = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadVehiclePhoto>>, TError,{vehicleId: string;data: BodyType<UploadVehiclePhotoBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof uploadVehiclePhoto>>,
+        TError,
+        {vehicleId: string;data: BodyType<UploadVehiclePhotoBody>},
+        TContext
+      > => {
+      return useMutation(getUploadVehiclePhotoMutationOptions(options));
+    }
+
+export const getGetVehiclePhotoUrl = (vehicleId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/vehicles/${vehicleId}/photos/${id}`
+}
+
+/**
+ * @summary Get a vehicle photo
+ */
+export const getVehiclePhoto = async (vehicleId: string,
+    id: string, options?: RequestInit): Promise<PhotoResponseWrapper> => {
+
+  return customFetch<PhotoResponseWrapper>(getGetVehiclePhotoUrl(vehicleId,id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetVehiclePhotoQueryKey = (vehicleId: string,
+    id: string,) => {
+    return [
+    `/api/vehicles/${vehicleId}/photos/${id}`
+    ] as const;
+    }
+
+
+export const getGetVehiclePhotoQueryOptions = <TData = Awaited<ReturnType<typeof getVehiclePhoto>>, TError = ErrorType<ErrorResponse>>(vehicleId: string,
+    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVehiclePhoto>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetVehiclePhotoQueryKey(vehicleId,id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getVehiclePhoto>>> = ({ signal }) => getVehiclePhoto(vehicleId,id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: vehicleId !== null && vehicleId !== undefined && id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getVehiclePhoto>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetVehiclePhotoQueryResult = NonNullable<Awaited<ReturnType<typeof getVehiclePhoto>>>
+export type GetVehiclePhotoQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get a vehicle photo
+ */
+
+export function useGetVehiclePhoto<TData = Awaited<ReturnType<typeof getVehiclePhoto>>, TError = ErrorType<ErrorResponse>>(
+ vehicleId: string,
+    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVehiclePhoto>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetVehiclePhotoQueryOptions(vehicleId,id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeleteVehiclePhotoUrl = (vehicleId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/vehicles/${vehicleId}/photos/${id}`
+}
+
+/**
+ * @summary Soft delete a vehicle photo
+ */
+export const deleteVehiclePhoto = async (vehicleId: string,
+    id: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteVehiclePhotoUrl(vehicleId,id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteVehiclePhotoMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteVehiclePhoto>>, TError,{vehicleId: string;id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteVehiclePhoto>>, TError,{vehicleId: string;id: string}, TContext> => {
+
+const mutationKey = ['deleteVehiclePhoto'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteVehiclePhoto>>, {vehicleId: string;id: string}> = (props) => {
+          const {vehicleId,id} = props ?? {};
+
+          return  deleteVehiclePhoto(vehicleId,id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteVehiclePhotoMutationResult = NonNullable<Awaited<ReturnType<typeof deleteVehiclePhoto>>>
+
+    export type DeleteVehiclePhotoMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Soft delete a vehicle photo
+ */
+export const useDeleteVehiclePhoto = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteVehiclePhoto>>, TError,{vehicleId: string;id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteVehiclePhoto>>,
+        TError,
+        {vehicleId: string;id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteVehiclePhotoMutationOptions(options));
+    }
+
+export const getListVehicleDocumentsUrl = (vehicleId: string,) => {
+
+
+
+
+  return `/api/vehicles/${vehicleId}/documents`
+}
+
+/**
+ * @summary List documents for a vehicle
+ */
+export const listVehicleDocuments = async (vehicleId: string, options?: RequestInit): Promise<DocumentListResponse> => {
+
+  return customFetch<DocumentListResponse>(getListVehicleDocumentsUrl(vehicleId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListVehicleDocumentsQueryKey = (vehicleId: string,) => {
+    return [
+    `/api/vehicles/${vehicleId}/documents`
+    ] as const;
+    }
+
+
+export const getListVehicleDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof listVehicleDocuments>>, TError = ErrorType<ErrorResponse>>(vehicleId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listVehicleDocuments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListVehicleDocumentsQueryKey(vehicleId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listVehicleDocuments>>> = ({ signal }) => listVehicleDocuments(vehicleId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: vehicleId !== null && vehicleId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listVehicleDocuments>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListVehicleDocumentsQueryResult = NonNullable<Awaited<ReturnType<typeof listVehicleDocuments>>>
+export type ListVehicleDocumentsQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary List documents for a vehicle
+ */
+
+export function useListVehicleDocuments<TData = Awaited<ReturnType<typeof listVehicleDocuments>>, TError = ErrorType<ErrorResponse>>(
+ vehicleId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listVehicleDocuments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListVehicleDocumentsQueryOptions(vehicleId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUploadVehicleDocumentUrl = (vehicleId: string,) => {
+
+
+
+
+  return `/api/vehicles/${vehicleId}/documents`
+}
+
+/**
+ * @summary Upload a document for a vehicle
+ */
+export const uploadVehicleDocument = async (vehicleId: string,
+    uploadVehicleDocumentBody: UploadVehicleDocumentBody, options?: RequestInit): Promise<DocumentResponseWrapper> => {
+    const formData = new FormData();
+if(uploadVehicleDocumentBody.file !== undefined) {
+ formData.append(`file`, uploadVehicleDocumentBody.file);
+ }
+if(uploadVehicleDocumentBody.category !== undefined) {
+ formData.append(`category`, uploadVehicleDocumentBody.category);
+ }
+
+  return customFetch<DocumentResponseWrapper>(getUploadVehicleDocumentUrl(vehicleId),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getUploadVehicleDocumentMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadVehicleDocument>>, TError,{vehicleId: string;data: BodyType<UploadVehicleDocumentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadVehicleDocument>>, TError,{vehicleId: string;data: BodyType<UploadVehicleDocumentBody>}, TContext> => {
+
+const mutationKey = ['uploadVehicleDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadVehicleDocument>>, {vehicleId: string;data: BodyType<UploadVehicleDocumentBody>}> = (props) => {
+          const {vehicleId,data} = props ?? {};
+
+          return  uploadVehicleDocument(vehicleId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadVehicleDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof uploadVehicleDocument>>>
+    export type UploadVehicleDocumentMutationBody = BodyType<UploadVehicleDocumentBody>
+    export type UploadVehicleDocumentMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Upload a document for a vehicle
+ */
+export const useUploadVehicleDocument = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadVehicleDocument>>, TError,{vehicleId: string;data: BodyType<UploadVehicleDocumentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof uploadVehicleDocument>>,
+        TError,
+        {vehicleId: string;data: BodyType<UploadVehicleDocumentBody>},
+        TContext
+      > => {
+      return useMutation(getUploadVehicleDocumentMutationOptions(options));
+    }
+
+export const getGetVehicleDocumentUrl = (vehicleId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/vehicles/${vehicleId}/documents/${id}`
+}
+
+/**
+ * @summary Get a vehicle document
+ */
+export const getVehicleDocument = async (vehicleId: string,
+    id: string, options?: RequestInit): Promise<DocumentResponseWrapper> => {
+
+  return customFetch<DocumentResponseWrapper>(getGetVehicleDocumentUrl(vehicleId,id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetVehicleDocumentQueryKey = (vehicleId: string,
+    id: string,) => {
+    return [
+    `/api/vehicles/${vehicleId}/documents/${id}`
+    ] as const;
+    }
+
+
+export const getGetVehicleDocumentQueryOptions = <TData = Awaited<ReturnType<typeof getVehicleDocument>>, TError = ErrorType<ErrorResponse>>(vehicleId: string,
+    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVehicleDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetVehicleDocumentQueryKey(vehicleId,id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getVehicleDocument>>> = ({ signal }) => getVehicleDocument(vehicleId,id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: vehicleId !== null && vehicleId !== undefined && id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getVehicleDocument>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetVehicleDocumentQueryResult = NonNullable<Awaited<ReturnType<typeof getVehicleDocument>>>
+export type GetVehicleDocumentQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get a vehicle document
+ */
+
+export function useGetVehicleDocument<TData = Awaited<ReturnType<typeof getVehicleDocument>>, TError = ErrorType<ErrorResponse>>(
+ vehicleId: string,
+    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getVehicleDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetVehicleDocumentQueryOptions(vehicleId,id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeleteVehicleDocumentUrl = (vehicleId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/vehicles/${vehicleId}/documents/${id}`
+}
+
+/**
+ * @summary Soft delete a vehicle document
+ */
+export const deleteVehicleDocument = async (vehicleId: string,
+    id: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteVehicleDocumentUrl(vehicleId,id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteVehicleDocumentMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteVehicleDocument>>, TError,{vehicleId: string;id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteVehicleDocument>>, TError,{vehicleId: string;id: string}, TContext> => {
+
+const mutationKey = ['deleteVehicleDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteVehicleDocument>>, {vehicleId: string;id: string}> = (props) => {
+          const {vehicleId,id} = props ?? {};
+
+          return  deleteVehicleDocument(vehicleId,id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteVehicleDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof deleteVehicleDocument>>>
+
+    export type DeleteVehicleDocumentMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Soft delete a vehicle document
+ */
+export const useDeleteVehicleDocument = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteVehicleDocument>>, TError,{vehicleId: string;id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteVehicleDocument>>,
+        TError,
+        {vehicleId: string;id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteVehicleDocumentMutationOptions(options));
+    }
+
+export const getDownloadVehicleDocumentUrl = (vehicleId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/vehicles/${vehicleId}/documents/${id}/download`
+}
+
+/**
+ * @summary Download a vehicle document
+ */
+export const downloadVehicleDocument = async (vehicleId: string,
+    id: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadVehicleDocumentUrl(vehicleId,id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadVehicleDocumentQueryKey = (vehicleId: string,
+    id: string,) => {
+    return [
+    `/api/vehicles/${vehicleId}/documents/${id}/download`
+    ] as const;
+    }
+
+
+export const getDownloadVehicleDocumentQueryOptions = <TData = Awaited<ReturnType<typeof downloadVehicleDocument>>, TError = ErrorType<ErrorResponse>>(vehicleId: string,
+    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadVehicleDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadVehicleDocumentQueryKey(vehicleId,id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadVehicleDocument>>> = ({ signal }) => downloadVehicleDocument(vehicleId,id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: vehicleId !== null && vehicleId !== undefined && id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadVehicleDocument>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadVehicleDocumentQueryResult = NonNullable<Awaited<ReturnType<typeof downloadVehicleDocument>>>
+export type DownloadVehicleDocumentQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Download a vehicle document
+ */
+
+export function useDownloadVehicleDocument<TData = Awaited<ReturnType<typeof downloadVehicleDocument>>, TError = ErrorType<ErrorResponse>>(
+ vehicleId: string,
+    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadVehicleDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadVehicleDocumentQueryOptions(vehicleId,id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListCustomerDocumentsUrl = (customerId: string,) => {
+
+
+
+
+  return `/api/customers/${customerId}/documents`
+}
+
+/**
+ * @summary List documents for a customer
+ */
+export const listCustomerDocuments = async (customerId: string, options?: RequestInit): Promise<DocumentListResponse> => {
+
+  return customFetch<DocumentListResponse>(getListCustomerDocumentsUrl(customerId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListCustomerDocumentsQueryKey = (customerId: string,) => {
+    return [
+    `/api/customers/${customerId}/documents`
+    ] as const;
+    }
+
+
+export const getListCustomerDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof listCustomerDocuments>>, TError = ErrorType<ErrorResponse>>(customerId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCustomerDocuments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListCustomerDocumentsQueryKey(customerId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCustomerDocuments>>> = ({ signal }) => listCustomerDocuments(customerId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: customerId !== null && customerId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listCustomerDocuments>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListCustomerDocumentsQueryResult = NonNullable<Awaited<ReturnType<typeof listCustomerDocuments>>>
+export type ListCustomerDocumentsQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary List documents for a customer
+ */
+
+export function useListCustomerDocuments<TData = Awaited<ReturnType<typeof listCustomerDocuments>>, TError = ErrorType<ErrorResponse>>(
+ customerId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCustomerDocuments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListCustomerDocumentsQueryOptions(customerId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUploadCustomerDocumentUrl = (customerId: string,) => {
+
+
+
+
+  return `/api/customers/${customerId}/documents`
+}
+
+/**
+ * @summary Upload a document for a customer
+ */
+export const uploadCustomerDocument = async (customerId: string,
+    uploadCustomerDocumentBody: UploadCustomerDocumentBody, options?: RequestInit): Promise<DocumentResponseWrapper> => {
+    const formData = new FormData();
+if(uploadCustomerDocumentBody.file !== undefined) {
+ formData.append(`file`, uploadCustomerDocumentBody.file);
+ }
+if(uploadCustomerDocumentBody.category !== undefined) {
+ formData.append(`category`, uploadCustomerDocumentBody.category);
+ }
+
+  return customFetch<DocumentResponseWrapper>(getUploadCustomerDocumentUrl(customerId),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getUploadCustomerDocumentMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadCustomerDocument>>, TError,{customerId: string;data: BodyType<UploadCustomerDocumentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadCustomerDocument>>, TError,{customerId: string;data: BodyType<UploadCustomerDocumentBody>}, TContext> => {
+
+const mutationKey = ['uploadCustomerDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadCustomerDocument>>, {customerId: string;data: BodyType<UploadCustomerDocumentBody>}> = (props) => {
+          const {customerId,data} = props ?? {};
+
+          return  uploadCustomerDocument(customerId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadCustomerDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof uploadCustomerDocument>>>
+    export type UploadCustomerDocumentMutationBody = BodyType<UploadCustomerDocumentBody>
+    export type UploadCustomerDocumentMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Upload a document for a customer
+ */
+export const useUploadCustomerDocument = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadCustomerDocument>>, TError,{customerId: string;data: BodyType<UploadCustomerDocumentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof uploadCustomerDocument>>,
+        TError,
+        {customerId: string;data: BodyType<UploadCustomerDocumentBody>},
+        TContext
+      > => {
+      return useMutation(getUploadCustomerDocumentMutationOptions(options));
+    }
+
+export const getGetCustomerDocumentUrl = (customerId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/customers/${customerId}/documents/${id}`
+}
+
+/**
+ * @summary Get a customer document
+ */
+export const getCustomerDocument = async (customerId: string,
+    id: string, options?: RequestInit): Promise<DocumentResponseWrapper> => {
+
+  return customFetch<DocumentResponseWrapper>(getGetCustomerDocumentUrl(customerId,id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCustomerDocumentQueryKey = (customerId: string,
+    id: string,) => {
+    return [
+    `/api/customers/${customerId}/documents/${id}`
+    ] as const;
+    }
+
+
+export const getGetCustomerDocumentQueryOptions = <TData = Awaited<ReturnType<typeof getCustomerDocument>>, TError = ErrorType<ErrorResponse>>(customerId: string,
+    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomerDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCustomerDocumentQueryKey(customerId,id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomerDocument>>> = ({ signal }) => getCustomerDocument(customerId,id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: customerId !== null && customerId !== undefined && id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCustomerDocument>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCustomerDocumentQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomerDocument>>>
+export type GetCustomerDocumentQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get a customer document
+ */
+
+export function useGetCustomerDocument<TData = Awaited<ReturnType<typeof getCustomerDocument>>, TError = ErrorType<ErrorResponse>>(
+ customerId: string,
+    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCustomerDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCustomerDocumentQueryOptions(customerId,id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeleteCustomerDocumentUrl = (customerId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/customers/${customerId}/documents/${id}`
+}
+
+/**
+ * @summary Soft delete a customer document
+ */
+export const deleteCustomerDocument = async (customerId: string,
+    id: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteCustomerDocumentUrl(customerId,id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteCustomerDocumentMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCustomerDocument>>, TError,{customerId: string;id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteCustomerDocument>>, TError,{customerId: string;id: string}, TContext> => {
+
+const mutationKey = ['deleteCustomerDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteCustomerDocument>>, {customerId: string;id: string}> = (props) => {
+          const {customerId,id} = props ?? {};
+
+          return  deleteCustomerDocument(customerId,id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteCustomerDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof deleteCustomerDocument>>>
+
+    export type DeleteCustomerDocumentMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Soft delete a customer document
+ */
+export const useDeleteCustomerDocument = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteCustomerDocument>>, TError,{customerId: string;id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteCustomerDocument>>,
+        TError,
+        {customerId: string;id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteCustomerDocumentMutationOptions(options));
+    }
+
+export const getDownloadCustomerDocumentUrl = (customerId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/customers/${customerId}/documents/${id}/download`
+}
+
+/**
+ * @summary Download a customer document
+ */
+export const downloadCustomerDocument = async (customerId: string,
+    id: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadCustomerDocumentUrl(customerId,id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadCustomerDocumentQueryKey = (customerId: string,
+    id: string,) => {
+    return [
+    `/api/customers/${customerId}/documents/${id}/download`
+    ] as const;
+    }
+
+
+export const getDownloadCustomerDocumentQueryOptions = <TData = Awaited<ReturnType<typeof downloadCustomerDocument>>, TError = ErrorType<ErrorResponse>>(customerId: string,
+    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadCustomerDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadCustomerDocumentQueryKey(customerId,id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadCustomerDocument>>> = ({ signal }) => downloadCustomerDocument(customerId,id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: customerId !== null && customerId !== undefined && id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadCustomerDocument>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadCustomerDocumentQueryResult = NonNullable<Awaited<ReturnType<typeof downloadCustomerDocument>>>
+export type DownloadCustomerDocumentQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Download a customer document
+ */
+
+export function useDownloadCustomerDocument<TData = Awaited<ReturnType<typeof downloadCustomerDocument>>, TError = ErrorType<ErrorResponse>>(
+ customerId: string,
+    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadCustomerDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadCustomerDocumentQueryOptions(customerId,id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 

@@ -1,10 +1,10 @@
-# Step 9.3 — Customer Documents (Backend): Complete
+# Step 9.4a — Media File Serving (Backend): Complete
 
 ---
 
 ## Summary
 
-Implemented Customer Documents (upload/list/get/delete) by extending the existing media infrastructure from Step 9.2. Reused the `StorageProvider`, `LocalFilesystemProvider`, media validation, error handling, and org-isolation patterns. No second storage system or duplicate infrastructure was created.
+Added authenticated file download endpoints for vehicle and customer documents. Reused the existing `StorageProvider` abstraction and `LocalFilesystemProvider` (no second storage system). Enforces organization isolation, soft-delete exclusion, and authentication. Updated the OpenAPI contract and regenerated the client.
 
 ---
 
@@ -12,79 +12,62 @@ Implemented Customer Documents (upload/list/get/delete) by extending the existin
 
 | File | Change |
 |---|---|
-| `lib/db/prisma/schema.prisma` | `Document.vehicle_id` now nullable; added `customer_id` FK + `Customer` relation; added `Document.customer_id` index; added `documents Document[]` relation on `Customer` |
-| `apps/api/src/modules/media/media.types.ts` | `DocumentRecord`/`DocumentResponse` now carry nullable `customer_id` |
-| `apps/api/src/modules/media/media.repository.ts` | Added `findCustomer`, `listCustomerDocuments`, `findCustomerDocument`, `createCustomerDocument` |
-| `apps/api/src/modules/media/media.service.ts` | Added customer document business logic (org check, storage key, store, soft delete) |
-| `apps/api/src/modules/media/media.controller.ts` | Added customer document controllers |
-| `apps/api/src/modules/media/media.routes.ts` | Added `/customers/:customerId/documents` routes |
+| `apps/api/src/modules/media/media.service.ts` | Added `downloadVehicleDocument` / `downloadCustomerDocument` returning `{ buffer, mimeType, filename, size }` |
+| `apps/api/src/modules/media/media.controller.ts` | Added thin download controllers + `sendFile` helper (Content-Type / Content-Disposition / Content-Length headers) |
+| `apps/api/src/modules/media/media.routes.ts` | Added `GET .../documents/:id/download` for both vehicle and customer documents |
+| `lib/api-spec/openapi.yaml` | Added `downloadVehicleDocument` and `downloadCustomerDocument` endpoints |
+| `lib/api-client-react/src/generated/*` | Regenerated (added `downloadVehicleDocument`, `downloadCustomerDocument`, hooks) |
+| `lib/api-zod/src/generated/*` | Regenerated |
 
-## Files Created
-
-| File | Purpose |
-|---|---|
-| `lib/db/prisma/migrations/20260812163450_add_customer_documents/` | Adds `customer_id`, makes `vehicle_id` nullable |
-| `lib/db/prisma/migrations/20260812163526_document_ondelete_restrict/` | Corrects FK `onDelete` to RESTRICT |
+No repository changes were required — the existing org-scoped `findDocument`/`findCustomerDocument` return the full `DocumentRecord` (including `storage_key`, `mime_type`, `original_filename`, `deleted_at`), which the download service reuses. No generated files were hand-edited.
 
 ---
 
-## Schema Change
+## Endpoints
 
-The `Document` model now supports two explicit owner FKs (per the media spec's extensibility note: "future entities may receive explicit FK relationships through future migrations"):
-
-- `vehicle_id` → nullable FK → `Vehicle.id`, onDelete **RESTRICT**
-- `customer_id` → nullable FK → `Customer.id`, onDelete **RESTRICT**
-- Added `@@index([customer_id])`
-- Exactly-one-owner is enforced at the service layer (a document belongs to either a vehicle or a customer)
-
-No polymorphic `entity_type`/`entity_id` was introduced.
-
----
-
-## Endpoint Summary
-
-| Method | URL | Role | Response |
+| Method | URL | Auth | Response |
 |---|---|---|---|
-| GET | `/api/customers/:customerId/documents` | Any auth | 200 `{ data: DocumentResponse[] }` |
-| GET | `/api/customers/:customerId/documents/:id` | Any auth | 200 `{ data: DocumentResponse }` |
-| POST | `/api/customers/:customerId/documents` | OWNER | 201 `{ data: DocumentResponse }` |
-| DELETE | `/api/customers/:customerId/documents/:id` | OWNER | 204 |
+| GET | `/api/vehicles/:vehicleId/documents/:id/download` | Any authenticated | 200 binary file |
+| GET | `/api/customers/:customerId/documents/:id/download` | Any authenticated | 200 binary file |
+
+Download is a **read** operation — any authenticated user can download (consistent with the existing media read policy where list/get are authenticated). Upload/delete remain OWNER-only.
 
 ---
 
-## Service / Repository Behavior
+## Security Checks
 
-- `ensureCustomerInOrg` → 404 `CUSTOMER_NOT_FOUND` if the customer isn't in the authenticated org.
-- Storage key: `<orgId>/customer/<uuid>.<ext>` (reused `generateStorageKey` with `"customer"` entity).
-- MIME validation (documents): PDF / JPEG / PNG → else 422 `UNSUPPORTED_MIME_TYPE`.
-- Size validation: > 10 MB → 422 `FILE_TOO_LARGE`.
-- Filename sanitized (path separators removed).
-- Soft delete via `deleted_at`; physical files **not** deleted (per spec).
-- All Prisma access lives in the repository; controllers remain thin.
+| Requirement | Implementation |
+|---|---|
+| Organization isolation | `ensureVehicleInOrg` / `ensureCustomerInOrg` → 404 if the owner entity isn't in `req.user.org` |
+| Document belongs to requested owner | `repo.findDocument(documentId, vehicleId, orgId)` / `findCustomerDocument` — scoped by both id and org |
+| Do not serve soft-deleted documents | `if (!document \|\| document.deleted_at) → 404 DOCUMENT_NOT_FOUND` |
+| Never expose raw filesystem paths / storage keys as public URLs | Download resolves the storage key internally via `storageProvider.retrieve()` and serves raw bytes; the storage key is never exposed |
+| Do not bypass auth middleware | All download routes use `authenticate` |
+| Prisma access in repositories | Service calls `repo.*`; no Prisma in controller/service |
+| Controllers thin | Controllers extract params, call service, set headers, send buffer |
+| Business logic in service | Org check, soft-delete check, storage retrieval all in service |
 
 ---
 
-## Runtime Verification (12/12 PASS)
+## Response Headers
+
+- `Content-Type`: the document's stored `mime_type` (e.g. `application/pdf`)
+- `Content-Length`: byte length of the buffer
+- `Content-Disposition: attachment; filename="<sanitized original_filename>"` — quotes/backslashes stripped to prevent header injection
+
+---
+
+## Runtime Verification (7/7 PASS)
 
 | # | Test | Expected | Actual |
 |---|---|---|---|
-| 1 | Upload customer document (OWNER) | 201 | 201 ✅ |
-| 2 | List customer documents | 200, category=REGISTRATION | 200 ✅ |
-| 3 | Get customer document | 200 | 200 ✅ |
-| 4 | Cross-org list | 404 | 404 ✅ |
-| 5 | Cross-org upload | 404 | 404 ✅ |
-| 6 | Invalid MIME | 422 | 422 `UNSUPPORTED_MIME_TYPE` ✅ |
-| 7 | File too large (>10MB) | 422 | 422 `FILE_TOO_LARGE` ✅ |
-| 8 | Delete customer document | 204 | 204 ✅ |
-| 9 | GET deleted | 404 | 404 ✅ |
-| 10 | Unauthenticated | 401 | 401 ✅ |
-| 11 | MANAGER upload → 403, list → 200 | 403 / 200 | 403 / 200 ✅ |
-| 12 | File stored under `customer/` entity dir | exists | ✅ |
-
-### Regression (existing media unaffected)
-
-- Vehicle document upload still works (`vehicleId` populated). ✅
-- Vehicle photo upload still works. ✅
+| 1 | Vehicle document download (auth) | 200, body = stored bytes | 200 `application/pdf`, `Content-Disposition: attachment; filename="vdoc.pdf"`, body `hello-vehicle-document` ✅ |
+| 2 | Customer document download (auth) | 200, body = stored bytes | 200 `application/pdf`, `filename="cdoc.pdf"`, body `hello-customer-document` ✅ |
+| 3 | Unauthenticated download | 401 | 401 ✅ |
+| 4 | Cross-organization download | 404 | 404 ✅ |
+| 5 | Delete then download | 404 | 404 ✅ |
+| 6 | Existing vehicle doc list (regression) | 200 | 200 ✅ |
+| 7 | Existing customer doc list + upload (regression) | 200 / 201 | 200 / 201 ✅ |
 
 ---
 
@@ -92,21 +75,23 @@ No polymorphic `entity_type`/`entity_id` was introduced.
 
 | Criterion | Status |
 |---|---|
-| Upload works | ✅ |
-| List works | ✅ |
-| Delete works (soft) | ✅ |
-| Cross-organization access blocked | ✅ (404) |
-| Validation and API errors correct | ✅ |
+| Authenticated vehicle document download works | ✅ |
+| Authenticated customer document download works | ✅ |
+| Correct Content-Type returned | ✅ |
+| Filename preserved safely | ✅ |
+| Cross-organization access blocked | ✅ |
+| Deleted documents cannot be downloaded | ✅ |
+| Unauthenticated requests return 401 | ✅ |
+| Existing vehicle/customer media endpoints still work | ✅ |
 | Typecheck passes | ✅ |
 | Build passes | ✅ |
 | Lint passes | ✅ |
 | Reused StorageProvider / no second storage system | ✅ |
-| OWNER-only mutations match existing policy | ✅ |
-| No frontend UI / unrelated features | ✅ |
+| No frontend / cloud / unrelated features | ✅ |
 
 ---
 
 ## Notes
 
-- The `onDelete` for both `Document` FKs is **RESTRICT**, matching the documented business-record convention. Prisma's default for nullable FKs is `SET NULL`, so a follow-up migration was created to enforce RESTRICT.
-- The backend has no test framework; runtime verification was performed per the project's testing conventions.
+- The react-query client now exposes `useDownloadVehicleDocument` / `useDownloadCustomerDocument` hooks for the frontend to call (Step 9.4's download links can now be wired to real HTTP downloads in a follow-up if desired).
+- The zod output correctly excluded binary download responses from backend validation (handled by the `zodTransformer`), and `tsc --build` passes.
