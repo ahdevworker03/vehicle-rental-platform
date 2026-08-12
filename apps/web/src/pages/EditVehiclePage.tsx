@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { Spinner } from "@/components/ui/spinner";
-import { useCreateVehicle, getListVehiclesQueryKey } from "@workspace/api-client-react";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Car } from "lucide-react";
+import { useGetVehicle, useUpdateVehicle, getListVehiclesQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { cn } from "@/lib/utils";
@@ -27,43 +29,56 @@ interface FormState {
   status: VehicleResponseStatus;
 }
 
-const INITIAL: FormState = {
-  make: "",
-  model: "",
-  plate_number: "",
-  year: "",
-  color: "",
-  vin: "",
-  engine_number: "",
-  transmission: "AUTOMATIC",
-  fuel_type: "PETROL",
-  seats: "",
-  current_mileage: "",
-  status: "AVAILABLE",
-};
+interface DetailPageParams {
+  params: { id: string };
+}
 
-export default function AddVehiclePage() {
+export default function EditVehiclePage({ params }: DetailPageParams) {
+  const id = params.id;
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const [form, setForm] = useState<FormState>(INITIAL);
+  const [form, setForm] = useState<FormState | null>(null);
   const [errors, setErrors] = useState<Partial<FormState>>({});
   const [formError, setFormError] = useState<string | null>(null);
 
-  const createMutation = useCreateVehicle({
+  const { data, isLoading, isError, error } = useGetVehicle(id);
+
+  const updateMutation = useUpdateVehicle({
     mutation: {
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: getListVehiclesQueryKey() });
-        setLocation("/vehicles");
+        setLocation(`/vehicles/${id}`);
       },
     },
   });
 
+  useEffect(() => {
+    if (data?.data && !form) {
+      const v = data.data;
+      setForm({
+        make: v.make,
+        model: v.model,
+        plate_number: v.plateNumber,
+        year: String(v.year),
+        color: v.color,
+        vin: v.vin ?? "",
+        engine_number: v.engineNumber ?? "",
+        transmission: v.transmission,
+        fuel_type: v.fuelType,
+        seats: String(v.seats),
+        current_mileage: String(v.currentMileage),
+        status: v.status,
+      });
+    }
+  }, [data, form]);
+
   function set<K extends keyof FormState>(field: K, value: FormState[K]) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => (prev ? { ...prev, [field]: value } : prev));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
 
   function validate(): boolean {
+    if (!form) return false;
     const e: Partial<FormState> = {};
     if (!form.make.trim()) e.make = "هذا الحقل مطلوب";
     if (!form.model.trim()) e.model = "هذا الحقل مطلوب";
@@ -90,13 +105,14 @@ export default function AddVehiclePage() {
   }
 
   async function handleSubmit() {
-    if (createMutation.isPending) return;
+    if (!form || updateMutation.isPending) return;
     if (!validate()) return;
 
     setFormError(null);
 
     try {
-      await createMutation.mutateAsync({
+      await updateMutation.mutateAsync({
+        id,
         data: {
           make: form.make.trim(),
           model: form.model.trim(),
@@ -117,6 +133,28 @@ export default function AddVehiclePage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-full flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (isError || !form) {
+    return (
+      <div className="min-h-full">
+        <PageHeader title="تعديل السيارة" showBack />
+        <EmptyState
+          icon={Car}
+          title="لا توجد بيانات"
+          description={error ? getApiErrorMessage(error).title : "لم يتم العثور على هذه السيارة"}
+          className="py-16"
+        />
+      </div>
+    );
+  }
+
   const isFormFilled =
     form.make.trim().length > 0 &&
     form.model.trim().length > 0 &&
@@ -128,7 +166,7 @@ export default function AddVehiclePage() {
 
   return (
     <div className="min-h-full pb-8">
-      <PageHeader title="إضافة سيارة" showBack />
+      <PageHeader title="تعديل السيارة" showBack />
 
       <div className="px-4 pt-5 space-y-5">
         {formError && (
@@ -145,7 +183,6 @@ export default function AddVehiclePage() {
             <FormField label="الماركة" required error={errors.make}>
               <input
                 className={errors.make ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                placeholder="مثال: Toyota"
                 value={form.make}
                 onChange={(e) => set("make", e.target.value)}
               />
@@ -153,7 +190,6 @@ export default function AddVehiclePage() {
             <FormField label="الموديل" required error={errors.model}>
               <input
                 className={errors.model ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                placeholder="مثال: Corolla"
                 value={form.model}
                 onChange={(e) => set("model", e.target.value)}
               />
@@ -164,7 +200,6 @@ export default function AddVehiclePage() {
             <FormField label="السنة" required error={errors.year}>
               <input
                 className={errors.year ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                placeholder="مثال: 2022"
                 inputMode="numeric"
                 value={form.year}
                 onChange={(e) => set("year", e.target.value)}
@@ -173,7 +208,6 @@ export default function AddVehiclePage() {
             <FormField label="رقم اللوحة" required error={errors.plate_number}>
               <input
                 className={errors.plate_number ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                placeholder="م أ 12345"
                 value={form.plate_number}
                 onChange={(e) => set("plate_number", e.target.value)}
               />
@@ -183,7 +217,6 @@ export default function AddVehiclePage() {
           <FormField label="اللون" required error={errors.color}>
             <input
               className={errors.color ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-              placeholder="مثال: أبيض"
               value={form.color}
               onChange={(e) => set("color", e.target.value)}
             />
@@ -193,7 +226,6 @@ export default function AddVehiclePage() {
             <FormField label="رقم الشاصي (VIN)">
               <input
                 className={inputClass}
-                placeholder="اختياري"
                 value={form.vin}
                 onChange={(e) => set("vin", e.target.value)}
                 dir="ltr"
@@ -202,7 +234,6 @@ export default function AddVehiclePage() {
             <FormField label="رقم المحرك">
               <input
                 className={inputClass}
-                placeholder="اختياري"
                 value={form.engine_number}
                 onChange={(e) => set("engine_number", e.target.value)}
                 dir="ltr"
@@ -244,7 +275,6 @@ export default function AddVehiclePage() {
             <FormField label="عدد المقاعد" required error={errors.seats}>
               <input
                 className={errors.seats ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                placeholder="مثال: 5"
                 inputMode="numeric"
                 value={form.seats}
                 onChange={(e) => set("seats", e.target.value)}
@@ -253,7 +283,6 @@ export default function AddVehiclePage() {
             <FormField label="المسافة المقطوعة" required hint="بالكيلومتر" error={errors.current_mileage}>
               <input
                 className={errors.current_mileage ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                placeholder="مثال: 50000"
                 inputMode="numeric"
                 value={form.current_mileage}
                 onChange={(e) => set("current_mileage", e.target.value)}
@@ -277,15 +306,15 @@ export default function AddVehiclePage() {
         {/* ── Save Button ─────────────────────────────────────────────── */}
         <button
           onClick={handleSubmit}
-          disabled={!isFormFilled || createMutation.isPending}
+          disabled={!isFormFilled || updateMutation.isPending}
           className={cn(
             "w-full rounded-2xl py-4 text-base font-bold transition-all shadow-sm flex items-center justify-center gap-2",
-            isFormFilled && !createMutation.isPending
+            isFormFilled && !updateMutation.isPending
               ? "bg-primary text-primary-foreground active:scale-[0.98]"
               : "bg-muted text-muted-foreground cursor-not-allowed",
           )}
         >
-          {createMutation.isPending ? <Spinner /> : "حفظ السيارة"}
+          {updateMutation.isPending ? <Spinner /> : "حفظ التعديلات"}
         </button>
       </div>
     </div>

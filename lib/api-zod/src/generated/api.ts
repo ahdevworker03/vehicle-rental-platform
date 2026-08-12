@@ -368,3 +368,159 @@ export const DeleteCustomerParams = zod.object({
 export const DeleteCustomerResponse = zod.void()
 
 
+/**
+ * @summary List vehicles in the current organization
+ */
+export const ListVehiclesResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.string(),
+  "make": zod.string(),
+  "model": zod.string(),
+  "plateNumber": zod.string(),
+  "year": zod.number(),
+  "color": zod.string(),
+  "vin": zod.string().nullish(),
+  "engineNumber": zod.string().nullish(),
+  "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
+  "fuelType": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
+  "seats": zod.number(),
+  "currentMileage": zod.number(),
+  "status": zod.enum(['AVAILABLE', 'RESERVED', 'RENTED', 'MAINTENANCE', 'OUT_OF_SERVICE', 'ARCHIVED']),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Create a vehicle in the current organization
+ */
+
+
+
+
+
+
+export const CreateVehicleBody = zod.object({
+  "make": zod.string().min(1),
+  "model": zod.string().min(1),
+  "plate_number": zod.string().min(1),
+  "year": zod.number(),
+  "color": zod.string().min(1),
+  "vin": zod.string().optional(),
+  "engine_number": zod.string().optional(),
+  "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
+  "fuel_type": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
+  "seats": zod.number(),
+  "current_mileage": zod.number(),
+  "status": zod.enum(['AVAILABLE', 'RESERVED', 'RENTED', 'MAINTENANCE', 'OUT_OF_SERVICE', 'ARCHIVED'])
+})
+
+export const CreateVehicleResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "make": zod.string(),
+  "model": zod.string(),
+  "plateNumber": zod.string(),
+  "year": zod.number(),
+  "color": zod.string(),
+  "vin": zod.string().nullish(),
+  "engineNumber": zod.string().nullish(),
+  "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
+  "fuelType": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
+  "seats": zod.number(),
+  "currentMileage": zod.number(),
+  "status": zod.enum(['AVAILABLE', 'RESERVED', 'RENTED', 'MAINTENANCE', 'OUT_OF_SERVICE', 'ARCHIVED']),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Get a vehicle in the current organization
+ */
+export const GetVehicleParams = zod.object({
+  "id": zod.coerce.string().describe('Vehicle ID')
+})
+
+export const GetVehicleResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "make": zod.string(),
+  "model": zod.string(),
+  "plateNumber": zod.string(),
+  "year": zod.number(),
+  "color": zod.string(),
+  "vin": zod.string().nullish(),
+  "engineNumber": zod.string().nullish(),
+  "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
+  "fuelType": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
+  "seats": zod.number(),
+  "currentMileage": zod.number(),
+  "status": zod.enum(['AVAILABLE', 'RESERVED', 'RENTED', 'MAINTENANCE', 'OUT_OF_SERVICE', 'ARCHIVED']),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Update a vehicle in the current organization
+ */
+export const UpdateVehicleParams = zod.object({
+  "id": zod.coerce.string().describe('Vehicle ID')
+})
+
+
+
+
+
+
+
+export const UpdateVehicleBody = zod.object({
+  "make": zod.string().min(1),
+  "model": zod.string().min(1),
+  "plate_number": zod.string().min(1),
+  "year": zod.number(),
+  "color": zod.string().min(1),
+  "vin": zod.string().optional(),
+  "engine_number": zod.string().optional(),
+  "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
+  "fuel_type": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
+  "seats": zod.number(),
+  "current_mileage": zod.number(),
+  "status": zod.enum(['AVAILABLE', 'RESERVED', 'RENTED', 'MAINTENANCE', 'OUT_OF_SERVICE', 'ARCHIVED'])
+})
+
+export const UpdateVehicleResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "make": zod.string(),
+  "model": zod.string(),
+  "plateNumber": zod.string(),
+  "year": zod.number(),
+  "color": zod.string(),
+  "vin": zod.string().nullish(),
+  "engineNumber": zod.string().nullish(),
+  "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
+  "fuelType": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
+  "seats": zod.number(),
+  "currentMileage": zod.number(),
+  "status": zod.enum(['AVAILABLE', 'RESERVED', 'RENTED', 'MAINTENANCE', 'OUT_OF_SERVICE', 'ARCHIVED']),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Soft delete a vehicle in the current organization
+ */
+export const DeleteVehicleParams = zod.object({
+  "id": zod.coerce.string().describe('Vehicle ID')
+})
+
+export const DeleteVehicleResponse = zod.void()
+
+

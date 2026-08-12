@@ -155,6 +155,160 @@ export interface UpdateCustomerRequest {
   license_expiry_date: string;
 }
 
+export type VehicleResponseTransmission = typeof VehicleResponseTransmission[keyof typeof VehicleResponseTransmission];
+
+
+export const VehicleResponseTransmission = {
+  MANUAL: 'MANUAL',
+  AUTOMATIC: 'AUTOMATIC',
+} as const;
+
+export type VehicleResponseFuelType = typeof VehicleResponseFuelType[keyof typeof VehicleResponseFuelType];
+
+
+export const VehicleResponseFuelType = {
+  PETROL: 'PETROL',
+  DIESEL: 'DIESEL',
+  ELECTRIC: 'ELECTRIC',
+  HYBRID: 'HYBRID',
+} as const;
+
+export type VehicleResponseStatus = typeof VehicleResponseStatus[keyof typeof VehicleResponseStatus];
+
+
+export const VehicleResponseStatus = {
+  AVAILABLE: 'AVAILABLE',
+  RESERVED: 'RESERVED',
+  RENTED: 'RENTED',
+  MAINTENANCE: 'MAINTENANCE',
+  OUT_OF_SERVICE: 'OUT_OF_SERVICE',
+  ARCHIVED: 'ARCHIVED',
+} as const;
+
+export interface VehicleResponse {
+  id: string;
+  make: string;
+  model: string;
+  plateNumber: string;
+  year: number;
+  color: string;
+  vin?: string | null;
+  engineNumber?: string | null;
+  transmission: VehicleResponseTransmission;
+  fuelType: VehicleResponseFuelType;
+  seats: number;
+  currentMileage: number;
+  status: VehicleResponseStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface VehicleResponseWrapper {
+  data: VehicleResponse;
+}
+
+export interface VehicleListResponse {
+  data: VehicleResponse[];
+}
+
+export type CreateVehicleRequestTransmission = typeof CreateVehicleRequestTransmission[keyof typeof CreateVehicleRequestTransmission];
+
+
+export const CreateVehicleRequestTransmission = {
+  MANUAL: 'MANUAL',
+  AUTOMATIC: 'AUTOMATIC',
+} as const;
+
+export type CreateVehicleRequestFuelType = typeof CreateVehicleRequestFuelType[keyof typeof CreateVehicleRequestFuelType];
+
+
+export const CreateVehicleRequestFuelType = {
+  PETROL: 'PETROL',
+  DIESEL: 'DIESEL',
+  ELECTRIC: 'ELECTRIC',
+  HYBRID: 'HYBRID',
+} as const;
+
+export type CreateVehicleRequestStatus = typeof CreateVehicleRequestStatus[keyof typeof CreateVehicleRequestStatus];
+
+
+export const CreateVehicleRequestStatus = {
+  AVAILABLE: 'AVAILABLE',
+  RESERVED: 'RESERVED',
+  RENTED: 'RENTED',
+  MAINTENANCE: 'MAINTENANCE',
+  OUT_OF_SERVICE: 'OUT_OF_SERVICE',
+  ARCHIVED: 'ARCHIVED',
+} as const;
+
+export interface CreateVehicleRequest {
+  /** @minLength 1 */
+  make: string;
+  /** @minLength 1 */
+  model: string;
+  /** @minLength 1 */
+  plate_number: string;
+  year: number;
+  /** @minLength 1 */
+  color: string;
+  vin?: string;
+  engine_number?: string;
+  transmission: CreateVehicleRequestTransmission;
+  fuel_type: CreateVehicleRequestFuelType;
+  seats: number;
+  current_mileage: number;
+  status: CreateVehicleRequestStatus;
+}
+
+export type UpdateVehicleRequestTransmission = typeof UpdateVehicleRequestTransmission[keyof typeof UpdateVehicleRequestTransmission];
+
+
+export const UpdateVehicleRequestTransmission = {
+  MANUAL: 'MANUAL',
+  AUTOMATIC: 'AUTOMATIC',
+} as const;
+
+export type UpdateVehicleRequestFuelType = typeof UpdateVehicleRequestFuelType[keyof typeof UpdateVehicleRequestFuelType];
+
+
+export const UpdateVehicleRequestFuelType = {
+  PETROL: 'PETROL',
+  DIESEL: 'DIESEL',
+  ELECTRIC: 'ELECTRIC',
+  HYBRID: 'HYBRID',
+} as const;
+
+export type UpdateVehicleRequestStatus = typeof UpdateVehicleRequestStatus[keyof typeof UpdateVehicleRequestStatus];
+
+
+export const UpdateVehicleRequestStatus = {
+  AVAILABLE: 'AVAILABLE',
+  RESERVED: 'RESERVED',
+  RENTED: 'RENTED',
+  MAINTENANCE: 'MAINTENANCE',
+  OUT_OF_SERVICE: 'OUT_OF_SERVICE',
+  ARCHIVED: 'ARCHIVED',
+} as const;
+
+export interface UpdateVehicleRequest {
+  /** @minLength 1 */
+  make: string;
+  /** @minLength 1 */
+  model: string;
+  /** @minLength 1 */
+  plate_number: string;
+  year: number;
+  /** @minLength 1 */
+  color: string;
+  vin?: string;
+  engine_number?: string;
+  transmission: UpdateVehicleRequestTransmission;
+  fuel_type: UpdateVehicleRequestFuelType;
+  seats: number;
+  current_mileage: number;
+  status: UpdateVehicleRequestStatus;
+}
+
 export type ErrorResponseError = {
   code: string;
   message: string;

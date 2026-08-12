@@ -11,6 +11,7 @@ import DashboardPage from '@/pages/DashboardPage';
 import VehiclesPage from '@/pages/VehiclesPage';
 import AddVehiclePage from '@/pages/AddVehiclePage';
 import VehicleDetailPage from '@/pages/VehicleDetailPage';
+import EditVehiclePage from '@/pages/EditVehiclePage';
 import CustomersPage from '@/pages/CustomersPage';
 import AddCustomerPage from '@/pages/AddCustomerPage';
 import CustomerDetailPage from '@/pages/CustomerDetailPage';
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/" component={DashboardPage} />
       <Route path="/vehicles" component={VehiclesPage} />
       <Route path="/vehicles/add" component={AddVehiclePage} />
+      <Route path="/vehicles/:id/edit" component={EditVehiclePage} />
       <Route path="/vehicles/:id" component={VehicleDetailPage} />
       <Route path="/customers" component={CustomersPage} />
       <Route path="/customers/add" component={AddCustomerPage} />

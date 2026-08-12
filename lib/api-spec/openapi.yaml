@@ -18,6 +18,8 @@ tags:
     description: User operations
   - name: customers
     description: Customer operations
+  - name: vehicles
+    description: Vehicle operations
 paths:
   /healthz:
     get:
@@ -625,10 +627,198 @@ paths:
           description: Insufficient permissions
           content:
             application/json:
+               schema:
+                 $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /vehicles:
+    get:
+      operationId: listVehicles
+      tags: [vehicles]
+      summary: List vehicles in the current organization
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of vehicles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createVehicle
+      tags: [vehicles]
+      summary: Create a vehicle in the current organization
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVehicleRequest"
+      responses:
+        "201":
+          description: Vehicle created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate plate number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /vehicles/{id}:
+    get:
+      operationId: getVehicle
+      tags: [vehicles]
+      summary: Get a vehicle in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Vehicle ID
+      responses:
+        "200":
+          description: Vehicle
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
-          description: Customer not found
+          description: Vehicle not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateVehicle
+      tags: [vehicles]
+      summary: Update a vehicle in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Vehicle ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateVehicleRequest"
+      responses:
+        "200":
+          description: Vehicle updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Vehicle not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Duplicate plate number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteVehicle
+      tags: [vehicles]
+      summary: Soft delete a vehicle in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Vehicle ID
+      responses:
+        "204":
+          description: Vehicle deleted
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Vehicle not found
           content:
             application/json:
               schema:
@@ -942,6 +1132,171 @@ components:
         - national_id
         - license_number
         - license_expiry_date
+
+    VehicleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        make:
+          type: string
+        model:
+          type: string
+        plateNumber:
+          type: string
+        year:
+          type: integer
+        color:
+          type: string
+        vin:
+          type: string
+          nullable: true
+        engineNumber:
+          type: string
+          nullable: true
+        transmission:
+          type: string
+          enum: [MANUAL, AUTOMATIC]
+        fuelType:
+          type: string
+          enum: [PETROL, DIESEL, ELECTRIC, HYBRID]
+        seats:
+          type: integer
+        currentMileage:
+          type: integer
+        status:
+          type: string
+          enum: [AVAILABLE, RESERVED, RENTED, MAINTENANCE, OUT_OF_SERVICE, ARCHIVED]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - make
+        - model
+        - plateNumber
+        - year
+        - color
+        - transmission
+        - fuelType
+        - seats
+        - currentMileage
+        - status
+        - createdAt
+        - updatedAt
+
+    VehicleResponseWrapper:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/VehicleResponse"
+      required:
+        - data
+
+    VehicleListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/VehicleResponse"
+      required:
+        - data
+
+    CreateVehicleRequest:
+      type: object
+      properties:
+        make:
+          type: string
+          minLength: 1
+        model:
+          type: string
+          minLength: 1
+        plate_number:
+          type: string
+          minLength: 1
+        year:
+          type: integer
+        color:
+          type: string
+          minLength: 1
+        vin:
+          type: string
+        engine_number:
+          type: string
+        transmission:
+          type: string
+          enum: [MANUAL, AUTOMATIC]
+        fuel_type:
+          type: string
+          enum: [PETROL, DIESEL, ELECTRIC, HYBRID]
+        seats:
+          type: integer
+        current_mileage:
+          type: integer
+        status:
+          type: string
+          enum: [AVAILABLE, RESERVED, RENTED, MAINTENANCE, OUT_OF_SERVICE, ARCHIVED]
+      required:
+        - make
+        - model
+        - plate_number
+        - year
+        - color
+        - transmission
+        - fuel_type
+        - seats
+        - current_mileage
+        - status
+
+    UpdateVehicleRequest:
+      type: object
+      properties:
+        make:
+          type: string
+          minLength: 1
+        model:
+          type: string
+          minLength: 1
+        plate_number:
+          type: string
+          minLength: 1
+        year:
+          type: integer
+        color:
+          type: string
+          minLength: 1
+        vin:
+          type: string
+        engine_number:
+          type: string
+        transmission:
+          type: string
+          enum: [MANUAL, AUTOMATIC]
+        fuel_type:
+          type: string
+          enum: [PETROL, DIESEL, ELECTRIC, HYBRID]
+        seats:
+          type: integer
+        current_mileage:
+          type: integer
+        status:
+          type: string
+          enum: [AVAILABLE, RESERVED, RENTED, MAINTENANCE, OUT_OF_SERVICE, ARCHIVED]
+      required:
+        - make
+        - model
+        - plate_number
+        - year
+        - color
+        - transmission
+        - fuel_type
+        - seats
+        - current_mileage
+        - status
 
     ErrorResponse:
       type: object
