@@ -424,6 +424,7 @@ Represents a person renting a vehicle.
 
 - Belongs to one `Organization`
 - Can have many `Rental` (`rentals Rental[]`)
+- Can have many `Document` (`documents Document[]`)
 
 ### Fields
 
@@ -1074,7 +1075,7 @@ System-generated reminders.
 
 ## Purpose
 
-Vehicles have documents and photos. Customers may have documents in the future.
+Vehicles have documents and photos. Customers have documents. Photos are vehicle-only; documents belong to either a Vehicle or a Customer.
 
 ## Model Structure
 
@@ -1124,12 +1125,12 @@ The extension is derived from the validated MIME type.
 
 ## Purpose
 
-Represents a file attached to a Vehicle (e.g., registration or insurance document).
+Represents a file attached to a Vehicle or a Customer (e.g., registration or insurance document).
 
 ## Relationships
 
 - Belongs to one `Organization`
-- Belongs to one `Vehicle`
+- Belongs to exactly one owner — either a `Vehicle` or a `Customer`
 
 ## Fields
 
@@ -1137,7 +1138,8 @@ Represents a file attached to a Vehicle (e.g., registration or insurance documen
 |---|---|---|---|---|---|
 | id | id | UUID | ✅ | uuid() | PK |
 | organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
-| vehicle_id | vehicle_id | UUID | ✅ | — | FK → Vehicle.id |
+| vehicle_id | vehicle_id | UUID | ❌ | null | FK → Vehicle.id (nullable; one owner must be set) |
+| customer_id | customer_id | UUID | ❌ | null | FK → Customer.id (nullable; one owner must be set) |
 | category | category | DocumentCategory | ✅ | OTHER | REGISTRATION / INSURANCE / OTHER |
 | original_filename | original_filename | String | ✅ | — | Client filename (sanitized) |
 | mime_type | mime_type | String | ✅ | — | Content type |
@@ -1151,6 +1153,8 @@ Represents a file attached to a Vehicle (e.g., registration or insurance documen
 
 - FK `organization_id` → `Organization.id`.
 - FK `vehicle_id` → `Vehicle.id`.
+- FK `customer_id` → `Customer.id`.
+- Exactly one of `vehicle_id` or `customer_id` must be set (a document belongs to exactly one owner).
 - `file_size` must be a non-negative integer.
 
 ## Unique Constraints
@@ -1161,6 +1165,7 @@ Represents a file attached to a Vehicle (e.g., registration or insurance documen
 
 - `@@index([organization_id])`
 - `@@index([vehicle_id])`
+- `@@index([customer_id])`
 - `@@index([category])`
 - `@@index([deleted_at])`
 
@@ -1168,10 +1173,11 @@ Represents a file attached to a Vehicle (e.g., registration or insurance documen
 
 - `organization_id` → `Organization.id`, onDelete RESTRICT.
 - `vehicle_id` → `Vehicle.id`, onDelete RESTRICT.
+- `customer_id` → `Customer.id`, onDelete RESTRICT.
 
 ## onDelete Behavior
 
-- RESTRICT for both FKs (business-record convention).
+- RESTRICT for all three FKs (business-record convention).
 
 ## Soft Delete Strategy
 
@@ -1180,8 +1186,8 @@ Represents a file attached to a Vehicle (e.g., registration or insurance documen
 
 ## Business Rules
 
-- A document belongs to exactly one Vehicle.
-- The document's organization must match the owning Vehicle's organization.
+- A document belongs to exactly one owner — either a Vehicle or a Customer.
+- The document's organization must match the owning Vehicle's or Customer's organization.
 - `category` identifies registration, insurance, or other document types.
 
 ## Validation Rules
@@ -1194,8 +1200,8 @@ Represents a file attached to a Vehicle (e.g., registration or insurance documen
 
 ## API Notes
 
-- Planned: `/api/vehicles/:id/documents` (upload, list, get, delete) in a later step.
-- Upload/download endpoints are **not** part of Step 9.1.
+- `/api/vehicles/:id/documents` (upload, list, get, delete) and `/api/customers/:id/documents` (upload, list, get, delete).
+- Both ownership paths support authenticated document download.
 
 ---
 
@@ -1285,21 +1291,23 @@ Represents a photo attached to a Vehicle.
 
 # Entity Ownership
 
-For the current scope, both models use **explicit foreign keys**:
+The current models use **explicit foreign keys**:
 
-- `vehicle_id` → `Vehicle.id`
+- `Document.vehicle_id` → `Vehicle.id` (nullable; set when the document belongs to a Vehicle)
+- `Document.customer_id` → `Customer.id` (nullable; set when the document belongs to a Customer)
+- `Photo.vehicle_id` → `Vehicle.id`
 
-Polymorphic `entity_type + entity_id` is **not** used. Speculative `customer_id` or `contract_id` fields are **not** added yet.
+Polymorphic `entity_type + entity_id` is **not** used. Exactly one owner FK (`vehicle_id` or `customer_id`) must be set on every `Document`; no other speculative owner columns (e.g., `contract_id`) are added.
 
-The architecture is extensible: future entities (Customer documents, Contract documents) may receive explicit FK relationships through future migrations without redesign.
+The architecture is extensible: future entities (Contract documents) may receive explicit FK relationships through future migrations without redesign.
 
 ---
 
 # Organization Isolation
 
-- Both models contain a required `organization_id` FK → `Organization.id`.
+- All media models (`Document`, `Photo`) contain a required `organization_id` FK → `Organization.id`.
 - The organization must come from the authenticated server context, never client input.
-- The service layer must verify `media.organization_id === vehicle.organization_id` before creating media.
+- The service layer must verify `media.organization_id === owner.organization_id` before creating media, where the owner is the owning Vehicle **or** Customer.
 
 ---
 
