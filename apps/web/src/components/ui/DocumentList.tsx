@@ -15,6 +15,7 @@ interface DocumentListProps {
   deleting: boolean;
   onUpload: (file: File, category: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onDownload: (doc: DocumentResponse) => Promise<void>;
 }
 
 export function DocumentList({
@@ -27,10 +28,12 @@ export function DocumentList({
   deleting,
   onUpload,
   onDelete,
+  onDownload,
 }: DocumentListProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [category, setCategory] = useState("OTHER");
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const { user } = useAuth();
   const canMutate = user?.role === "OWNER" || isOwner;
 
@@ -45,6 +48,18 @@ export function DocumentList({
       setUploadError(getApiErrorMessage(err).title);
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  async function handleDownload(doc: DocumentResponse) {
+    if (downloadingId) return;
+    setDownloadingId(doc.id);
+    try {
+      await onDownload(doc);
+    } catch (err) {
+      setUploadError(getApiErrorMessage(err).title);
+    } finally {
+      setDownloadingId(null);
     }
   }
 
@@ -87,9 +102,15 @@ export function DocumentList({
         onChange={handleFileChange}
       />
 
-      {uploadError && (
-        <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-2.5 text-sm text-destructive mb-3">
-          {uploadError}
+      {(uploadError || downloadingId) && (
+        <div
+          className={
+            uploadError
+              ? "bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-2.5 text-sm text-destructive mb-3"
+              : "bg-muted rounded-xl px-4 py-2.5 text-sm text-muted-foreground mb-3"
+          }
+        >
+          {uploadError ? uploadError : "جاري التحميل..."}
         </div>
       )}
 
@@ -126,17 +147,18 @@ export function DocumentList({
                   {DOCUMENT_CATEGORY_LABELS[doc.category] ?? doc.category} · {formatFileSize(doc.fileSize)} · {formatDate(doc.createdAt)}
                 </div>
               </div>
-              {doc.url && (
-                <a
-                  href={doc.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-9 h-9 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground active:scale-95 transition-transform flex-shrink-0"
-                  aria-label="فتح المستند"
-                >
+              <button
+                onClick={() => handleDownload(doc)}
+                disabled={downloadingId !== null}
+                className="w-9 h-9 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground active:scale-95 transition-transform flex-shrink-0"
+                aria-label="فتح المستند"
+              >
+                {downloadingId === doc.id ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
                   <Download className="size-4" />
-                </a>
-              )}
+                )}
+              </button>
               {canMutate && (
                 <button
                   onClick={() => onDelete(doc.id)}

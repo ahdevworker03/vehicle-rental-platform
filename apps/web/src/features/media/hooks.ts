@@ -8,10 +8,12 @@ import {
   useUploadVehicleDocument,
   useDeleteVehicleDocument,
   getListVehicleDocumentsQueryKey,
+  downloadVehicleDocument,
   useListCustomerDocuments,
   useUploadCustomerDocument,
   useDeleteCustomerDocument,
   getListCustomerDocumentsQueryKey,
+  downloadCustomerDocument,
   type DocumentResponseCategory,
 } from "@workspace/api-client-react";
 
@@ -53,8 +55,9 @@ export function useVehicleDocuments(vehicleId: string) {
       },
     },
   });
+  const download = (documentId: string) => downloadVehicleDocument(vehicleId, documentId);
 
-  return { query, upload, remove };
+  return { query, upload, remove, download };
 }
 
 export function useCustomerDocuments(customerId: string) {
@@ -74,8 +77,9 @@ export function useCustomerDocuments(customerId: string) {
       },
     },
   });
+  const download = (documentId: string) => downloadCustomerDocument(customerId, documentId);
 
-  return { query, upload, remove };
+  return { query, upload, remove, download };
 }
 
 export type { DocumentResponseCategory };

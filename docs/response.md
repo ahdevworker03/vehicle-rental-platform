@@ -1,10 +1,10 @@
-# Step 9.4a — Media File Serving (Backend): Complete
+# Step 9.4 — Photos & Documents (Frontend): Correction & Completion
 
 ---
 
 ## Summary
 
-Added authenticated file download endpoints for vehicle and customer documents. Reused the existing `StorageProvider` abstraction and `LocalFilesystemProvider` (no second storage system). Enforces organization isolation, soft-delete exclusion, and authentication. Updated the OpenAPI contract and regenerated the client.
+Continued the existing Step 9.4 media frontend with the required correction: document downloads no longer use `doc.url` (the storage key). Downloads now go through the Step 9.4a **authenticated download endpoints** via the generated API client, preserving authentication and organization isolation and never exposing storage keys or filesystem paths.
 
 ---
 
@@ -12,62 +12,45 @@ Added authenticated file download endpoints for vehicle and customer documents. 
 
 | File | Change |
 |---|---|
-| `apps/api/src/modules/media/media.service.ts` | Added `downloadVehicleDocument` / `downloadCustomerDocument` returning `{ buffer, mimeType, filename, size }` |
-| `apps/api/src/modules/media/media.controller.ts` | Added thin download controllers + `sendFile` helper (Content-Type / Content-Disposition / Content-Length headers) |
-| `apps/api/src/modules/media/media.routes.ts` | Added `GET .../documents/:id/download` for both vehicle and customer documents |
-| `lib/api-spec/openapi.yaml` | Added `downloadVehicleDocument` and `downloadCustomerDocument` endpoints |
-| `lib/api-client-react/src/generated/*` | Regenerated (added `downloadVehicleDocument`, `downloadCustomerDocument`, hooks) |
-| `lib/api-zod/src/generated/*` | Regenerated |
-
-No repository changes were required — the existing org-scoped `findDocument`/`findCustomerDocument` return the full `DocumentRecord` (including `storage_key`, `mime_type`, `original_filename`, `deleted_at`), which the download service reuses. No generated files were hand-edited.
+| `apps/web/src/features/media/hooks.ts` | Added `download(documentId)` to `useVehicleDocuments` and `useCustomerDocuments` — wraps the generated `downloadVehicleDocument(vehicleId, id)` / `downloadCustomerDocument(customerId, id)` (both return `Promise<Blob>`, Bearer attached via `customFetch`) |
+| `apps/web/src/components/ui/DocumentList.tsx` | Replaced `doc.url` `<a href>` with an `onDownload` callback prop + download button; added per-item downloading state and a "جاري التحميل..." indicator; removed storage-key exposure |
+| `apps/web/src/pages/VehicleDetailPage.tsx` | Added `handleDownloadDocument` (fetches Blob via `documents.download`, triggers browser save with original filename) and wired `onDownload` |
+| `apps/web/src/pages/CustomerDetailPage.tsx` | Same — added `handleDownloadDocument` and wired `onDownload` |
 
 ---
 
-## Endpoints
+## Implementation Details
 
-| Method | URL | Auth | Response |
-|---|---|---|---|
-| GET | `/api/vehicles/:vehicleId/documents/:id/download` | Any authenticated | 200 binary file |
-| GET | `/api/customers/:customerId/documents/:id/download` | Any authenticated | 200 binary file |
+### Download flow (corrected)
 
-Download is a **read** operation — any authenticated user can download (consistent with the existing media read policy where list/get are authenticated). Upload/delete remain OWNER-only.
+1. User clicks the download icon in `DocumentList`.
+2. `DocumentList` calls `onDownload(doc)`.
+3. The page handler calls `documents.download(doc.id)` → `downloadVehicleDocument(vehicleId, id)` / `downloadCustomerDocument(customerId, id)`.
+4. The generated function uses `customFetch` with the registered auth token getter → `Authorization: Bearer <token>` is attached automatically.
+5. The response is a `Blob`; the handler creates an object URL, triggers `a.click()` with `a.download = originalFilename`, then revokes the URL.
+
+**Storage keys / filesystem paths are never rendered as hrefs.** `doc.url` is no longer used as a link.
+
+### Security
+
+- Authentication: every download goes through `customFetch` (Bearer token) to the protected endpoint; unauthenticated → 401.
+- Organization isolation: enforced server-side (Step 9.4a) — cross-org → 404; the frontend relies on the backend as source of truth.
+- Soft-deleted documents → 404 (backend), so they cannot be downloaded.
+- No handwritten fetch/axios — all via the generated API client.
 
 ---
 
-## Security Checks
+## Runtime Verification
 
-| Requirement | Implementation |
+| Check | Result |
 |---|---|
-| Organization isolation | `ensureVehicleInOrg` / `ensureCustomerInOrg` → 404 if the owner entity isn't in `req.user.org` |
-| Document belongs to requested owner | `repo.findDocument(documentId, vehicleId, orgId)` / `findCustomerDocument` — scoped by both id and org |
-| Do not serve soft-deleted documents | `if (!document \|\| document.deleted_at) → 404 DOCUMENT_NOT_FOUND` |
-| Never expose raw filesystem paths / storage keys as public URLs | Download resolves the storage key internally via `storageProvider.retrieve()` and serves raw bytes; the storage key is never exposed |
-| Do not bypass auth middleware | All download routes use `authenticate` |
-| Prisma access in repositories | Service calls `repo.*`; no Prisma in controller/service |
-| Controllers thin | Controllers extract params, call service, set headers, send buffer |
-| Business logic in service | Org check, soft-delete check, storage retrieval all in service |
-
----
-
-## Response Headers
-
-- `Content-Type`: the document's stored `mime_type` (e.g. `application/pdf`)
-- `Content-Length`: byte length of the buffer
-- `Content-Disposition: attachment; filename="<sanitized original_filename>"` — quotes/backslashes stripped to prevent header injection
-
----
-
-## Runtime Verification (7/7 PASS)
-
-| # | Test | Expected | Actual |
-|---|---|---|---|
-| 1 | Vehicle document download (auth) | 200, body = stored bytes | 200 `application/pdf`, `Content-Disposition: attachment; filename="vdoc.pdf"`, body `hello-vehicle-document` ✅ |
-| 2 | Customer document download (auth) | 200, body = stored bytes | 200 `application/pdf`, `filename="cdoc.pdf"`, body `hello-customer-document` ✅ |
-| 3 | Unauthenticated download | 401 | 401 ✅ |
-| 4 | Cross-organization download | 404 | 404 ✅ |
-| 5 | Delete then download | 404 | 404 ✅ |
-| 6 | Existing vehicle doc list (regression) | 200 | 200 ✅ |
-| 7 | Existing customer doc list + upload (regression) | 200 / 201 | 200 / 201 ✅ |
+| Download endpoint returns file (200, `application/pdf`, `Content-Disposition`, body matches) | ✅ |
+| Authenticated Blob-style fetch works (Bearer attached) | ✅ |
+| Frontend typecheck | ✅ 0 errors |
+| Frontend build | ✅ 1.86s |
+| Lint (new/changed files) | ✅ clean |
+| Full web lint | ✅ only pre-existing `use-toast.ts` error (unmodified, unrelated) |
+| Libs typecheck | ✅ |
 
 ---
 
@@ -75,23 +58,29 @@ Download is a **read** operation — any authenticated user can download (consis
 
 | Criterion | Status |
 |---|---|
-| Authenticated vehicle document download works | ✅ |
-| Authenticated customer document download works | ✅ |
-| Correct Content-Type returned | ✅ |
-| Filename preserved safely | ✅ |
-| Cross-organization access blocked | ✅ |
-| Deleted documents cannot be downloaded | ✅ |
-| Unauthenticated requests return 401 | ✅ |
-| Existing vehicle/customer media endpoints still work | ✅ |
-| Typecheck passes | ✅ |
-| Build passes | ✅ |
-| Lint passes | ✅ |
-| Reused StorageProvider / no second storage system | ✅ |
-| No frontend / cloud / unrelated features | ✅ |
+| Vehicle photo upload works from UI | ✅ (unchanged, verified in prior Step 9.4) |
+| Vehicle photo gallery renders | ✅ |
+| Vehicle photo deletion (OWNER) | ✅ |
+| Vehicle document upload/list/delete | ✅ |
+| Customer document upload/list/delete | ✅ |
+| Document downloads via authenticated Step 9.4a endpoints | ✅ |
+| MANAGER/EMPLOYEE read-only | ✅ (mutation controls gated by `isOwner`; backend enforces) |
+| Loading/empty/error states | ✅ |
+| TypeScript passes | ✅ |
+| Frontend build passes | ✅ |
+| No new lint errors | ✅ |
+| No `doc.url` used as download link / storage key not exposed | ✅ |
+| No handwritten fetch/axios / duplicate infra | ✅ |
+
+---
+
+## Issues Discovered & Resolved
+
+1. **Storage-key leak in download links (the stated correction):** `DocumentList` previously rendered `<a href={doc.url}>` where `url` is the storage key (e.g. `org/vehicle/uuid.pdf`). Fixed by switching to an `onDownload` callback that calls the Step 9.4a authenticated download endpoint via the generated client.
 
 ---
 
 ## Notes
 
-- The react-query client now exposes `useDownloadVehicleDocument` / `useDownloadCustomerDocument` hooks for the frontend to call (Step 9.4's download links can now be wired to real HTTP downloads in a follow-up if desired).
-- The zod output correctly excluded binary download responses from backend validation (handled by the `zodTransformer`), and `tsc --build` passes.
+- The customer detail page still uses mock data for customer/rental fields (a separate future conversion); the customer **documents** section uses the real API and the authenticated download endpoint.
+- The generated client already exposes `downloadVehicleDocument` / `downloadCustomerDocument` (added in Step 9.4a) — no contract changes or regeneration were needed in this step.

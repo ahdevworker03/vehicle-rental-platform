@@ -48,6 +48,18 @@ export default function CustomerDetailPage({
     await documents.remove.mutateAsync({ customerId: params.id, id: documentId });
   }
 
+  async function handleDownloadDocument(doc: { id: string; originalFilename: string }) {
+    const blob = await documents.download(doc.id);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = doc.originalFilename || "document";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   if (!customer) {
     return (
       <div className="min-h-full">
@@ -169,6 +181,7 @@ export default function CustomerDetailPage({
             deleting={documents.remove.isPending}
             onUpload={handleUploadDocument}
             onDelete={handleDeleteDocument}
+            onDownload={handleDownloadDocument}
           />
         </div>
 

@@ -64,6 +64,18 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
     await documents.remove.mutateAsync({ vehicleId: id, id: documentId });
   }
 
+  async function handleDownloadDocument(doc: { id: string; originalFilename: string }) {
+    const blob = await documents.download(doc.id);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = doc.originalFilename || "document";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-full flex items-center justify-center">
@@ -178,6 +190,7 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
             deleting={documents.remove.isPending}
             onUpload={handleUploadDocument}
             onDelete={handleDeleteDocument}
+            onDownload={handleDownloadDocument}
           />
         </div>
 
