@@ -7,7 +7,7 @@ import type { PhotoResponse, DocumentResponse, CreatePhotoInput, CreateDocumentI
 
 function generateStorageKey(
   orgId: string,
-  entity: "vehicle",
+  entity: "vehicle" | "customer",
   mimeType: string,
 ): string {
   const extension = extensionForMimeType(mimeType);
@@ -47,7 +47,8 @@ function toPhotoResponse(record: {
 
 function toDocumentResponse(record: {
   id: string;
-  vehicle_id: string;
+  vehicle_id: string | null;
+  customer_id: string | null;
   category: DocumentCategory;
   original_filename: string;
   mime_type: string;
@@ -59,6 +60,7 @@ function toDocumentResponse(record: {
   return {
     id: record.id,
     vehicleId: record.vehicle_id,
+    customerId: record.customer_id,
     category: record.category,
     originalFilename: record.original_filename,
     mimeType: record.mime_type,
@@ -198,6 +200,74 @@ export async function deleteVehicleDocument(documentId: string, vehicleId: strin
   await repo.softDeleteDocument(documentId);
 }
 
+async function ensureCustomerInOrg(customerId: string, orgId: string): Promise<void> {
+  const customer = await repo.findCustomer(customerId, orgId);
+
+  if (!customer) {
+    throw new AppError(404, "CUSTOMER_NOT_FOUND", "Customer not found.");
+  }
+}
+
+export async function listCustomerDocuments(customerId: string, orgId: string): Promise<DocumentResponse[]> {
+  await ensureCustomerInOrg(customerId, orgId);
+  const documents = await repo.listCustomerDocuments(customerId, orgId);
+  return documents.map(toDocumentResponse);
+}
+
+export async function getCustomerDocument(documentId: string, customerId: string, orgId: string): Promise<DocumentResponse> {
+  await ensureCustomerInOrg(customerId, orgId);
+  const document = await repo.findCustomerDocument(documentId, customerId, orgId);
+
+  if (!document || document.deleted_at) {
+    throw new AppError(404, "DOCUMENT_NOT_FOUND", "Document not found.");
+  }
+
+  return toDocumentResponse(document);
+}
+
+export async function uploadCustomerDocument(
+  customerId: string,
+  orgId: string,
+  file: { originalname: string; mimetype: string; size: number; buffer: Buffer },
+  input: CreateDocumentInput,
+): Promise<DocumentResponse> {
+  await ensureCustomerInOrg(customerId, orgId);
+
+  if (!isDocumentMimeType(file.mimetype)) {
+    throw new AppError(422, "UNSUPPORTED_MIME_TYPE", "Document type must be PDF, JPEG, or PNG.");
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    throw new AppError(422, "FILE_TOO_LARGE", "Document exceeds the 10 MB size limit.");
+  }
+
+  const storageKey = generateStorageKey(orgId, "customer", file.mimetype);
+  await storageProvider.store(storageKey, file.buffer, file.mimetype);
+
+  const record = await repo.createCustomerDocument({
+    organization_id: orgId,
+    customer_id: customerId,
+    category: input.category,
+    original_filename: sanitizeFilename(file.originalname),
+    mime_type: file.mimetype,
+    file_size: file.size,
+    storage_key: storageKey,
+  });
+
+  return toDocumentResponse(record);
+}
+
+export async function deleteCustomerDocument(documentId: string, customerId: string, orgId: string): Promise<void> {
+  await ensureCustomerInOrg(customerId, orgId);
+  const document = await repo.findCustomerDocument(documentId, customerId, orgId);
+
+  if (!document || document.deleted_at) {
+    throw new AppError(404, "DOCUMENT_NOT_FOUND", "Document not found.");
+  }
+
+  await repo.softDeleteDocument(documentId);
+}
+
 export const mediaService = {
   listVehiclePhotos,
   getVehiclePhoto,
@@ -207,4 +277,8 @@ export const mediaService = {
   getVehicleDocument,
   uploadVehicleDocument,
   deleteVehicleDocument,
+  listCustomerDocuments,
+  getCustomerDocument,
+  uploadCustomerDocument,
+  deleteCustomerDocument,
 };

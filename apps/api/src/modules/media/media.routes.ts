@@ -9,6 +9,10 @@ import {
   getDocument,
   uploadDocument,
   deleteDocument,
+  listCustomerDocuments,
+  getCustomerDocument,
+  uploadCustomerDocument,
+  deleteCustomerDocument,
 } from "./media.controller";
 import { authenticate, requireRole } from "../../middleware";
 
@@ -37,5 +41,17 @@ router.post(
   uploadDocument,
 );
 router.delete("/vehicles/:vehicleId/documents/:id", authenticate, requireRole("OWNER"), deleteDocument);
+
+// Customer documents
+router.get("/customers/:customerId/documents", authenticate, listCustomerDocuments);
+router.get("/customers/:customerId/documents/:id", authenticate, getCustomerDocument);
+router.post(
+  "/customers/:customerId/documents",
+  authenticate,
+  requireRole("OWNER"),
+  handleUpload,
+  uploadCustomerDocument,
+);
+router.delete("/customers/:customerId/documents/:id", authenticate, requireRole("OWNER"), deleteCustomerDocument);
 
 export default router;

@@ -153,4 +153,71 @@ async function deleteDocument(req: Request, res: Response, next: NextFunction): 
   }
 }
 
-export { handleUpload, listPhotos, getPhoto, uploadPhoto, deletePhoto, listDocuments, getDocument, uploadDocument, deleteDocument };
+async function listCustomerDocuments(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const customerId = req.params.customerId as string;
+    const documents = await mediaService.listCustomerDocuments(customerId, req.user!.org);
+    ok(res, documents);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getCustomerDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const customerId = req.params.customerId as string;
+    const id = req.params.id as string;
+    const document = await mediaService.getCustomerDocument(id, customerId, req.user!.org);
+    ok(res, document);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function uploadCustomerDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const customerId = req.params.customerId as string;
+    const file = req.file;
+
+    if (!file) {
+      res.status(422).json({ error: { code: "FILE_REQUIRED", message: "A file is required." } });
+      return;
+    }
+
+    const input: CreateDocumentInput = {
+      category: parseCategory(req.body.category),
+    };
+
+    const document = await mediaService.uploadCustomerDocument(customerId, req.user!.org, file, input);
+    created(res, document);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function deleteCustomerDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const customerId = req.params.customerId as string;
+    const id = req.params.id as string;
+    await mediaService.deleteCustomerDocument(id, customerId, req.user!.org);
+    noContent(res);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export {
+  handleUpload,
+  listPhotos,
+  getPhoto,
+  uploadPhoto,
+  deletePhoto,
+  listDocuments,
+  getDocument,
+  uploadDocument,
+  deleteDocument,
+  listCustomerDocuments,
+  getCustomerDocument,
+  uploadCustomerDocument,
+  deleteCustomerDocument,
+};

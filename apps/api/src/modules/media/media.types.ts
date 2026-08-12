@@ -18,7 +18,8 @@ export interface PhotoRecord {
 export interface DocumentRecord {
   id: string;
   organization_id: string;
-  vehicle_id: string;
+  vehicle_id: string | null;
+  customer_id: string | null;
   category: DocumentCategory;
   original_filename: string;
   mime_type: string;
@@ -44,7 +45,8 @@ export interface PhotoResponse {
 
 export interface DocumentResponse {
   id: string;
-  vehicleId: string;
+  vehicleId: string | null;
+  customerId: string | null;
   category: DocumentCategory;
   originalFilename: string;
   mimeType: string;

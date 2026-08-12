@@ -107,6 +107,8 @@ model Customer {
   @@index([phone])
   @@index([national_id])
   @@index([license_number])
+
+  documents Document[]
 }
 
 model Vehicle {
@@ -145,8 +147,10 @@ model Document {
   id                String           @id @default(uuid()) @db.Uuid
   organization_id   String           @db.Uuid
   organization      Organization     @relation(fields: [organization_id], references: [id])
-  vehicle_id        String           @db.Uuid
-  vehicle           Vehicle          @relation(fields: [vehicle_id], references: [id])
+  vehicle_id        String?          @db.Uuid
+  vehicle           Vehicle?         @relation(fields: [vehicle_id], references: [id], onDelete: Restrict)
+  customer_id       String?          @db.Uuid
+  customer          Customer?        @relation(fields: [customer_id], references: [id], onDelete: Restrict)
   category          DocumentCategory @default(OTHER)
   original_filename String
   mime_type         String
@@ -158,6 +162,7 @@ model Document {
 
   @@index([organization_id])
   @@index([vehicle_id])
+  @@index([customer_id])
   @@index([category])
   @@index([deleted_at])
 }
