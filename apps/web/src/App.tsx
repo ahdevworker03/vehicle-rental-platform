@@ -2,7 +2,11 @@ import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AppShell } from '@/components/layout/AppShell';
+import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
+import { QueryProvider } from '@/providers/QueryProvider';
+import { AuthProvider } from '@/providers/AuthProvider';
 
+import LoginPage from '@/pages/LoginPage';
 import DashboardPage from '@/pages/DashboardPage';
 import VehiclesPage from '@/pages/VehiclesPage';
 import AddVehiclePage from '@/pages/AddVehiclePage';
@@ -37,32 +41,51 @@ function Router() {
   );
 }
 
+function ProtectedShell() {
+  return (
+    <ProtectedRoute>
+      <AppShell>
+        <Router />
+      </AppShell>
+    </ProtectedRoute>
+  );
+}
+
 function App() {
   return (
-    <TooltipProvider>
-      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-        {/* Full-screen flows render outside AppShell (no bottom navigation) */}
-        <Switch>
-          <Route path="/rentals/new">
-            <div className="max-w-[480px] mx-auto h-[100dvh] flex flex-col bg-background relative overflow-hidden shadow-2xl">
-              <NewRentalPage />
-            </div>
-          </Route>
-          <Route path="/maintenance/add">
-            <div className="max-w-[480px] mx-auto h-[100dvh] flex flex-col bg-background relative overflow-hidden shadow-2xl">
-              <AddMaintenancePage />
-            </div>
-          </Route>
-          
-          <Route>
-            <AppShell>
-              <Router />
-            </AppShell>
-          </Route>
-        </Switch>
-      </WouterRouter>
-      <Toaster />
-    </TooltipProvider>
+    <QueryProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+            <Switch>
+              {/* Public routes */}
+              <Route path="/login" component={LoginPage} />
+
+              {/* Full-screen flows render outside AppShell (no bottom navigation) */}
+              <Route path="/rentals/new">
+                <ProtectedRoute>
+                  <div className="max-w-[480px] mx-auto h-[100dvh] flex flex-col bg-background relative overflow-hidden shadow-2xl">
+                    <NewRentalPage />
+                  </div>
+                </ProtectedRoute>
+              </Route>
+              <Route path="/maintenance/add">
+                <ProtectedRoute>
+                  <div className="max-w-[480px] mx-auto h-[100dvh] flex flex-col bg-background relative overflow-hidden shadow-2xl">
+                    <AddMaintenancePage />
+                  </div>
+                </ProtectedRoute>
+              </Route>
+
+              <Route>
+                <ProtectedShell />
+              </Route>
+            </Switch>
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryProvider>
   );
 }
 

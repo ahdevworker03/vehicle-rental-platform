@@ -1,127 +1,85 @@
-# Step 7.2 — Final Implementation Review
+# Temporary Logout UI — Implementation Report
 
 ---
 
-## 1. PATCH Semantics: Full-Resource Update
+## Summary
 
-**Verdict: ✅ Correct — no correction required.**
-
-### Execution path
-
-```
-PATCH /api/customers/:id
-  → validateBody(updateCustomerSchema)
-      → requires all 7 fields (first_name, last_name, phone, address,
-        national_id, license_number, license_expiry_date)
-  → controller.update
-  → service.updateCustomer → passes all 7 fields to repo.update
-  → repo.update → prisma.customer.update({ where: { id }, data: { all 7 fields } })
-```
-
-### Analysis
-
-- `06-api-design.md` (HTTP Methods) documents `PATCH | Update existing resources` but does **not** specify partial vs full update semantics.
-- The existing codebase treats PATCH as a full update of the updateable fields:
-  - **Organization**: `updateOrganizationSchema` requires `name` (full update)
-  - **User**: `updateUserSchema` requires `role` (full update)
-- The Customer module follows the same convention: all 7 updateable fields are required.
-- The `UpdateCustomerInput` type in `customer.types.ts` and the service both pass all fields through.
-
-This is consistent with the existing codebase pattern. If partial updates are desired in the future, the schema could be changed to `.partial()`, but that would be a new decision, not a correction of a bug.
+Added a minimal, temporary logout button to verify the authentication infrastructure before the full application UI is implemented. The button reuses the existing `AuthProvider.logout()` and redirects the user to `/login`.
 
 ---
 
-## 2. Duplicate Detection Scope
+## Files Created
 
-**Verdict: ✅ Correct — duplicate detection only fires on actual unique-constraint violations.**
-
-### Execution path
-
-```
-createCustomer / updateCustomer (service)
-  → try { repo.create(...) / repo.update(...) }
-  → catch (err)
-      → if (isUniqueConstraintError(err))  // PrismaClientKnownRequestError, code === "P2002"
-          → throw AppError(409, "DUPLICATE_CUSTOMER", ...)
-      → throw err  // all other errors re-thrown unchanged
-```
-
-### Analysis
-
-- `isUniqueConstraintError` checks `error instanceof PrismaClientKnownRequestError && error.code === "P2002"`.
-- P2002 is specifically "Unique constraint failed on the fields" — it fires only when a unique constraint is actually violated.
-- The Customer model has exactly two unique constraints:
-  - `@@unique([organization_id, national_id])`
-  - `@@unique([organization_id, license_number])`
-- An **update that keeps a customer's own values** does NOT fire P2002 (updating a row to its own current values does not collide with another row).
-- Only a genuine collision with a **different** customer's `national_id` or `license_number` within the same org triggers P2002 → 409.
-- **Unrelated errors** (connection failures, DB errors, validation) are re-thrown as-is — they are never converted to a 409.
-
-Verified at runtime: duplicate national_id in same org → `409 DUPLICATE_CUSTOMER`. No false positives.
-
----
-
-## 3. `license_expiry_date` Flow
-
-**Verdict: ⚠️ One real issue found and corrected — date validity was not enforced.**
-
-### Full execution path
-
-| Stage | Code | Input Type | Notes |
-|---|---|---|---|
-| **Validation** | `customer.validation.ts` — `license_expiry_date: z.string().min(1, ...)` | `string` | **Before fix:** only checked non-empty. **After fix:** `refine((v) => !isNaN(new Date(v).getTime()))` rejects invalid dates |
-| **Service conversion** | `customer.service.ts:60,93` — `new Date(input.license_expiry_date)` | `string → Date` | Converts ISO string to Date |
-| **Repository input** | `customer.repository.ts:24,41` — `license_expiry_date: Date` | `Date` | Typed as `Date` |
-| **Prisma write** | `prisma.customer.create/update({ data: { license_expiry_date } })` | `Date → timestamp` | Prisma maps Date to PostgreSQL TIMESTAMP(3) |
-
-### Issue found
-
-Before the fix, the validation `z.string().min(1)` accepted any non-empty string (e.g., `"not-a-date"`). Then `new Date("not-a-date")` produced `Invalid Date`, which would fail at the Prisma write or store an invalid timestamp. This violated the documented validation rule:
-
-> `11-domain-model-specification.md` (Customer, Validation Rules): "`license_expiry_date` is required, must be a valid date."
-
-### Fix applied
-
-Added a shared `validDate` refine to both create and update schemas:
-
-```ts
-const validDate = z.string().refine(
-  (value) => !isNaN(new Date(value).getTime()),
-  { message: "License expiry date must be a valid date" },
-);
-```
-
-### Post-fix runtime verification
-
-| Test | Input | Result |
-|---|---|---|
-| Invalid date | `"not-a-date"` | **422** `VALIDATION_ERROR: license_expiry_date: License expiry date must be a valid date` |
-| Valid date | `"2028-12-31T00:00:00.000Z"` | **201** created, expiry stored correctly |
-| Duplicate detection | same `national_id` | **409** `DUPLICATE_CUSTOMER` (unchanged) |
-
----
-
-## Summary of Findings
-
-| Item | Status |
+| File | Purpose |
 |---|---|
-| 1. PATCH full-resource update | ✅ Consistent with codebase pattern; no correction required |
-| 2. Duplicate detection scope | ✅ Only P2002 → 409; unrelated errors re-thrown |
-| 3. license_expiry_date flow | ⚠️ Issue found (invalid dates accepted) and **corrected** with `validDate` refine |
+| `apps/web/src/components/layout/LogoutButton.tsx` | Temporary logout button: calls `logout()`, redirects to `/login` |
 
-## Files Modified (review fix)
+## Files Modified
 
 | File | Change |
 |---|---|
-| `apps/api/src/modules/customers/customer.validation.ts` | Added `validDate` refine to enforce valid date format on create and update |
+| `apps/web/src/components/layout/AppShell.tsx` | Rendered `<LogoutButton />` in an always-visible fixed position (top-right corner) |
 
-## Verification After Fix
+No new dependencies were introduced. No layout or navigation redesign. No new authentication logic.
 
-| Check | Result |
-|---|---|
-| Typecheck | ✅ 0 errors |
-| Build | ✅ 106ms |
-| Lint | ✅ 0 errors |
-| Invalid date → 422 | ✅ |
-| Valid date → 201 | ✅ |
-| Duplicate → 409 | ✅ |
+---
+
+## Implementation
+
+### `LogoutButton.tsx`
+
+- Uses `useAuth()` from the existing `AuthProvider` — reuses its `logout()` implementation. No new auth logic.
+- Uses `useLocation()` from wouter to navigate.
+- On click:
+  1. Calls `await logout()` — which calls `apiLogout({ refreshToken })`, then `clearTokens()`, then `setUser(null)`.
+  2. Calls `setLocation("/login", { replace: true })`.
+- Disables the button and shows a spinner while submitting to prevent double-clicks.
+- Reuses the existing `Button` (ghost variant) and `Spinner` components, plus the `LogOut` lucide icon (already a dependency).
+- Arabic label "خروج" consistent with the Arabic-first/RTL app.
+
+### `AppShell.tsx`
+
+- Added a fixed-position wrapper at the top-right corner (`absolute top-3 right-3 z-50`) rendering the `LogoutButton`.
+- The AppShell container is `relative`, so the button is always visible across all protected pages without affecting layout flow.
+- The `<main>` scrollable area and `<BottomNavigation>` are unchanged.
+
+---
+
+## Verification
+
+### 1. Login succeeds
+
+Backend test: `POST /api/auth/register` → 201; `POST /api/auth/login` → 200 with access + refresh tokens.
+
+### 2. Backend logout endpoint is called
+
+Backend test: `POST /api/auth/logout` with the refresh token → **HTTP 204**. The refresh token is revoked server-side (verified: a subsequent refresh with the same token returns `401 INVALID_REFRESH_TOKEN`).
+
+The `AuthProvider.logout()` implementation calls `apiLogout({ refreshToken })` before clearing local state — confirmed in `AuthProvider.tsx:72-85`.
+
+### 3. Local tokens are removed
+
+`AuthProvider.logout()` calls `clearTokens()` which removes both `vrap.accessToken` and `vrap.refreshToken` from `localStorage` (`auth-token.ts`). Confirmed in code.
+
+### 4. User is redirected to `/login`
+
+`LogoutButton` calls `setLocation("/login", { replace: true })` after `logout()` resolves. `ProtectedRoute` also redirects unauthenticated users to `/login`, so both paths converge.
+
+### 5. Refresh keeps the user logged out
+
+After logout, tokens are cleared from `localStorage`. On page refresh, `AuthProvider`'s session restoration finds no token and leaves the user unauthenticated — the app stays on `/login`.
+
+### 6. Commands
+
+| Check | Command | Result |
+|---|---|---|
+| TypeScript | `pnpm run typecheck` (apps/web) | ✅ 0 errors |
+| Lint | `pnpm exec eslint apps/web/src` | ✅ No new errors (only pre-existing `use-toast.ts` error in an unmodified file) |
+| Build | `pnpm run build` (apps/web) | ✅ 1.80s, no errors |
+
+---
+
+## Notes
+
+- The access token is a stateless JWT valid for 15 minutes, so `GET /api/auth/me` with a still-valid access token returns 200 even after logout. This is documented JWT behavior; logout revokes the refresh token server-side and clears local tokens, preventing session continuation.
+- The button is intentionally minimal and temporary; it will be replaced by a proper user-menu in the full application UI.

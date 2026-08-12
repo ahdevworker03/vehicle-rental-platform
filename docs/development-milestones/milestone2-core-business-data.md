@@ -104,7 +104,50 @@ Including:
 
 ---
 
-## Step 7.3 — Customer Module (Frontend)
+## Step 7.3 — Frontend Infrastructure
+
+## Must Read
+
+- 03-frontend-architecture.md
+- 06-api-design.md
+- 07-authentication-and-authorization.md
+- 10-authentication-policy.md
+
+### Objectives
+
+Transform the frontend from a mock-data prototype into an API-backed application.
+
+Including:
+
+- API client
+- Authentication context
+- Protected routes
+- Token management
+- API error handling
+- Shared API utilities
+
+## Deliverables
+
+- Shared API client
+- Authentication provider
+- Protected route component
+- API utilities
+- Authentication hooks
+
+## Acceptance Criteria
+
+- API client communicates with backend.
+- Authorization header attached automatically.
+- Authentication state persists.
+- Protected routes work.
+- API errors handled consistently.
+- Frontend builds successfully.
+- No TypeScript errors.
+- No new lint errors.
+
+---
+
+## Step 7.4 — Customer Module (Frontend)
 
 ### Must Read
 
