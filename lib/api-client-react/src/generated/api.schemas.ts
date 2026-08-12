@@ -369,6 +369,13 @@ export interface ErrorResponse {
   error: ErrorResponseError;
 }
 
+export type ListCustomersParams = {
+/**
+ * Search customers by name, national ID, license number, or phone
+ */
+search?: string;
+};
+
 export type UploadVehiclePhotoBody = {
   file?: Blob;
   caption?: string;

@@ -8,6 +8,23 @@ async function findByOrg(orgId: string): Promise<CustomerRecord[]> {
   });
 }
 
+async function searchByOrg(orgId: string, term: string): Promise<CustomerRecord[]> {
+  return prisma.customer.findMany({
+    where: {
+      organization_id: orgId,
+      deleted_at: null,
+      OR: [
+        { first_name: { contains: term, mode: "insensitive" } },
+        { last_name: { contains: term, mode: "insensitive" } },
+        { national_id: { contains: term, mode: "insensitive" } },
+        { license_number: { contains: term, mode: "insensitive" } },
+        { phone: { contains: term, mode: "insensitive" } },
+      ],
+    },
+    orderBy: { created_at: "desc" },
+  });
+}
+
 async function findById(customerId: string, orgId: string): Promise<CustomerRecord | null> {
   return prisma.customer.findFirst({
     where: { id: customerId, organization_id: orgId },
@@ -53,4 +70,4 @@ async function softDelete(customerId: string): Promise<CustomerRecord> {
   });
 }
 
-export { findByOrg, findById, create, update, softDelete };
+export { findByOrg, searchByOrg, findById, create, update, softDelete };

@@ -1,11 +1,12 @@
 import type { Request, Response, NextFunction } from "express";
 import { listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer } from "./customer.service";
 import { ok, created, noContent } from "../../shared";
-import type { CreateCustomerInput, UpdateCustomerInput } from "./customer.validation";
+import type { CreateCustomerInput, UpdateCustomerInput, ListCustomersQuery } from "./customer.validation";
 
 async function list(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const customers = await listCustomers(req.user!.org);
+    const query = req.query as ListCustomersQuery;
+    const customers = await listCustomers(req.user!.org, query.search);
     ok(res, customers);
   } catch (err) {
     next(err);

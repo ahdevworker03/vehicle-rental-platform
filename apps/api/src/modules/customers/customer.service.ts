@@ -29,8 +29,8 @@ function toResponse(record: {
   };
 }
 
-async function listCustomers(orgId: string): Promise<CustomerResponse[]> {
-  const customers = await repo.findByOrg(orgId);
+async function listCustomers(orgId: string, search?: string): Promise<CustomerResponse[]> {
+  const customers = search ? await repo.searchByOrg(orgId, search) : await repo.findByOrg(orgId);
   return customers.map(toResponse);
 }
 

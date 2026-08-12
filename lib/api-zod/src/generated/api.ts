@@ -241,6 +241,10 @@ export const DeleteUserResponse = zod.void()
 /**
  * @summary List customers in the current organization
  */
+export const ListCustomersQueryParams = zod.object({
+  "search": zod.coerce.string().optional().describe('Search customers by name, national ID, license number, or phone')
+})
+
 export const ListCustomersResponse = zod.object({
   "data": zod.array(zod.object({
   "id": zod.string(),

@@ -455,6 +455,13 @@ paths:
       summary: List customers in the current organization
       security:
         - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search customers by name, national ID, license number, or phone
       responses:
         "200":
           description: List of customers
@@ -464,6 +471,12 @@ paths:
                 $ref: "#/components/schemas/CustomerListResponse"
         "401":
           description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Invalid search term
           content:
             application/json:
               schema:

@@ -1,10 +1,10 @@
-# Step 9.4 — Photos & Documents (Frontend): Correction & Completion
+# Step 10.1 — Customer Search (Backend): Complete
 
 ---
 
 ## Summary
 
-Continued the existing Step 9.4 media frontend with the required correction: document downloads no longer use `doc.url` (the storage key). Downloads now go through the Step 9.4a **authenticated download endpoints** via the generated API client, preserving authentication and organization isolation and never exposing storage keys or filesystem paths.
+Implemented customer search in the existing Customer module via `GET /api/customers?search=<term>`, matching the documented API structure (`06-api-design.md` + `11-domain-model-specification.md`: "Planned: `/api/customers` ... + `/api/customers?search=...`"). Search covers name (first/last), national ID, driver's license number, and phone. Always org-scoped, excludes soft-deleted customers, reuses existing validation/response conventions.
 
 ---
 
@@ -12,45 +12,68 @@ Continued the existing Step 9.4 media frontend with the required correction: doc
 
 | File | Change |
 |---|---|
-| `apps/web/src/features/media/hooks.ts` | Added `download(documentId)` to `useVehicleDocuments` and `useCustomerDocuments` — wraps the generated `downloadVehicleDocument(vehicleId, id)` / `downloadCustomerDocument(customerId, id)` (both return `Promise<Blob>`, Bearer attached via `customFetch`) |
-| `apps/web/src/components/ui/DocumentList.tsx` | Replaced `doc.url` `<a href>` with an `onDownload` callback prop + download button; added per-item downloading state and a "جاري التحميل..." indicator; removed storage-key exposure |
-| `apps/web/src/pages/VehicleDetailPage.tsx` | Added `handleDownloadDocument` (fetches Blob via `documents.download`, triggers browser save with original filename) and wired `onDownload` |
-| `apps/web/src/pages/CustomerDetailPage.tsx` | Same — added `handleDownloadDocument` and wired `onDownload` |
+| `apps/api/src/modules/customers/customer.validation.ts` | Added `listCustomersQuerySchema` (optional `search`, trimmed, min 1 / max 200) + `ListCustomersQuery` type |
+| `apps/api/src/modules/customers/customer.repository.ts` | Added `searchByOrg(orgId, term)` — org-scoped `contains` (case-insensitive) across first/last name, national_id, license_number, phone; excludes `deleted_at` |
+| `apps/api/src/modules/customers/customer.service.ts` | `listCustomers(orgId, search?)` — uses `searchByOrg` when a search term is present, else `findByOrg` |
+| `apps/api/src/modules/customers/customer.controller.ts` | `list` reads `req.query.search` and passes to the service |
+| `apps/api/src/modules/customers/customer.routes.ts` | Added `validateQuery(listCustomersQuerySchema)` to `GET /customers` |
+| `apps/api/src/middleware/validation.ts` | **Bug fix:** `validateQuery`/`validateParams` no longer reassign `req.query`/`req.params` (Express 5 makes them getter-only) |
+| `lib/api-spec/openapi.yaml` | Added `search` query parameter to `/customers` GET + `422` response |
+| `lib/api-client-react/src/generated/*` | Regenerated (listCustomers now accepts `ListCustomersParams` with `search`) |
+| `lib/api-zod/src/generated/*` | Regenerated |
+
+No generated files were hand-edited. No separate search architecture was introduced.
 
 ---
 
-## Implementation Details
+## Endpoint / Query Behavior
 
-### Download flow (corrected)
+| Method | URL | Auth | Behavior |
+|---|---|---|---|
+| GET | `/api/customers` | Any authenticated | Returns all org customers (no search) |
+| GET | `/api/customers?search=<term>` | Any authenticated | Returns customers matching name / national ID / license / phone |
 
-1. User clicks the download icon in `DocumentList`.
-2. `DocumentList` calls `onDownload(doc)`.
-3. The page handler calls `documents.download(doc.id)` → `downloadVehicleDocument(vehicleId, id)` / `downloadCustomerDocument(customerId, id)`.
-4. The generated function uses `customFetch` with the registered auth token getter → `Authorization: Bearer <token>` is attached automatically.
-5. The response is a `Blob`; the handler creates an object URL, triggers `a.click()` with `a.download = originalFilename`, then revokes the URL.
-
-**Storage keys / filesystem paths are never rendered as hrefs.** `doc.url` is no longer used as a link.
-
-### Security
-
-- Authentication: every download goes through `customFetch` (Bearer token) to the protected endpoint; unauthenticated → 401.
-- Organization isolation: enforced server-side (Step 9.4a) — cross-org → 404; the frontend relies on the backend as source of truth.
-- Soft-deleted documents → 404 (backend), so they cannot be downloaded.
-- No handwritten fetch/axios — all via the generated API client.
+- `search` is optional; if omitted, the existing list behavior is preserved.
+- Empty `search` → 422 `VALIDATION_ERROR`.
+- Case-insensitive partial matching (`contains`).
+- Always scoped to `req.user.org`; `organization_id` never accepted from the client.
+- `deleted_at` customers excluded.
 
 ---
 
-## Runtime Verification
+## Organization Isolation
 
-| Check | Result |
-|---|---|
-| Download endpoint returns file (200, `application/pdf`, `Content-Disposition`, body matches) | ✅ |
-| Authenticated Blob-style fetch works (Bearer attached) | ✅ |
-| Frontend typecheck | ✅ 0 errors |
-| Frontend build | ✅ 1.86s |
-| Lint (new/changed files) | ✅ clean |
-| Full web lint | ✅ only pre-existing `use-toast.ts` error (unmodified, unrelated) |
-| Libs typecheck | ✅ |
+- `searchByOrg` and `findByOrg` both filter `where: { organization_id: orgId, deleted_at: null }`.
+- `orgId` comes exclusively from `req.user.org` (authenticated JWT).
+- Verified at runtime: Org B's search for "Ahmed" returns its own "Ahmed Foreign", never Org A's "Ahmed Hassan".
+
+---
+
+## Runtime Verification (13/13 PASS)
+
+| # | Test | Expected | Actual |
+|---|---|---|---|
+| 1 | Search by first name (Ahmed) | 1 (Ahmed Hassan) | ✅ |
+| 2 | Search by last name (Sleiman) | 1 (Ali Sleiman) | ✅ |
+| 3 | Search by national ID (NID-AS-02) | 1 | ✅ |
+| 4 | Search by license (LIC-AH-01) | 1 | ✅ |
+| 5 | Search by phone (03222222) | 1 | ✅ |
+| 6 | Partial name (Ah) | 1 (Ahmed Hassan) | ✅ |
+| 7 | Partial national ID (NID-AS) | 1 (Ali Sleiman) | ✅ |
+| 8 | Cross-org (Org B searches "Ahmed") | returns only Org B's Ahmed Foreign | ✅ |
+| 9 | No search param | all Org A customers (5) | ✅ |
+| 10 | Empty search | 422 VALIDATION_ERROR | ✅ |
+| 11 | Unauthenticated | 401 | ✅ |
+| 12 | Soft-deleted name search (Sleiman after delete) | 0 | ✅ |
+| 13 | Soft-deleted national ID search (NID-AS-02 after delete) | 0 | ✅ |
+
+---
+
+## Issue Discovered & Resolved
+
+**`validateQuery` middleware crashed on Express 5**: reassigning `req.query = result.data` throws `TypeError: Cannot set property query of #<IncomingMessage> which has only a getter`. Express 5 makes `req.query`/`req.params` getter-only. This pre-existing bug (Step 3.2) was never exercised until a route used `validateQuery`.
+
+**Fix:** `validateQuery`/`validateParams` now only validate and forward errors; they no longer reassign `req.query`/`req.params` (the parsed query is read directly by the controller). Verified: search requests now succeed; empty search still returns 422.
 
 ---
 
@@ -58,29 +81,25 @@ Continued the existing Step 9.4 media frontend with the required correction: doc
 
 | Criterion | Status |
 |---|---|
-| Vehicle photo upload works from UI | ✅ (unchanged, verified in prior Step 9.4) |
-| Vehicle photo gallery renders | ✅ |
-| Vehicle photo deletion (OWNER) | ✅ |
-| Vehicle document upload/list/delete | ✅ |
-| Customer document upload/list/delete | ✅ |
-| Document downloads via authenticated Step 9.4a endpoints | ✅ |
-| MANAGER/EMPLOYEE read-only | ✅ (mutation controls gated by `isOwner`; backend enforces) |
-| Loading/empty/error states | ✅ |
-| TypeScript passes | ✅ |
-| Frontend build passes | ✅ |
-| No new lint errors | ✅ |
-| No `doc.url` used as download link / storage key not exposed | ✅ |
-| No handwritten fetch/axios / duplicate infra | ✅ |
-
----
-
-## Issues Discovered & Resolved
-
-1. **Storage-key leak in download links (the stated correction):** `DocumentList` previously rendered `<a href={doc.url}>` where `url` is the storage key (e.g. `org/vehicle/uuid.pdf`). Fixed by switching to an `onDownload` callback that calls the Step 9.4a authenticated download endpoint via the generated client.
+| Name search returns matching customers | ✅ |
+| National ID search works | ✅ |
+| License number search works | ✅ |
+| Phone search works | ✅ |
+| Partial search works | ✅ |
+| Cross-org customers never returned | ✅ |
+| Soft-deleted customers excluded | ✅ |
+| Empty/invalid search handled per validation conventions | ✅ (422) |
+| Typecheck passes | ✅ |
+| Build passes | ✅ |
+| Lint passes | ✅ |
+| Prisma access in repository | ✅ |
+| Business logic in service | ✅ |
+| Controllers/routes thin | ✅ |
+| No separate search architecture | ✅ |
+| API contract updated + regenerated (not hand-edited) | ✅ |
 
 ---
 
 ## Notes
 
-- The customer detail page still uses mock data for customer/rental fields (a separate future conversion); the customer **documents** section uses the real API and the authenticated download endpoint.
-- The generated client already exposes `downloadVehicleDocument` / `downloadCustomerDocument` (added in Step 9.4a) — no contract changes or regeneration were needed in this step.
+- The search index strategy is unchanged (existing `first_name`, `last_name`, `phone`, `national_id` indexes already cover these queries); no new migration was required.

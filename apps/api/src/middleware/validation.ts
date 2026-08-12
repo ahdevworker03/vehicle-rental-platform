@@ -33,7 +33,6 @@ function validateQuery<T>(schema: ZodSchema<T>) {
       return;
     }
 
-    req.query = result.data as typeof req.query;
     next();
   };
 }
@@ -51,7 +50,6 @@ function validateParams<T>(schema: ZodSchema<T>) {
       return;
     }
 
-    req.params = result.data as typeof req.params;
     next();
   };
 }

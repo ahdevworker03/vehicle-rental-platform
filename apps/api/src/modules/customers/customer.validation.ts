@@ -24,5 +24,15 @@ export const updateCustomerSchema = z.object({
   license_expiry_date: validDate,
 });
 
+export const listCustomersQuerySchema = z.object({
+  search: z
+    .string()
+    .trim()
+    .min(1, "Search term must not be empty")
+    .max(200, "Search term is too long")
+    .optional(),
+});
+
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;
 export type UpdateCustomerInput = z.infer<typeof updateCustomerSchema>;
+export type ListCustomersQuery = z.infer<typeof listCustomersQuerySchema>;

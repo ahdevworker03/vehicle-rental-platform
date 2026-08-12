@@ -25,6 +25,7 @@ export * from './documentResponseWrapper';
 export * from './errorResponse';
 export * from './errorResponseError';
 export * from './healthStatus';
+export * from './listCustomersParams';
 export * from './loginRequest';
 export * from './logoutRequest';
 export * from './organizationResponse';

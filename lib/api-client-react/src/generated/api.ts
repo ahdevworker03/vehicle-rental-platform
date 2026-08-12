@@ -30,6 +30,7 @@ import type {
   DocumentResponseWrapper,
   ErrorResponse,
   HealthStatus,
+  ListCustomersParams,
   LoginRequest,
   LogoutRequest,
   OrganizationResponseWrapper,
@@ -1108,20 +1109,27 @@ export const useDeleteUser = <TError = ErrorType<ErrorResponse>,
       return useMutation(getDeleteUserMutationOptions(options));
     }
 
-export const getListCustomersUrl = () => {
+export const getListCustomersUrl = (params?: ListCustomersParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/customers`
+  return stringifiedParams.length > 0 ? `/api/customers?${stringifiedParams}` : `/api/customers`
 }
 
 /**
  * @summary List customers in the current organization
  */
-export const listCustomers = async ( options?: RequestInit): Promise<CustomerListResponse> => {
+export const listCustomers = async (params?: ListCustomersParams, options?: RequestInit): Promise<CustomerListResponse> => {
 
-  return customFetch<CustomerListResponse>(getListCustomersUrl(),
+  return customFetch<CustomerListResponse>(getListCustomersUrl(params),
   {
     ...options,
     method: 'GET'
@@ -1134,23 +1142,23 @@ export const listCustomers = async ( options?: RequestInit): Promise<CustomerLis
 
 
 
-export const getListCustomersQueryKey = () => {
+export const getListCustomersQueryKey = (params?: ListCustomersParams,) => {
     return [
-    `/api/customers`
+    `/api/customers`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListCustomersQueryOptions = <TData = Awaited<ReturnType<typeof listCustomers>>, TError = ErrorType<ErrorResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCustomers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getListCustomersQueryOptions = <TData = Awaited<ReturnType<typeof listCustomers>>, TError = ErrorType<ErrorResponse>>(params?: ListCustomersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCustomers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListCustomersQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListCustomersQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCustomers>>> = ({ signal }) => listCustomers({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listCustomers>>> = ({ signal }) => listCustomers(params, { signal, ...requestOptions });
 
 
 
@@ -1168,11 +1176,11 @@ export type ListCustomersQueryError = ErrorType<ErrorResponse>
  */
 
 export function useListCustomers<TData = Awaited<ReturnType<typeof listCustomers>>, TError = ErrorType<ErrorResponse>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCustomers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: ListCustomersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listCustomers>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListCustomersQueryOptions(options)
+  const queryOptions = getListCustomersQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

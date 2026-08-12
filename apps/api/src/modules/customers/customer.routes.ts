@@ -1,11 +1,11 @@
 import { Router, type IRouter } from "express";
 import { list, get, create, update, remove } from "./customer.controller";
-import { authenticate, requireRole, validateBody } from "../../middleware";
-import { createCustomerSchema, updateCustomerSchema } from "./customer.validation";
+import { authenticate, requireRole, validateBody, validateQuery } from "../../middleware";
+import { createCustomerSchema, updateCustomerSchema, listCustomersQuerySchema } from "./customer.validation";
 
 const router: IRouter = Router();
 
-router.get("/customers", authenticate, list);
+router.get("/customers", authenticate, validateQuery(listCustomersQuerySchema), list);
 router.get("/customers/:id", authenticate, get);
 router.post("/customers", authenticate, requireRole("OWNER"), validateBody(createCustomerSchema), create);
 router.patch("/customers/:id", authenticate, requireRole("OWNER"), validateBody(updateCustomerSchema), update);
