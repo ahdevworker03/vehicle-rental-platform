@@ -70,6 +70,10 @@ Rationale: documented in `05-database-design.md` "Naming Conventions".
 
 Rationale: documented in `05-database-design.md` "Indexing Strategy".
 
+## Indexing Rule
+
+Any model that belongs to an organization and is frequently queried by searchable fields should prefer composite indexes beginning with organization_id over global indexes whenever queries are expected to be organization-scoped.
+
 ## onDelete Behavior
 
 - Business records reference each other with `ON DELETE RESTRICT` (default).
@@ -91,11 +95,11 @@ Enum values are defined in UPPER_SNAKE_CASE and map to the Prisma enum definitio
 
 ## UserRole
 
-| Value | Purpose | Status |
-|---|---|---|
-| `OWNER` | Organization owner, full access | Implemented (approved in `10-authentication-policy.md`) |
-| `MANAGER` | Management access | Implemented (defined in Prisma schema) |
-| `EMPLOYEE` | Employee access | Implemented (defined in Prisma schema) |
+| Value      | Purpose                         | Status                                                  |
+| ---------- | ------------------------------- | ------------------------------------------------------- |
+| `OWNER`    | Organization owner, full access | Implemented (approved in `10-authentication-policy.md`) |
+| `MANAGER`  | Management access               | Implemented (defined in Prisma schema)                  |
+| `EMPLOYEE` | Employee access                 | Implemented (defined in Prisma schema)                  |
 
 Notes: The `User.role` field defaults to `OWNER`. Permissions per role for specific modules are not fully documented — see model notes.
 
@@ -103,14 +107,14 @@ Notes: The `User.role` field defaults to `OWNER`. Permissions per role for speci
 
 **Source:** `02-business-requirements.md` §5 lists: Available, Reserved, Rented, Under Maintenance, Out of Service, Archived.
 
-| Value | Status |
-|---|---|
-| `AVAILABLE` | Documented (business requirement) |
-| `RESERVED` | Documented (business requirement) |
-| `RENTED` | Documented (business requirement) |
-| `MAINTENANCE` | Documented (business requirement: "Under Maintenance") |
-| `OUT_OF_SERVICE` | Documented (business requirement) |
-| `ARCHIVED` | Documented (business requirement) |
+| Value            | Status                                                 |
+| ---------------- | ------------------------------------------------------ |
+| `AVAILABLE`      | Documented (business requirement)                      |
+| `RESERVED`       | Documented (business requirement)                      |
+| `RENTED`         | Documented (business requirement)                      |
+| `MAINTENANCE`    | Documented (business requirement: "Under Maintenance") |
+| `OUT_OF_SERVICE` | Documented (business requirement)                      |
+| `ARCHIVED`       | Documented (business requirement)                      |
 
 Notes: Exact Prisma representation, default value, and whether `availability` is stored or derived **Requires Architectural Approval**. The domain lifecycle uses "Available → Reserved → Rented → Maintenance".
 
@@ -118,8 +122,8 @@ Notes: Exact Prisma representation, default value, and whether `availability` is
 
 **Source:** `04-domain-model.md` lists rental responsibilities but no status enum.
 
-| Value | Status |
-|---|---|
+| Value          | Status                              |
+| -------------- | ----------------------------------- |
 | (undetermined) | **Requires Architectural Approval** |
 
 Notes: Rental status values (e.g., active, returned, extended, cancelled) are not documented.
@@ -128,30 +132,30 @@ Notes: Rental status values (e.g., active, returned, extended, cancelled) are no
 
 **Source:** not documented.
 
-| Value | Status |
-|---|---|
+| Value          | Status                              |
+| -------------- | ----------------------------------- |
 | (undetermined) | **Requires Architectural Approval** |
 
 ## PaymentMethod
 
 **Source:** not documented.
 
-| Value | Status |
-|---|---|
+| Value          | Status                              |
+| -------------- | ----------------------------------- |
 | (undetermined) | **Requires Architectural Approval** |
 
 ## ExpenseCategory
 
 **Source:** `04-domain-model.md` lists examples: Fuel, Maintenance, Insurance, Registration, Cleaning, Other.
 
-| Value | Status |
-|---|---|
-| `FUEL` | Documented (domain model example) |
-| `MAINTENANCE` | Documented (domain model example) |
-| `INSURANCE` | Documented (domain model example) |
+| Value          | Status                            |
+| -------------- | --------------------------------- |
+| `FUEL`         | Documented (domain model example) |
+| `MAINTENANCE`  | Documented (domain model example) |
+| `INSURANCE`    | Documented (domain model example) |
 | `REGISTRATION` | Documented (domain model example) |
-| `CLEANING` | Documented (domain model example) |
-| `OTHER` | Documented (domain model example) |
+| `CLEANING`     | Documented (domain model example) |
+| `OTHER`        | Documented (domain model example) |
 
 Notes: Exact enum representation and whether additional categories exist **Requires Architectural Approval**.
 
@@ -159,24 +163,24 @@ Notes: Exact enum representation and whether additional categories exist **Requi
 
 **Source:** not documented.
 
-| Value | Status |
-|---|---|
+| Value          | Status                              |
+| -------------- | ----------------------------------- |
 | (undetermined) | **Requires Architectural Approval** |
 
 ## TaskStatus
 
 **Source:** `04-domain-model.md` mentions "completion status" but no enum.
 
-| Value | Status |
-|---|---|
+| Value          | Status                              |
+| -------------- | ----------------------------------- |
 | (undetermined) | **Requires Architectural Approval** |
 
 ## NotificationType
 
 **Source:** `04-domain-model.md` lists examples: rental due today, maintenance due, insurance expiration, registration expiration, task reminder.
 
-| Value | Status |
-|---|---|
+| Value          | Status                              |
+| -------------- | ----------------------------------- |
 | (undetermined) | **Requires Architectural Approval** |
 
 ---
@@ -201,13 +205,13 @@ Represents a business using the platform. Each organization owns its own data an
 
 ### Fields
 
-| Field | Column | Type | Required | Default | Notes |
-|---|---|---|---|---|---|
-| id | id | UUID | ✅ | uuid() | PK |
-| name | name | String | ✅ | — | Business name |
-| created_at | created_at | DateTime | ✅ | now() | Audit |
-| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
-| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete |
+| Field      | Column     | Type      | Required | Default    | Notes         |
+| ---------- | ---------- | --------- | -------- | ---------- | ------------- |
+| id         | id         | UUID      | ✅       | uuid()     | PK            |
+| name       | name       | String    | ✅       | —          | Business name |
+| created_at | created_at | DateTime  | ✅       | now()      | Audit         |
+| updated_at | updated_at | DateTime  | ✅       | @updatedAt | Audit         |
+| deleted_at | deleted_at | DateTime? | ❌       | null       | Soft delete   |
 
 ### Constraints
 
@@ -262,16 +266,16 @@ Represents an employee who can access the platform.
 
 ### Fields
 
-| Field | Column | Type | Required | Default | Notes |
-|---|---|---|---|---|---|
-| id | id | UUID | ✅ | uuid() | PK |
-| email | email | String | ✅ | — | Login identifier |
-| password_hash | password_hash | String | ✅ | — | Argon2id hash |
-| role | role | UserRole | ✅ | OWNER | OWNER/MANAGER/EMPLOYEE |
-| organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
-| created_at | created_at | DateTime | ✅ | now() | Audit |
-| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
-| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete |
+| Field           | Column          | Type      | Required | Default    | Notes                  |
+| --------------- | --------------- | --------- | -------- | ---------- | ---------------------- |
+| id              | id              | UUID      | ✅       | uuid()     | PK                     |
+| email           | email           | String    | ✅       | —          | Login identifier       |
+| password_hash   | password_hash   | String    | ✅       | —          | Argon2id hash          |
+| role            | role            | UserRole  | ✅       | OWNER      | OWNER/MANAGER/EMPLOYEE |
+| organization_id | organization_id | UUID      | ✅       | —          | FK → Organization.id   |
+| created_at      | created_at      | DateTime  | ✅       | now()      | Audit                  |
+| updated_at      | updated_at      | DateTime  | ✅       | @updatedAt | Audit                  |
+| deleted_at      | deleted_at      | DateTime? | ❌       | null       | Soft delete            |
 
 ### Constraints
 
@@ -330,13 +334,13 @@ Stores a hashed refresh token for session continuation.
 
 ### Fields
 
-| Field | Column | Type | Required | Default | Notes |
-|---|---|---|---|---|---|
-| id | id | UUID | ✅ | uuid() | PK |
-| token | token | String | ✅ | — | SHA-256 hash of refresh token |
-| user_id | user_id | UUID | ✅ | — | FK → User.id |
-| expires_at | expires_at | DateTime | ✅ | — | Expiry time |
-| created_at | created_at | DateTime | ✅ | now() | Audit |
+| Field      | Column     | Type     | Required | Default | Notes                         |
+| ---------- | ---------- | -------- | -------- | ------- | ----------------------------- |
+| id         | id         | UUID     | ✅       | uuid()  | PK                            |
+| token      | token      | String   | ✅       | —       | SHA-256 hash of refresh token |
+| user_id    | user_id    | UUID     | ✅       | —       | FK → User.id                  |
+| expires_at | expires_at | DateTime | ✅       | —       | Expiry time                   |
+| created_at | created_at | DateTime | ✅       | now()   | Audit                         |
 
 ### Constraints
 
@@ -393,20 +397,20 @@ Represents a person renting a vehicle.
 
 ### Fields
 
-| Field | Column | Type | Required | Default | Notes |
-|---|---|---|---|---|---|
-| id | id | UUID | ✅ | uuid() | PK |
-| organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
-| first_name | first_name | String | ✅ | — | Identity (name part 1) |
-| last_name | last_name | String | ✅ | — | Identity (name part 2) |
-| phone | phone | String | ✅ | — | Primary contact |
-| address | address | String | ✅ | — | Contact address |
-| national_id | national_id | String | ✅ | — | National identification |
-| license_number | license_number | String | ✅ | — | Driver's license |
-| license_expiry_date | license_expiry_date | DateTime | ✅ | — | Driver's license expiry |
-| created_at | created_at | DateTime | ✅ | now() | Audit |
-| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
-| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete ("archive inactive customers") |
+| Field               | Column              | Type      | Required | Default    | Notes                                      |
+| ------------------- | ------------------- | --------- | -------- | ---------- | ------------------------------------------ |
+| id                  | id                  | UUID      | ✅       | uuid()     | PK                                         |
+| organization_id     | organization_id     | UUID      | ✅       | —          | FK → Organization.id                       |
+| first_name          | first_name          | String    | ✅       | —          | Identity (name part 1)                     |
+| last_name           | last_name           | String    | ✅       | —          | Identity (name part 2)                     |
+| phone               | phone               | String    | ✅       | —          | Primary contact                            |
+| address             | address             | String    | ✅       | —          | Contact address                            |
+| national_id         | national_id         | String    | ✅       | —          | National identification                    |
+| license_number      | license_number      | String    | ✅       | —          | Driver's license                           |
+| license_expiry_date | license_expiry_date | DateTime  | ✅       | —          | Driver's license expiry                    |
+| created_at          | created_at          | DateTime  | ✅       | now()      | Audit                                      |
+| updated_at          | updated_at          | DateTime  | ✅       | @updatedAt | Audit                                      |
+| deleted_at          | deleted_at          | DateTime? | ❌       | null       | Soft delete ("archive inactive customers") |
 
 ### Constraints
 
@@ -489,16 +493,16 @@ Represents a business vehicle managed by the platform. The central entity.
 
 ### Fields
 
-| Field | Column | Type | Required | Default | Notes |
-|---|---|---|---|---|---|
-| id | id | UUID | ✅ | uuid() | PK |
-| organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
-| status | status | VehicleStatus | ✅ | AVAILABLE | **Requires Architectural Approval** (exact default) |
-| vehicle info fields | (undetermined) | — | — | — | **Requires Architectural Approval** |
-| mileage fields | (undetermined) | — | — | — | **Requires Architectural Approval** |
-| created_at | created_at | DateTime | ✅ | now() | Audit |
-| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
-| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete ("archive retired vehicles") |
+| Field               | Column          | Type          | Required | Default    | Notes                                               |
+| ------------------- | --------------- | ------------- | -------- | ---------- | --------------------------------------------------- |
+| id                  | id              | UUID          | ✅       | uuid()     | PK                                                  |
+| organization_id     | organization_id | UUID          | ✅       | —          | FK → Organization.id                                |
+| status              | status          | VehicleStatus | ✅       | AVAILABLE  | **Requires Architectural Approval** (exact default) |
+| vehicle info fields | (undetermined)  | —             | —        | —          | **Requires Architectural Approval**                 |
+| mileage fields      | (undetermined)  | —             | —        | —          | **Requires Architectural Approval**                 |
+| created_at          | created_at      | DateTime      | ✅       | now()      | Audit                                               |
+| updated_at          | updated_at      | DateTime      | ✅       | @updatedAt | Audit                                               |
+| deleted_at          | deleted_at      | DateTime?     | ❌       | null       | Soft delete ("archive retired vehicles")            |
 
 ### Constraints
 
@@ -561,19 +565,19 @@ Represents an agreement between a customer and the business for using a vehicle.
 
 ### Fields
 
-| Field | Column | Type | Required | Default | Notes |
-|---|---|---|---|---|---|
-| id | id | UUID | ✅ | uuid() | PK |
-| organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
-| customer_id | customer_id | UUID | ✅ | — | FK → Customer.id |
-| vehicle_id | vehicle_id | UUID | ✅ | — | FK → Vehicle.id |
-| rental period fields | (undetermined) | — | — | — | **Requires Architectural Approval** |
-| pickup/return fields | (undetermined) | — | — | — | **Requires Architectural Approval** |
-| status | status | RentalStatus | ✅ | — | **Requires Architectural Approval** |
-| pricing fields | (undetermined) | — | — | — | **Requires Architectural Approval** |
-| created_at | created_at | DateTime | ✅ | now() | Audit |
-| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
-| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete |
+| Field                | Column          | Type         | Required | Default    | Notes                               |
+| -------------------- | --------------- | ------------ | -------- | ---------- | ----------------------------------- |
+| id                   | id              | UUID         | ✅       | uuid()     | PK                                  |
+| organization_id      | organization_id | UUID         | ✅       | —          | FK → Organization.id                |
+| customer_id          | customer_id     | UUID         | ✅       | —          | FK → Customer.id                    |
+| vehicle_id           | vehicle_id      | UUID         | ✅       | —          | FK → Vehicle.id                     |
+| rental period fields | (undetermined)  | —            | —        | —          | **Requires Architectural Approval** |
+| pickup/return fields | (undetermined)  | —            | —        | —          | **Requires Architectural Approval** |
+| status               | status          | RentalStatus | ✅       | —          | **Requires Architectural Approval** |
+| pricing fields       | (undetermined)  | —            | —        | —          | **Requires Architectural Approval** |
+| created_at           | created_at      | DateTime     | ✅       | now()      | Audit                               |
+| updated_at           | updated_at      | DateTime     | ✅       | @updatedAt | Audit                               |
+| deleted_at           | deleted_at      | DateTime?    | ❌       | null       | Soft delete                         |
 
 ### Constraints
 
@@ -633,14 +637,14 @@ The legal agreement for a rental.
 
 ### Fields
 
-| Field | Column | Type | Required | Default | Notes |
-|---|---|---|---|---|---|
-| id | id | UUID | ✅ | uuid() | PK |
-| rental_id | rental_id | UUID | ✅ | — | FK → Rental.id |
-| content fields | (undetermined) | — | — | — | **Requires Architectural Approval** |
-| created_at | created_at | DateTime | ✅ | now() | Audit |
-| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
-| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete |
+| Field          | Column         | Type      | Required | Default    | Notes                               |
+| -------------- | -------------- | --------- | -------- | ---------- | ----------------------------------- |
+| id             | id             | UUID      | ✅       | uuid()     | PK                                  |
+| rental_id      | rental_id      | UUID      | ✅       | —          | FK → Rental.id                      |
+| content fields | (undetermined) | —         | —        | —          | **Requires Architectural Approval** |
+| created_at     | created_at     | DateTime  | ✅       | now()      | Audit                               |
+| updated_at     | updated_at     | DateTime  | ✅       | @updatedAt | Audit                               |
+| deleted_at     | deleted_at     | DateTime? | ❌       | null       | Soft delete                         |
 
 ### Constraints
 
@@ -694,17 +698,17 @@ Money received from customers for rentals.
 
 ### Fields
 
-| Field | Column | Type | Required | Default | Notes |
-|---|---|---|---|---|---|
-| id | id | UUID | ✅ | uuid() | PK |
-| organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
-| rental_id | rental_id | UUID | ✅ | — | FK → Rental.id |
-| amount | amount | Decimal | ✅ | — | **Requires Architectural Approval** (precision) |
-| payment date | (undetermined) | DateTime | ✅ | — | Documented as "payment date" |
-| method | method | PaymentMethod | ✅ | — | **Requires Architectural Approval** |
-| created_at | created_at | DateTime | ✅ | now() | Audit |
-| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
-| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete |
+| Field           | Column          | Type          | Required | Default    | Notes                                           |
+| --------------- | --------------- | ------------- | -------- | ---------- | ----------------------------------------------- |
+| id              | id              | UUID          | ✅       | uuid()     | PK                                              |
+| organization_id | organization_id | UUID          | ✅       | —          | FK → Organization.id                            |
+| rental_id       | rental_id       | UUID          | ✅       | —          | FK → Rental.id                                  |
+| amount          | amount          | Decimal       | ✅       | —          | **Requires Architectural Approval** (precision) |
+| payment date    | (undetermined)  | DateTime      | ✅       | —          | Documented as "payment date"                    |
+| method          | method          | PaymentMethod | ✅       | —          | **Requires Architectural Approval**             |
+| created_at      | created_at      | DateTime      | ✅       | now()      | Audit                                           |
+| updated_at      | updated_at      | DateTime      | ✅       | @updatedAt | Audit                                           |
+| deleted_at      | deleted_at      | DateTime?     | ❌       | null       | Soft delete                                     |
 
 ### Constraints
 
@@ -761,18 +765,18 @@ Business costs.
 
 ### Fields
 
-| Field | Column | Type | Required | Default | Notes |
-|---|---|---|---|---|---|
-| id | id | UUID | ✅ | uuid() | PK |
-| organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
-| vehicle_id | vehicle_id | UUID? | ❌ | null | FK → Vehicle.id (optional) |
-| amount | amount | Decimal | ✅ | — | **Requires Architectural Approval** |
-| category | category | ExpenseCategory | ✅ | — | Documented examples |
-| expense date | (undetermined) | DateTime | ✅ | — | Documented as "expense date" |
-| description | description | String? | ❌ | — | Documented as "expense description" |
-| created_at | created_at | DateTime | ✅ | now() | Audit |
-| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
-| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete |
+| Field           | Column          | Type            | Required | Default    | Notes                               |
+| --------------- | --------------- | --------------- | -------- | ---------- | ----------------------------------- |
+| id              | id              | UUID            | ✅       | uuid()     | PK                                  |
+| organization_id | organization_id | UUID            | ✅       | —          | FK → Organization.id                |
+| vehicle_id      | vehicle_id      | UUID?           | ❌       | null       | FK → Vehicle.id (optional)          |
+| amount          | amount          | Decimal         | ✅       | —          | **Requires Architectural Approval** |
+| category        | category        | ExpenseCategory | ✅       | —          | Documented examples                 |
+| expense date    | (undetermined)  | DateTime        | ✅       | —          | Documented as "expense date"        |
+| description     | description     | String?         | ❌       | —          | Documented as "expense description" |
+| created_at      | created_at      | DateTime        | ✅       | now()      | Audit                               |
+| updated_at      | updated_at      | DateTime        | ✅       | @updatedAt | Audit                               |
+| deleted_at      | deleted_at      | DateTime?       | ❌       | null       | Soft delete                         |
 
 ### Constraints
 
@@ -830,19 +834,19 @@ Work performed on a vehicle.
 
 ### Fields
 
-| Field | Column | Type | Required | Default | Notes |
-|---|---|---|---|---|---|
-| id | id | UUID | ✅ | uuid() | PK |
-| organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
-| vehicle_id | vehicle_id | UUID | ✅ | — | FK → Vehicle.id |
-| maintenance date | (undetermined) | DateTime | ✅ | — | Documented as "maintenance date" |
-| notes | notes | String? | ❌ | — | Documented as "notes" |
-| replaced parts | (undetermined) | — | — | — | **Requires Architectural Approval** |
-| vendor | (undetermined) | — | — | — | **Requires Architectural Approval** |
-| cost | cost | Decimal | ✅ | — | **Requires Architectural Approval** |
-| created_at | created_at | DateTime | ✅ | now() | Audit |
-| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
-| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete |
+| Field            | Column          | Type      | Required | Default    | Notes                               |
+| ---------------- | --------------- | --------- | -------- | ---------- | ----------------------------------- |
+| id               | id              | UUID      | ✅       | uuid()     | PK                                  |
+| organization_id  | organization_id | UUID      | ✅       | —          | FK → Organization.id                |
+| vehicle_id       | vehicle_id      | UUID      | ✅       | —          | FK → Vehicle.id                     |
+| maintenance date | (undetermined)  | DateTime  | ✅       | —          | Documented as "maintenance date"    |
+| notes            | notes           | String?   | ❌       | —          | Documented as "notes"               |
+| replaced parts   | (undetermined)  | —         | —        | —          | **Requires Architectural Approval** |
+| vendor           | (undetermined)  | —         | —        | —          | **Requires Architectural Approval** |
+| cost             | cost            | Decimal   | ✅       | —          | **Requires Architectural Approval** |
+| created_at       | created_at      | DateTime  | ✅       | now()      | Audit                               |
+| updated_at       | updated_at      | DateTime  | ✅       | @updatedAt | Audit                               |
+| deleted_at       | deleted_at      | DateTime? | ❌       | null       | Soft delete                         |
 
 ### Constraints
 
@@ -897,16 +901,16 @@ Operational reminders.
 
 ### Fields
 
-| Field | Column | Type | Required | Default | Notes |
-|---|---|---|---|---|---|
-| id | id | UUID | ✅ | uuid() | PK |
-| organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
-| due date | (undetermined) | DateTime | ✅ | — | Documented as "due date" |
-| recurring schedule | (undetermined) | — | — | — | **Requires Architectural Approval** |
-| completion status | (undetermined) | TaskStatus | — | — | **Requires Architectural Approval** |
-| created_at | created_at | DateTime | ✅ | now() | Audit |
-| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
-| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete |
+| Field              | Column          | Type       | Required | Default    | Notes                               |
+| ------------------ | --------------- | ---------- | -------- | ---------- | ----------------------------------- |
+| id                 | id              | UUID       | ✅       | uuid()     | PK                                  |
+| organization_id    | organization_id | UUID       | ✅       | —          | FK → Organization.id                |
+| due date           | (undetermined)  | DateTime   | ✅       | —          | Documented as "due date"            |
+| recurring schedule | (undetermined)  | —          | —        | —          | **Requires Architectural Approval** |
+| completion status  | (undetermined)  | TaskStatus | —        | —          | **Requires Architectural Approval** |
+| created_at         | created_at      | DateTime   | ✅       | now()      | Audit                               |
+| updated_at         | updated_at      | DateTime   | ✅       | @updatedAt | Audit                               |
+| deleted_at         | deleted_at      | DateTime?  | ❌       | null       | Soft delete                         |
 
 ### Constraints
 
@@ -959,15 +963,15 @@ System-generated reminders.
 
 ### Fields
 
-| Field | Column | Type | Required | Default | Notes |
-|---|---|---|---|---|---|
-| id | id | UUID | ✅ | uuid() | PK |
-| organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
-| type | type | NotificationType | ✅ | — | **Requires Architectural Approval** |
-| read state | (undetermined) | Boolean? | — | — | **Requires Architectural Approval** |
-| created_at | created_at | DateTime | ✅ | now() | Audit |
-| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
-| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete |
+| Field           | Column          | Type             | Required | Default    | Notes                               |
+| --------------- | --------------- | ---------------- | -------- | ---------- | ----------------------------------- |
+| id              | id              | UUID             | ✅       | uuid()     | PK                                  |
+| organization_id | organization_id | UUID             | ✅       | —          | FK → Organization.id                |
+| type            | type            | NotificationType | ✅       | —          | **Requires Architectural Approval** |
+| read state      | (undetermined)  | Boolean?         | —        | —          | **Requires Architectural Approval** |
+| created_at      | created_at      | DateTime         | ✅       | now()      | Audit                               |
+| updated_at      | updated_at      | DateTime         | ✅       | @updatedAt | Audit                               |
+| deleted_at      | deleted_at      | DateTime?        | ❌       | null       | Soft delete                         |
 
 ### Constraints
 

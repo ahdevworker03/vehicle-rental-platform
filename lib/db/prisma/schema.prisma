@@ -7,13 +7,14 @@ datasource db {
 }
 
 model Organization {
-  id         String    @id @default(uuid()) @db.Uuid
+  id         String     @id @default(uuid()) @db.Uuid
   name       String
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
   deleted_at DateTime?
 
-  users User[]
+  users      User[]
+  customers  Customer[]
 
   @@index([deleted_at])
 }
@@ -50,4 +51,30 @@ model RefreshToken {
 
   @@index([user_id])
   @@index([expires_at])
+}
+
+model Customer {
+  id                  String    @id @default(uuid()) @db.Uuid
+  organization_id     String    @db.Uuid
+  organization        Organization @relation(fields: [organization_id], references: [id])
+  first_name          String
+  last_name           String
+  phone               String
+  address             String
+  national_id         String
+  license_number      String
+  license_expiry_date DateTime
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+  deleted_at          DateTime?
+
+  @@unique([organization_id, national_id])
+  @@unique([organization_id, license_number])
+  @@index([organization_id])
+  @@index([deleted_at])
+  @@index([first_name])
+  @@index([last_name])
+  @@index([phone])
+  @@index([national_id])
+  @@index([license_number])
 }
