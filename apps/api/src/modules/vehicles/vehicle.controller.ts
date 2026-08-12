@@ -1,11 +1,12 @@
 import type { Request, Response, NextFunction } from "express";
 import { listVehicles, getVehicle, createVehicle, updateVehicle, deleteVehicle } from "./vehicle.service";
 import { ok, created, noContent } from "../../shared";
-import type { CreateVehicleInput, UpdateVehicleInput } from "./vehicle.validation";
+import type { CreateVehicleInput, UpdateVehicleInput, ListVehiclesQuery } from "./vehicle.validation";
 
 async function list(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const vehicles = await listVehicles(req.user!.org);
+    const query = req.query as ListVehiclesQuery;
+    const vehicles = await listVehicles(req.user!.org, query.search);
     ok(res, vehicles);
   } catch (err) {
     next(err);

@@ -376,6 +376,13 @@ export type ListCustomersParams = {
 search?: string;
 };
 
+export type ListVehiclesParams = {
+/**
+ * Search vehicles by plate number, make, model, or year
+ */
+search?: string;
+};
+
 export type UploadVehiclePhotoBody = {
   file?: Blob;
   caption?: string;

@@ -39,8 +39,8 @@ function toResponse(record: {
   };
 }
 
-async function listVehicles(orgId: string): Promise<VehicleResponse[]> {
-  const vehicles = await repo.findByOrg(orgId);
+async function listVehicles(orgId: string, search?: string): Promise<VehicleResponse[]> {
+  const vehicles = search ? await repo.searchByOrg(orgId, search) : await repo.findByOrg(orgId);
   return vehicles.map(toResponse);
 }
 

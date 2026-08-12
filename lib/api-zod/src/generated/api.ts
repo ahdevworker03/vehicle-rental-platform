@@ -375,6 +375,10 @@ export const DeleteCustomerResponse = zod.void()
 /**
  * @summary List vehicles in the current organization
  */
+export const ListVehiclesQueryParams = zod.object({
+  "search": zod.coerce.string().optional().describe('Search vehicles by plate number, make, model, or year')
+})
+
 export const ListVehiclesResponse = zod.object({
   "data": zod.array(zod.object({
   "id": zod.string(),

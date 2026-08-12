@@ -8,6 +8,24 @@ async function findByOrg(orgId: string): Promise<VehicleRecord[]> {
   });
 }
 
+async function searchByOrg(orgId: string, term: string): Promise<VehicleRecord[]> {
+  const year = Number(term);
+
+  return prisma.vehicle.findMany({
+    where: {
+      organization_id: orgId,
+      deleted_at: null,
+      OR: [
+        { plate_number: { contains: term, mode: "insensitive" } },
+        { make: { contains: term, mode: "insensitive" } },
+        { model: { contains: term, mode: "insensitive" } },
+        ...(Number.isInteger(year) ? [{ year } as const] : []),
+      ],
+    },
+    orderBy: { created_at: "desc" },
+  });
+}
+
 async function findById(vehicleId: string, orgId: string): Promise<VehicleRecord | null> {
   return prisma.vehicle.findFirst({
     where: { id: vehicleId, organization_id: orgId },
@@ -63,4 +81,4 @@ async function softDelete(vehicleId: string): Promise<VehicleRecord> {
   });
 }
 
-export { findByOrg, findById, create, update, softDelete };
+export { findByOrg, searchByOrg, findById, create, update, softDelete };

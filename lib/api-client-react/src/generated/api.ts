@@ -31,6 +31,7 @@ import type {
   ErrorResponse,
   HealthStatus,
   ListCustomersParams,
+  ListVehiclesParams,
   LoginRequest,
   LogoutRequest,
   OrganizationResponseWrapper,
@@ -1484,20 +1485,27 @@ export const useDeleteCustomer = <TError = ErrorType<ErrorResponse>,
       return useMutation(getDeleteCustomerMutationOptions(options));
     }
 
-export const getListVehiclesUrl = () => {
+export const getListVehiclesUrl = (params?: ListVehiclesParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/vehicles`
+  return stringifiedParams.length > 0 ? `/api/vehicles?${stringifiedParams}` : `/api/vehicles`
 }
 
 /**
  * @summary List vehicles in the current organization
  */
-export const listVehicles = async ( options?: RequestInit): Promise<VehicleListResponse> => {
+export const listVehicles = async (params?: ListVehiclesParams, options?: RequestInit): Promise<VehicleListResponse> => {
 
-  return customFetch<VehicleListResponse>(getListVehiclesUrl(),
+  return customFetch<VehicleListResponse>(getListVehiclesUrl(params),
   {
     ...options,
     method: 'GET'
@@ -1510,23 +1518,23 @@ export const listVehicles = async ( options?: RequestInit): Promise<VehicleListR
 
 
 
-export const getListVehiclesQueryKey = () => {
+export const getListVehiclesQueryKey = (params?: ListVehiclesParams,) => {
     return [
-    `/api/vehicles`
+    `/api/vehicles`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListVehiclesQueryOptions = <TData = Awaited<ReturnType<typeof listVehicles>>, TError = ErrorType<ErrorResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listVehicles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getListVehiclesQueryOptions = <TData = Awaited<ReturnType<typeof listVehicles>>, TError = ErrorType<ErrorResponse>>(params?: ListVehiclesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listVehicles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListVehiclesQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListVehiclesQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listVehicles>>> = ({ signal }) => listVehicles({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listVehicles>>> = ({ signal }) => listVehicles(params, { signal, ...requestOptions });
 
 
 
@@ -1544,11 +1552,11 @@ export type ListVehiclesQueryError = ErrorType<ErrorResponse>
  */
 
 export function useListVehicles<TData = Awaited<ReturnType<typeof listVehicles>>, TError = ErrorType<ErrorResponse>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listVehicles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: ListVehiclesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listVehicles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListVehiclesQueryOptions(options)
+  const queryOptions = getListVehiclesQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

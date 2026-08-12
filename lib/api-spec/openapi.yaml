@@ -656,6 +656,13 @@ paths:
       summary: List vehicles in the current organization
       security:
         - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search vehicles by plate number, make, model, or year
       responses:
         "200":
           description: List of vehicles
@@ -665,6 +672,12 @@ paths:
                 $ref: "#/components/schemas/VehicleListResponse"
         "401":
           description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Invalid search term
           content:
             application/json:
               schema:

@@ -42,5 +42,15 @@ export const updateVehicleSchema = z.object({
   status: vehicleStatusEnum,
 });
 
+export const listVehiclesQuerySchema = z.object({
+  search: z
+    .string()
+    .trim()
+    .min(1, "Search term must not be empty")
+    .max(200, "Search term is too long")
+    .optional(),
+});
+
 export type CreateVehicleInput = z.infer<typeof createVehicleSchema>;
 export type UpdateVehicleInput = z.infer<typeof updateVehicleSchema>;
+export type ListVehiclesQuery = z.infer<typeof listVehiclesQuerySchema>;
