@@ -10,6 +10,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useListVehicles } from "@workspace/api-client-react";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { useAuth } from "@/providers/AuthProvider";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { VEHICLE_STATUS_FILTER_OPTIONS } from "@/lib/vehicle-labels";
 import type { VehicleResponseStatus } from "@workspace/api-client-react";
 
@@ -20,26 +21,21 @@ export default function VehiclesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const { user } = useAuth();
+  const debouncedSearch = useDebouncedValue(search.trim(), 300);
 
   const isOwner = user?.role === "OWNER";
   const filter = (searchParams.get("filter") as FilterValue) || "all";
 
-  const { data, isLoading, isError, error } = useListVehicles();
+  const { data, isLoading, isError, error } = useListVehicles(
+    debouncedSearch ? { search: debouncedSearch } : undefined,
+  );
 
   const vehicles = useMemo(() => data?.data ?? [], [data]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return vehicles.filter((v) => {
-      const matchesFilter = filter === "all" || v.status === filter;
-      const matchesSearch =
-        !q ||
-        `${v.make} ${v.model}`.toLowerCase().includes(q) ||
-        v.plateNumber.toLowerCase().includes(q) ||
-        (v.vin ?? "").toLowerCase().includes(q);
-      return matchesFilter && matchesSearch;
-    });
-  }, [search, filter, vehicles]);
+    if (filter === "all") return vehicles;
+    return vehicles.filter((v) => v.status === filter);
+  }, [filter, vehicles]);
 
   return (
     <div className="min-h-full">
@@ -60,7 +56,7 @@ export default function VehiclesPage() {
 
       <div className="px-4 pt-4 pb-4 space-y-3">
         <SearchBar
-          placeholder="ابحث بالماركة أو الموديل أو رقم اللوحة..."
+          placeholder="ابحث بالماركة أو الموديل أو رقم اللوحة أو السنة..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onClear={() => setSearch("")}
@@ -79,7 +75,7 @@ export default function VehiclesPage() {
         />
         {(search || filter !== "all") && filtered.length > 0 && (
           <p className="text-xs text-muted-foreground text-right">
-            عرض {filtered.length} من أصل {vehicles.length} سيارة
+            عرض {filtered.length} {search ? "نتيجة بحث" : "سيارة"}
           </p>
         )}
       </div>

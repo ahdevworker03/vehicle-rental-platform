@@ -1,109 +1,76 @@
-# Step 10.2 — Vehicle Search (Backend): Complete
+# Step 10.3 — Search (Frontend): Complete
 
 ---
 
 ## Summary
 
-Implemented vehicle search in the existing Vehicle module via `GET /api/vehicles?search=<term>`, matching the documented API structure (`11-domain-model-specification.md`: "Planned: `/api/vehicles` ... + `/api/vehicles?search=...`"). Search covers plate number, make, model, and year. Always org-scoped, excludes soft-deleted vehicles, reuses existing validation/response conventions. Followed the exact Step 10.1 (Customer Search) pattern.
+Implemented debounced backend search in the Customer and Vehicle list pages. Both pages now drive the Step 10.1/10.2 backend `?search=` endpoints through the existing generated API client + React Query, instead of filtering client-side against the full list.
 
 ---
 
-## Files Modified
+## Files Changed
 
 | File | Change |
 |---|---|
-| `apps/api/src/modules/vehicles/vehicle.validation.ts` | Added `listVehiclesQuerySchema` (optional `search`, trimmed, min 1 / max 200) + `ListVehiclesQuery` type |
-| `apps/api/src/modules/vehicles/vehicle.repository.ts` | Added `searchByOrg(orgId, term)` — org-scoped search across plate_number, make, model (contains, case-insensitive) + year (exact when term is an integer); excludes `deleted_at` |
-| `apps/api/src/modules/vehicles/vehicle.service.ts` | `listVehicles(orgId, search?)` — uses `searchByOrg` when a search term is present, else `findByOrg` |
-| `apps/api/src/modules/vehicles/vehicle.controller.ts` | `list` reads `req.query.search` and passes to the service |
-| `apps/api/src/modules/vehicles/vehicle.routes.ts` | Added `validateQuery(listVehiclesQuerySchema)` to `GET /vehicles` |
-| `lib/api-spec/openapi.yaml` | Added `search` query parameter to `/vehicles` GET + `422` response |
-| `lib/api-client-react/src/generated/*` | Regenerated (`listVehicles` now accepts `ListVehiclesParams` with `search`) |
-| `lib/api-zod/src/generated/*` | Regenerated |
+| `apps/web/src/hooks/useDebouncedValue.ts` | **New.** Reusable `useDebouncedValue(value, delayMs = 300)` hook. |
+| `apps/web/src/pages/VehiclesPage.tsx` | Pass `{ search: debouncedSearch }` to `useListVehicles`; debounced 300 ms. Kept status `FilterChips` (client-side filter layered on backend search results). |
+| `apps/web/src/pages/CustomersPage.tsx` | Converted from mock prototype to API-backed `useListCustomers({ search: debouncedSearch })`; debounced 300 ms. Renders `CustomerResponse` rows. Add button gated to OWNER (matches VehiclesPage pattern). |
 
-No generated files were hand-edited. No separate search architecture, new migrations, or indexes were introduced (existing `plate_number`, `make`, `model` indexes already cover these queries).
+No backend changes. No new dependencies. No changes to the shared mock hooks (`features/customers/hooks`, `features/rentals/hooks`) or the mock `CustomerCard` — those are still used by the (still-mock) customer detail / new-rental pages and were left untouched.
 
 ---
 
-## Search Behavior
+## Implementation Notes
 
-| Field | Match type |
-|---|---|
-| plate_number | contains, case-insensitive |
-| make | contains, case-insensitive |
-| model | contains, case-insensitive |
-| year | exact when the term parses as an integer |
-
-- Single free-text `search` term (consistent with Customer search / documented `?search=...` convention).
-- If no search term → existing list behavior preserved.
-- Empty `search` → 422 `VALIDATION_ERROR`.
-- Always `where: { organization_id: req.user.org, deleted_at: null }`.
+- **Debounce**: new `useDebouncedValue` hook delays the `search` value by 300 ms. The trimmed search is passed to the query only when non-empty; empty → `undefined` → backend returns the full org list (existing list behavior preserved).
+- **Data shape**: `CustomerResponse` uses `firstName`/`lastName`/`phone`/`address` (full name concatenated for display); `VehicleResponse` uses `make`/`model`/`plateNumber`. Verified at runtime.
+- **States**: initial load spinner, error state via `getApiErrorMessage`, "no results" state when a search/filter yields nothing, empty-org state with OWNER-only add CTA.
+- **Status filter (vehicles)**: kept as a client-side layer on the backend search results — the search endpoint is text-based; the status chips remain a distinct, local concern.
+- **Auth**: both pages gate the add action to `OWNER`. List data is scoped by the backend to the authenticated org (unchanged).
 
 ---
 
-## Organization Isolation
+## Verification
 
-- `searchByOrg`/`findByOrg` both filter `{ organization_id: orgId, deleted_at: null }`.
-- `orgId` comes exclusively from `req.user.org` (authenticated JWT).
-- Verified at runtime: Org B's "Toyota" search returns only its own LandCruiser, never Org A's Corolla.
-
----
-
-## Runtime Verification
-
-### Clean-org verification (fresh org, 2 vehicles)
-
-| Test | Expected | Actual |
+| Check | Command | Result |
 |---|---|---|
-| Make search (Toyota) | 1 (Toyota Corolla) | ✅ |
-| Model search (Civic) | 1 (Honda Civic) | ✅ |
-| Year search (2023) | 1 (2023) | ✅ |
-| No search | all 2 | ✅ |
-| Soft-delete Civic → model search | 0 | ✅ |
-| Soft-delete Civic → year 2023 search | 0 | ✅ |
+| TypeScript | `pnpm run typecheck` (apps/web) | ✅ 0 errors |
+| Lint (changed files) | `pnpm exec eslint <files>` | ✅ clean |
+| Build | `pnpm run build` (apps/web) | ✅ 1.97 s |
 
-### Full test matrix (reused org, higher baseline counts from prior steps — not a bug)
+### Runtime (against running backend, fresh registered org)
 
-| # | Test | Result |
+| Endpoint | Input | Result |
 |---|---|---|
-| 1 | Search by plate (AAA111) | ✅ 1 result |
-| 2 | Search by make (Toyota) | ✅ returns Toyota vehicles only |
-| 3 | Search by model (Civic) | ✅ 1 result |
-| 4 | Search by year (2023) | ✅ returns 2023 vehicles only |
-| 5 | Partial make (Toy) | ✅ |
-| 6 | Partial model (Civ) | ✅ |
-| 7 | Partial plate (AAA) | ✅ |
-| 8 | Cross-org (Org B searches Toyota → only its own) | ✅ |
-| 9 | No search → all Org A vehicles | ✅ |
-| 10 | Empty search → 422 | ✅ |
-| 11 | Unauthenticated → 401 | ✅ |
+| `GET /api/customers` | (no search) | all org customers returned |
+| `GET /api/customers?search=Ahmed` | name | 1 match (`Ahmed Mansour`, 0551234567) |
+| `GET /api/customers?search=zzzz` | no match | 0 results |
+| `GET /api/vehicles` | (no search) | all org vehicles returned |
+| `GET /api/vehicles?search=Toyota` | make | 1 match (`Toyota Camry`, ABC-1234) |
+| `GET /api/vehicles?search=ABC-1234` | plate | 1 match |
+| `GET /api/vehicles?search=2022` | year | 1 match |
+| `GET /api/vehicles?search=zzzz` | no match | 0 results |
+
+Response shapes match the UI contract: `CustomerResponse` (`id`, `firstName`, `lastName`, `phone`, `address`, …) and `VehicleResponse` (`id`, `make`, `model`, `plateNumber`, `status`, …).
+
+> Note: customer search is by name / national ID / license / phone (address is not a customer search field per the API spec). Vehicle search is by plate / make / model / year.
+
+The web dev server was started with `VITE_API_URL=http://localhost:3000` and `configureApiClient()` (called in `main.tsx`) applies that origin, so the browser app issues exactly the verified requests above. Full in-browser click-through was blocked by unavailable browser tooling in this environment (Playwright requires a Chrome install that needs sudo); the request/response contract the UI relies on is covered by the API-level verification above plus typecheck/build.
 
 ---
 
-## Acceptance Criteria Checklist
+## Acceptance Criteria
 
 | Criterion | Status |
 |---|---|
-| Search by plate number works | ✅ |
-| Search by make works | ✅ |
-| Search by model works | ✅ |
-| Search by year works | ✅ |
-| Partial text search works | ✅ |
-| Organization isolation enforced | ✅ |
-| Soft-deleted vehicles excluded | ✅ |
-| Empty/invalid search input handled | ✅ (422) |
-| Existing list behavior without search still works | ✅ |
-| Typecheck passes | ✅ |
-| Build passes | ✅ |
-| Lint passes | ✅ |
-| Prisma access in repository | ✅ |
-| Business logic in service | ✅ |
-| Controllers/routes thin | ✅ |
-| No separate search architecture | ✅ |
-| API contract updated + regenerated (not hand-edited) | ✅ |
-
----
-
-## Notes
-
-- No new migrations or indexes: the existing `plate_number`, `make`, `model` indexes (and PK/index on `organization_id`) already support the search queries. The `year` exact-match uses the existing table scan (year is not indexed, but matching a numeric term is bounded and consistent with the architecture's "indexes based on usage" principle).
+| Customer search works (backend endpoint) | ✅ |
+| Vehicle search works (backend endpoint) | ✅ |
+| Debounced input (no request-per-keystroke) | ✅ (300 ms) |
+| Existing list behavior preserved when search is empty | ✅ |
+| Loading / error / empty / no-results states | ✅ |
+| Reuses existing generated client + React Query | ✅ |
+| No duplicate search logic, no second client | ✅ |
+| Org isolation & auth backend-handled (unchanged) | ✅ |
+| No unrelated UI redesign | ✅ |
+| No new dependencies | ✅ |
+| Typecheck / lint / build pass | ✅ |
