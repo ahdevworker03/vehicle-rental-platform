@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { Spinner } from "@/components/ui/spinner";
-import { useCreateCustomer, getListCustomersQueryKey } from "@workspace/api-client-react";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Users } from "lucide-react";
+import { useGetCustomer, useUpdateCustomer, getListCustomersQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { cn } from "@/lib/utils";
@@ -18,43 +20,64 @@ interface FormState {
   license_expiry_date: string;
 }
 
-const INITIAL: FormState = {
-  first_name: "",
-  last_name: "",
-  phone: "",
-  address: "",
-  national_id: "",
-  license_number: "",
-  license_expiry_date: "",
-};
+interface DetailPageParams {
+  params: { id: string };
+}
+
+function toDateInputValue(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+}
 
 function isValidDate(value: string): boolean {
   if (!value) return false;
   return !isNaN(new Date(value).getTime());
 }
 
-export default function AddCustomerPage() {
+export default function EditCustomerPage({ params }: DetailPageParams) {
+  const id = params.id;
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const [form, setForm] = useState<FormState>(INITIAL);
+  const [form, setForm] = useState<FormState | null>(null);
   const [errors, setErrors] = useState<Partial<FormState>>({});
   const [formError, setFormError] = useState<string | null>(null);
 
-  const createMutation = useCreateCustomer({
+  const { data, isLoading, isError, error } = useGetCustomer(id);
+
+  const updateMutation = useUpdateCustomer({
     mutation: {
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: getListCustomersQueryKey() });
-        setLocation("/customers");
+        setLocation(`/customers/${id}`);
       },
     },
   });
 
+  useEffect(() => {
+    if (data?.data && !form) {
+      const c = data.data;
+      setForm({
+        first_name: c.firstName,
+        last_name: c.lastName,
+        phone: c.phone,
+        address: c.address,
+        national_id: c.nationalId,
+        license_number: c.licenseNumber,
+        license_expiry_date: toDateInputValue(c.licenseExpiryDate),
+      });
+    }
+  }, [data, form]);
+
   function set(field: keyof FormState, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => (prev ? { ...prev, [field]: value } : prev));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
 
   function validate(): boolean {
+    if (!form) return false;
     const e: Partial<FormState> = {};
     if (!form.first_name.trim()) e.first_name = "هذا الحقل مطلوب";
     if (!form.last_name.trim()) e.last_name = "هذا الحقل مطلوب";
@@ -68,13 +91,14 @@ export default function AddCustomerPage() {
   }
 
   async function handleSubmit() {
-    if (createMutation.isPending) return;
+    if (!form || updateMutation.isPending) return;
     if (!validate()) return;
 
     setFormError(null);
 
     try {
-      await createMutation.mutateAsync({
+      await updateMutation.mutateAsync({
+        id,
         data: {
           first_name: form.first_name.trim(),
           last_name: form.last_name.trim(),
@@ -90,6 +114,28 @@ export default function AddCustomerPage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-full flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (isError || !form) {
+    return (
+      <div className="min-h-full">
+        <PageHeader title="تعديل العميل" showBack />
+        <EmptyState
+          icon={Users}
+          title="لا توجد بيانات"
+          description={error ? getApiErrorMessage(error).title : "لم يتم العثور على هذا العميل"}
+          className="py-16"
+        />
+      </div>
+    );
+  }
+
   const isFormFilled =
     form.first_name.trim().length > 0 &&
     form.last_name.trim().length > 0 &&
@@ -101,7 +147,7 @@ export default function AddCustomerPage() {
 
   return (
     <div className="min-h-full pb-8">
-      <PageHeader title="إضافة عميل" showBack />
+      <PageHeader title="تعديل العميل" showBack />
 
       <div className="px-4 pt-5 space-y-5">
         {formError && (
@@ -118,7 +164,6 @@ export default function AddCustomerPage() {
             <FormField label="الاسم الأول" required error={errors.first_name}>
               <input
                 className={errors.first_name ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                placeholder="مثال: أحمد"
                 value={form.first_name}
                 onChange={(e) => set("first_name", e.target.value)}
                 autoComplete="given-name"
@@ -127,7 +172,6 @@ export default function AddCustomerPage() {
             <FormField label="اسم العائلة" required error={errors.last_name}>
               <input
                 className={errors.last_name ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                placeholder="مثال: محمد"
                 value={form.last_name}
                 onChange={(e) => set("last_name", e.target.value)}
                 autoComplete="family-name"
@@ -138,7 +182,6 @@ export default function AddCustomerPage() {
           <FormField label="رقم الهاتف" required error={errors.phone}>
             <input
               className={errors.phone ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-              placeholder="مثال: 03-123456"
               inputMode="tel"
               dir="ltr"
               value={form.phone}
@@ -150,7 +193,6 @@ export default function AddCustomerPage() {
           <FormField label="العنوان" required error={errors.address}>
             <input
               className={errors.address ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-              placeholder="مثال: بيروت"
               value={form.address}
               onChange={(e) => set("address", e.target.value)}
             />
@@ -164,7 +206,6 @@ export default function AddCustomerPage() {
           <FormField label="رقم الهوية" required error={errors.national_id}>
             <input
               className={errors.national_id ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-              placeholder="رقم الهوية الوطنية"
               dir="ltr"
               value={form.national_id}
               onChange={(e) => set("national_id", e.target.value)}
@@ -176,7 +217,6 @@ export default function AddCustomerPage() {
             <FormField label="رقم الرخصة" required error={errors.license_number}>
               <input
                 className={errors.license_number ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                placeholder="رقم الرخصة"
                 dir="ltr"
                 value={form.license_number}
                 onChange={(e) => set("license_number", e.target.value)}
@@ -197,15 +237,15 @@ export default function AddCustomerPage() {
         {/* ── Save Button ───────────────────────────────────────────── */}
         <button
           onClick={handleSubmit}
-          disabled={!isFormFilled || createMutation.isPending}
+          disabled={!isFormFilled || updateMutation.isPending}
           className={cn(
             "w-full rounded-2xl py-4 text-base font-bold transition-all shadow-sm flex items-center justify-center gap-2",
-            isFormFilled && !createMutation.isPending
+            isFormFilled && !updateMutation.isPending
               ? "bg-primary text-primary-foreground active:scale-[0.98]"
               : "bg-muted text-muted-foreground cursor-not-allowed",
           )}
         >
-          {createMutation.isPending ? <Spinner /> : "حفظ العميل"}
+          {updateMutation.isPending ? <Spinner /> : "حفظ التعديلات"}
         </button>
       </div>
     </div>

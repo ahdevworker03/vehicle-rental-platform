@@ -14,6 +14,7 @@ import VehicleDetailPage from '@/pages/VehicleDetailPage';
 import EditVehiclePage from '@/pages/EditVehiclePage';
 import CustomersPage from '@/pages/CustomersPage';
 import AddCustomerPage from '@/pages/AddCustomerPage';
+import EditCustomerPage from '@/pages/EditCustomerPage';
 import CustomerDetailPage from '@/pages/CustomerDetailPage';
 import RentalsPage from '@/pages/RentalsPage';
 import NewRentalPage from '@/pages/NewRentalPage';
@@ -33,6 +34,7 @@ function Router() {
       <Route path="/vehicles/:id" component={VehicleDetailPage} />
       <Route path="/customers" component={CustomersPage} />
       <Route path="/customers/add" component={AddCustomerPage} />
+      <Route path="/customers/:id/edit" component={EditCustomerPage} />
       <Route path="/customers/:id" component={CustomerDetailPage} />
       <Route path="/rentals" component={RentalsPage} />
       <Route path="/rentals/:id" component={RentalDetailPage} />
