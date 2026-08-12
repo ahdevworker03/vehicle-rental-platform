@@ -116,7 +116,27 @@ Notes: The `User.role` field defaults to `OWNER`. Permissions per role for speci
 | `OUT_OF_SERVICE` | Documented (business requirement)                      |
 | `ARCHIVED`       | Documented (business requirement)                      |
 
-Notes: Exact Prisma representation, default value, and whether `availability` is stored or derived **Requires Architectural Approval**. The domain lifecycle uses "Available → Reserved → Rented → Maintenance".
+Notes: Default value is `AVAILABLE`. Availability is derived from `status` and active rental records, not stored as a separate field. The domain lifecycle uses "Available → Reserved → Rented → Maintenance".
+
+## Transmission
+
+**Source:** approved architecture decision for Vehicle model.
+
+| Value | Status |
+|---|---|
+| `MANUAL` | Approved |
+| `AUTOMATIC` | Approved |
+
+## FuelType
+
+**Source:** approved architecture decision for Vehicle model.
+
+| Value | Status |
+|---|---|
+| `PETROL` | Approved |
+| `DIESEL` | Approved |
+| `ELECTRIC` | Approved |
+| `HYBRID` | Approved |
 
 ## RentalStatus
 
@@ -493,32 +513,46 @@ Represents a business vehicle managed by the platform. The central entity.
 
 ### Fields
 
-| Field               | Column          | Type          | Required | Default    | Notes                                               |
-| ------------------- | --------------- | ------------- | -------- | ---------- | --------------------------------------------------- |
-| id                  | id              | UUID          | ✅       | uuid()     | PK                                                  |
-| organization_id     | organization_id | UUID          | ✅       | —          | FK → Organization.id                                |
-| status              | status          | VehicleStatus | ✅       | AVAILABLE  | **Requires Architectural Approval** (exact default) |
-| vehicle info fields | (undetermined)  | —             | —        | —          | **Requires Architectural Approval**                 |
-| mileage fields      | (undetermined)  | —             | —        | —          | **Requires Architectural Approval**                 |
-| created_at          | created_at      | DateTime      | ✅       | now()      | Audit                                               |
-| updated_at          | updated_at      | DateTime      | ✅       | @updatedAt | Audit                                               |
-| deleted_at          | deleted_at      | DateTime?     | ❌       | null       | Soft delete ("archive retired vehicles")            |
+| Field | Column | Type | Required | Default | Notes |
+|---|---|---|---|---|---|
+| id | id | UUID | ✅ | uuid() | PK |
+| organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
+| make | make | String | ✅ | — | Manufacturer (e.g., Toyota) |
+| model | model | String | ✅ | — | Model name (e.g., Corolla) |
+| plate_number | plate_number | String | ✅ | — | License plate, unique within org |
+| year | year | Int | ✅ | — | Model year |
+| color | color | String | ✅ | — | Exterior color |
+| vin | vin | String | ❌ | null | Vehicle Identification Number (optional) |
+| engine_number | engine_number | String | ❌ | null | Engine serial (optional) |
+| transmission | transmission | Transmission | ✅ | — | MANUAL / AUTOMATIC |
+| fuel_type | fuel_type | FuelType | ✅ | — | PETROL / DIESEL / ELECTRIC / HYBRID |
+| seats | seats | Int | ✅ | — | Number of seats |
+| current_mileage | current_mileage | Int | ✅ | 0 | Odometer reading in kilometers |
+| status | status | VehicleStatus | ✅ | AVAILABLE | Current status |
+| created_at | created_at | DateTime | ✅ | now() | Audit |
+| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
+| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete ("archive retired vehicles") |
 
 ### Constraints
 
 - FK `organization_id` → `Organization.id`.
 - `status` must be a valid `VehicleStatus`.
+- `transmission` must be a valid `Transmission`.
+- `fuel_type` must be a valid `FuelType`.
+- `current_mileage` default is `0`.
 
 ### Unique Constraints
 
-- **Requires Architectural Approval** (e.g., plate number uniqueness within an organization).
+- `@@unique([organization_id, plate_number])` — a plate number is unique within an organization.
 
 ### Indexes
 
 - `@@index([organization_id])`
 - `@@index([deleted_at])`
 - `@@index([status])`
-- Additional search indexes **Requires Architectural Approval** (`02-business-requirements.md` §5: search vehicles).
+- `@@index([make])`
+- `@@index([model])`
+- `@@index([plate_number])`
 
 ### Foreign Keys
 
@@ -526,26 +560,40 @@ Represents a business vehicle managed by the platform. The central entity.
 
 ### onDelete Behavior
 
-- RESTRICT (business record).
+- RESTRICT (business record). A vehicle referenced by a rental or maintenance record cannot be deleted.
 
 ### Soft Delete Strategy
 
-- `deleted_at` — used to "archive retired vehicles".
+- `deleted_at` — used to "archive retired vehicles" (`02-business-requirements.md` §5). Archived vehicles are excluded from active lists and search but retained for historical reporting.
 
 ### Business Rules
 
-- A vehicle cannot have more than one active rental at the same time.
+- A vehicle cannot have more than one active rental at the same time (`04-domain-model.md`).
 - Archived vehicles cannot participate in new rentals.
 - Lifecycle: Acquired → Available → Reserved → Rented → Maintenance → Available → Archived.
+- Availability is derived from `status` and active rental records, not stored as a separate field.
+- Mileage is measured in kilometers throughout the platform. No separate mileage unit field exists.
 
 ### Validation Rules
 
-- **Requires Architectural Approval** once fields are defined.
+- `make` is required, non-empty.
+- `model` is required, non-empty.
+- `plate_number` is required, non-empty.
+- `year` is required, must be a valid vehicle year.
+- `color` is required, non-empty.
+- `vin` is optional, but when provided must be non-empty.
+- `engine_number` is optional, but when provided must be non-empty.
+- `transmission` is required, must be a valid `Transmission` value.
+- `fuel_type` is required, must be a valid `FuelType` value.
+- `seats` is required, must be a positive integer.
+- `current_mileage` is required, must be a non-negative integer.
 
 ### API Notes
 
-- Planned: `/api/vehicles` CRUD + search.
-- `status` and `availability` exposed in responses.
+- Planned: `/api/vehicles` (list, create, get, patch, delete) + `/api/vehicles?search=...` for vehicle search.
+- List/get accessible to any authenticated user in the organization; create/update/delete restricted to OWNER (consistent with User module RBAC).
+- Response: `{ data: { id, make, model, plateNumber, year, color, vin, engineNumber, transmission, fuelType, seats, currentMileage, status, createdAt, updatedAt } }`.
+- Soft-deleted (archived) vehicles return 404 on direct GET and are excluded from list/search.
 
 ---
 
@@ -1030,8 +1078,7 @@ Vehicles have documents and photos. Customers may have documents.
 
 # Open Decisions Summary (Requires Architectural Approval)
 
-1. **Vehicle field set** — make/model/plate/year/color/VIN/mileage; status default; availability stored vs derived; plate uniqueness.
-2. **Rental field set and status enum** — period structure, pricing, status values.
+1. **Rental field set and status enum** — period structure, pricing, status values.
 3. **Contract representation** — content vs file reference vs template.
 4. **Payment field set** — method enum, amount precision, balance stored vs derived.
 5. **Expense field set** — amount precision, currency, category enum representation.

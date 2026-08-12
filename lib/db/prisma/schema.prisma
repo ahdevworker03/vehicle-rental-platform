@@ -15,6 +15,7 @@ model Organization {
 
   users      User[]
   customers  Customer[]
+  vehicles   Vehicle[]
 
   @@index([deleted_at])
 }
@@ -23,6 +24,27 @@ enum Role {
   OWNER
   MANAGER
   EMPLOYEE
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  RESERVED
+  RENTED
+  MAINTENANCE
+  OUT_OF_SERVICE
+  ARCHIVED
+}
+
+enum Transmission {
+  MANUAL
+  AUTOMATIC
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  ELECTRIC
+  HYBRID
 }
 
 model User {
@@ -77,4 +99,33 @@ model Customer {
   @@index([phone])
   @@index([national_id])
   @@index([license_number])
+}
+
+model Vehicle {
+  id               String         @id @default(uuid()) @db.Uuid
+  organization_id  String         @db.Uuid
+  organization     Organization   @relation(fields: [organization_id], references: [id])
+  make             String
+  model            String
+  plate_number     String
+  year             Int
+  color            String
+  vin              String?
+  engine_number    String?
+  transmission     Transmission
+  fuel_type        FuelType
+  seats            Int
+  current_mileage  Int            @default(0)
+  status           VehicleStatus  @default(AVAILABLE)
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
+  deleted_at       DateTime?
+
+  @@unique([organization_id, plate_number])
+  @@index([organization_id])
+  @@index([deleted_at])
+  @@index([status])
+  @@index([make])
+  @@index([model])
+  @@index([plate_number])
 }
