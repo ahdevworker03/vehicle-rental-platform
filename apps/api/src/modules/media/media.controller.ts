@@ -67,6 +67,24 @@ async function getPhoto(req: Request, res: Response, next: NextFunction): Promis
   }
 }
 
+function sendImage(res: Response, result: Awaited<ReturnType<typeof mediaService.serveVehiclePhoto>>): void {
+  res.setHeader("Content-Type", result.mimeType);
+  res.setHeader("Content-Length", String(result.size));
+  res.setHeader("Cache-Control", "private, max-age=3600");
+  res.status(200).send(result.buffer);
+}
+
+async function servePhoto(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const vehicleId = req.params.vehicleId as string;
+    const id = req.params.id as string;
+    const result = await mediaService.serveVehiclePhoto(id, vehicleId, req.user!.org);
+    sendImage(res, result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function uploadPhoto(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const vehicleId = req.params.vehicleId as string;
@@ -242,6 +260,7 @@ export {
   handleUpload,
   listPhotos,
   getPhoto,
+  servePhoto,
   uploadPhoto,
   deletePhoto,
   listDocuments,

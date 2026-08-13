@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, Trash2, ImageIcon, Loader2 } from "lucide-react";
 import type { PhotoResponse } from "@workspace/api-client-react";
 import { useAuth } from "@/providers/AuthProvider";
@@ -15,6 +15,7 @@ interface MediaGalleryProps {
   deleting: boolean;
   onUpload: (file: File) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onLoadContent: (photo: PhotoResponse) => Promise<string>;
 }
 
 export function MediaGallery({
@@ -27,11 +28,44 @@ export function MediaGallery({
   deleting,
   onUpload,
   onDelete,
+  onLoadContent,
 }: MediaGalleryProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [contentUrls, setContentUrls] = useState<Record<string, string>>({});
   const { user } = useAuth();
   const canMutate = user?.role === "OWNER" || isOwner;
+
+  useEffect(() => {
+    let cancelled = false;
+    const urls: Record<string, string> = {};
+    const revokeKeys = new Set(Object.keys(contentUrls));
+
+    Promise.all(
+      photos.map(async (photo) => {
+        try {
+          const url = await onLoadContent(photo);
+          if (!cancelled) {
+            urls[photo.id] = url;
+            revokeKeys.delete(photo.id);
+          } else {
+            URL.revokeObjectURL(url);
+          }
+        } catch {
+          // Leave a placeholder for photos that fail to load.
+        }
+      }),
+    ).then(() => {
+      if (cancelled) return;
+      revokeKeys.forEach((key) => URL.revokeObjectURL(contentUrls[key]));
+      setContentUrls(urls);
+    });
+
+    return () => {
+      cancelled = true;
+      Object.values(urls).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [photos]);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -96,9 +130,9 @@ export function MediaGallery({
         <div className="grid grid-cols-3 gap-2">
           {photos.map((photo) => (
             <div key={photo.id} className="relative aspect-square rounded-xl overflow-hidden bg-muted group">
-              {photo.url ? (
+              {contentUrls[photo.id] ? (
                 <img
-                  src={photo.url}
+                  src={contentUrls[photo.id]}
                   alt={photo.caption ?? photo.originalFilename}
                   className="w-full h-full object-cover"
                   loading="lazy"

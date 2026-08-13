@@ -4,6 +4,7 @@ import {
   useUploadVehiclePhoto,
   useDeleteVehiclePhoto,
   getListVehiclePhotosQueryKey,
+  serveVehiclePhoto,
   useListVehicleDocuments,
   useUploadVehicleDocument,
   useDeleteVehicleDocument,
@@ -34,8 +35,9 @@ export function useVehiclePhotos(vehicleId: string) {
       },
     },
   });
+  const getContent = (photoId: string) => serveVehiclePhoto(vehicleId, photoId);
 
-  return { query, upload, remove };
+  return { query, upload, remove, getContent };
 }
 
 export function useVehicleDocuments(vehicleId: string) {

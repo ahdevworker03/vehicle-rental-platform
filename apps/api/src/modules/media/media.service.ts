@@ -39,7 +39,7 @@ function toPhotoResponse(record: {
     originalFilename: record.original_filename,
     mimeType: record.mime_type,
     fileSize: record.file_size,
-    url: record.storage_key,
+    url: `/api/vehicles/${record.vehicle_id}/photos/${record.id}/serve`,
     createdAt: record.created_at.toISOString(),
     updatedAt: record.updated_at.toISOString(),
   };
@@ -94,6 +94,27 @@ export async function getVehiclePhoto(photoId: string, vehicleId: string, orgId:
   }
 
   return toPhotoResponse(photo);
+}
+
+export async function serveVehiclePhoto(
+  photoId: string,
+  vehicleId: string,
+  orgId: string,
+): Promise<{ buffer: Buffer; mimeType: string; size: number }> {
+  await ensureVehicleInOrg(vehicleId, orgId);
+  const photo = await repo.findPhoto(photoId, vehicleId, orgId);
+
+  if (!photo || photo.deleted_at) {
+    throw new AppError(404, "PHOTO_NOT_FOUND", "Photo not found.");
+  }
+
+  const buffer = await storageProvider.retrieve(photo.storage_key);
+
+  return {
+    buffer,
+    mimeType: photo.mime_type,
+    size: buffer.length,
+  };
 }
 
 export async function uploadVehiclePhoto(
@@ -322,6 +343,7 @@ export async function downloadCustomerDocument(
 export const mediaService = {
   listVehiclePhotos,
   getVehiclePhoto,
+  serveVehiclePhoto,
   uploadVehiclePhoto,
   deleteVehiclePhoto,
   listVehicleDocuments,

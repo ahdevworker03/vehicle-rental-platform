@@ -46,6 +46,11 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
     await photos.upload.mutateAsync({ vehicleId: id, data: { file } });
   }
 
+  async function handleLoadPhotoContent(photo: { id: string }) {
+    const blob = await photos.getContent(photo.id);
+    return URL.createObjectURL(blob);
+  }
+
   async function handleDeletePhoto(photoId: string) {
     await photos.remove.mutateAsync({ vehicleId: id, id: photoId });
   }
@@ -175,6 +180,7 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
             deleting={photos.remove.isPending}
             onUpload={handleUploadPhoto}
             onDelete={handleDeletePhoto}
+            onLoadContent={handleLoadPhotoContent}
           />
         </div>
 

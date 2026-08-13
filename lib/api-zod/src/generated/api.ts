@@ -579,6 +579,17 @@ export const UploadVehiclePhotoResponse = zod.object({
 
 
 /**
+ * @summary Serve a vehicle photo's image bytes
+ */
+export const ServeVehiclePhotoParams = zod.object({
+  "vehicleId": zod.coerce.string(),
+  "id": zod.coerce.string()
+})
+
+export const ServeVehiclePhotoResponse = zod.unknown()
+
+
+/**
  * @summary Get a vehicle photo
  */
 export const GetVehiclePhotoParams = zod.object({

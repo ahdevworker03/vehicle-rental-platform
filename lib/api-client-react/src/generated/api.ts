@@ -2019,6 +2019,88 @@ export const useUploadVehiclePhoto = <TError = ErrorType<ErrorResponse>,
       return useMutation(getUploadVehiclePhotoMutationOptions(options));
     }
 
+export const getServeVehiclePhotoUrl = (vehicleId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/vehicles/${vehicleId}/photos/${id}/serve`
+}
+
+/**
+ * @summary Serve a vehicle photo's image bytes
+ */
+export const serveVehiclePhoto = async (vehicleId: string,
+    id: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getServeVehiclePhotoUrl(vehicleId,id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getServeVehiclePhotoQueryKey = (vehicleId: string,
+    id: string,) => {
+    return [
+    `/api/vehicles/${vehicleId}/photos/${id}/serve`
+    ] as const;
+    }
+
+
+export const getServeVehiclePhotoQueryOptions = <TData = Awaited<ReturnType<typeof serveVehiclePhoto>>, TError = ErrorType<ErrorResponse>>(vehicleId: string,
+    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof serveVehiclePhoto>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getServeVehiclePhotoQueryKey(vehicleId,id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof serveVehiclePhoto>>> = ({ signal }) => serveVehiclePhoto(vehicleId,id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: vehicleId !== null && vehicleId !== undefined && id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof serveVehiclePhoto>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ServeVehiclePhotoQueryResult = NonNullable<Awaited<ReturnType<typeof serveVehiclePhoto>>>
+export type ServeVehiclePhotoQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Serve a vehicle photo's image bytes
+ */
+
+export function useServeVehiclePhoto<TData = Awaited<ReturnType<typeof serveVehiclePhoto>>, TError = ErrorType<ErrorResponse>>(
+ vehicleId: string,
+    id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof serveVehiclePhoto>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getServeVehiclePhotoQueryOptions(vehicleId,id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
 export const getGetVehiclePhotoUrl = (vehicleId: string,
     id: string,) => {
 

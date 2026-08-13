@@ -3,6 +3,7 @@ import {
   handleUpload,
   listPhotos,
   getPhoto,
+  servePhoto,
   uploadPhoto,
   deletePhoto,
   listDocuments,
@@ -22,6 +23,7 @@ const router: IRouter = Router();
 
 // Photos
 router.get("/vehicles/:vehicleId/photos", authenticate, listPhotos);
+router.get("/vehicles/:vehicleId/photos/:id/serve", authenticate, servePhoto);
 router.get("/vehicles/:vehicleId/photos/:id", authenticate, getPhoto);
 router.post(
   "/vehicles/:vehicleId/photos",
