@@ -3,14 +3,14 @@ import type { PhotoRecord, DocumentRecord, DocumentCategory } from "./media.type
 
 async function findVehicle(vehicleId: string, orgId: string): Promise<{ id: string } | null> {
   return prisma.vehicle.findFirst({
-    where: { id: vehicleId, organization_id: orgId },
+    where: { id: vehicleId, organization_id: orgId, deleted_at: null },
     select: { id: true },
   });
 }
 
 async function findCustomer(customerId: string, orgId: string): Promise<{ id: string } | null> {
   return prisma.customer.findFirst({
-    where: { id: customerId, organization_id: orgId },
+    where: { id: customerId, organization_id: orgId, deleted_at: null },
     select: { id: true },
   });
 }
