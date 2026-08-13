@@ -16,6 +16,7 @@ model Organization {
   users      User[]
   customers  Customer[]
   vehicles   Vehicle[]
+  rentals    Rental[]
   documents  Document[]
   photos     Photo[]
 
@@ -53,6 +54,13 @@ enum DocumentCategory {
   REGISTRATION
   INSURANCE
   OTHER
+}
+
+enum RentalStatus {
+  RESERVED
+  ACTIVE
+  RETURNED
+  CANCELLED
 }
 
 model User {
@@ -108,6 +116,7 @@ model Customer {
   @@index([national_id])
   @@index([license_number])
 
+  rentals   Rental[]
   documents Document[]
 }
 
@@ -133,6 +142,7 @@ model Vehicle {
 
   documents Document[]
   photos    Photo[]
+  rentals   Rental[]
 
   @@unique([organization_id, plate_number])
   @@index([organization_id])
@@ -186,5 +196,33 @@ model Photo {
   @@index([organization_id])
   @@index([vehicle_id])
   @@index([vehicle_id, sort_order])
+  @@index([deleted_at])
+}
+
+model Rental {
+  id                   String        @id @default(uuid()) @db.Uuid
+  organization_id      String        @db.Uuid
+  organization         Organization  @relation(fields: [organization_id], references: [id])
+  customer_id          String        @db.Uuid
+  customer             Customer      @relation(fields: [customer_id], references: [id])
+  vehicle_id           String        @db.Uuid
+  vehicle              Vehicle       @relation(fields: [vehicle_id], references: [id])
+  pickup_date          DateTime
+  expected_return_date DateTime
+  actual_return_date   DateTime?
+  status               RentalStatus  @default(RESERVED)
+  daily_rate           Decimal       @db.Decimal(10, 2)
+  total_amount         Decimal       @db.Decimal(10, 2)
+  deposit_amount       Decimal       @db.Decimal(10, 2)
+  created_at           DateTime      @default(now())
+  updated_at           DateTime      @updatedAt
+  deleted_at           DateTime?
+
+  @@index([organization_id])
+  @@index([customer_id])
+  @@index([vehicle_id])
+  @@index([status])
+  @@index([pickup_date])
+  @@index([expected_return_date])
   @@index([deleted_at])
 }
