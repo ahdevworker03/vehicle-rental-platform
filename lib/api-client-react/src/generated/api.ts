@@ -24,6 +24,7 @@ import type {
   CreateCustomerRequest,
   CreateUserRequest,
   CreateVehicleRequest,
+  CurrentUserResponseWrapper,
   CustomerListResponse,
   CustomerResponseWrapper,
   DocumentListResponse,
@@ -457,9 +458,9 @@ export const getGetCurrentUserUrl = () => {
  * Returns the current authenticated user, or null when no valid access token is provided.
  * @summary Get current user
  */
-export const getCurrentUser = async ( options?: RequestInit): Promise<UserResponseWrapper> => {
+export const getCurrentUser = async ( options?: RequestInit): Promise<CurrentUserResponseWrapper> => {
 
-  return customFetch<UserResponseWrapper>(getGetCurrentUserUrl(),
+  return customFetch<CurrentUserResponseWrapper>(getGetCurrentUserUrl(),
   {
     ...options,
     method: 'GET'

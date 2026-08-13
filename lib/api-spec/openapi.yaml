@@ -167,7 +167,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserResponseWrapper"
+                $ref: "#/components/schemas/CurrentUserResponseWrapper"
 
   /organizations/me:
     get:
@@ -1598,6 +1598,37 @@ components:
         - role
         - createdAt
         - updatedAt
+
+    CurrentUserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        organizationId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - role
+        - organizationId
+        - createdAt
+
+    CurrentUserResponseWrapper:
+      type: object
+      properties:
+        data:
+          oneOf:
+            - $ref: "#/components/schemas/CurrentUserResponse"
+            - type: "null"
+      required:
+        - data
 
     UserResponseWrapper:
       type: object

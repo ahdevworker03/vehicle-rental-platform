@@ -15,6 +15,8 @@ export * from './createVehicleRequest';
 export * from './createVehicleRequestFuelType';
 export * from './createVehicleRequestStatus';
 export * from './createVehicleRequestTransmission';
+export * from './currentUserResponse';
+export * from './currentUserResponseWrapper';
 export * from './customerListResponse';
 export * from './customerResponse';
 export * from './customerResponseWrapper';

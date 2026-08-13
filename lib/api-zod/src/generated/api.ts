@@ -105,8 +105,8 @@ export const GetCurrentUserResponse = zod.object({
   "id": zod.string(),
   "email": zod.string(),
   "role": zod.string(),
-  "createdAt": zod.coerce.date(),
-  "updatedAt": zod.coerce.date()
+  "organizationId": zod.string(),
+  "createdAt": zod.coerce.date()
 }),zod.null()])
 })
 

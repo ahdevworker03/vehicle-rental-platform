@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { getCurrentUser, login as apiLogin, logout as apiLogout } from "@workspace/api-client-react";
-import type { UserResponse } from "@workspace/api-client-react";
+import type { CurrentUserResponse } from "@workspace/api-client-react";
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "@/lib/auth-token";
 
 interface LoginParams {
@@ -9,7 +9,7 @@ interface LoginParams {
 }
 
 interface AuthContextValue {
-  user: UserResponse | null;
+  user: CurrentUserResponse | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (params: LoginParams) => Promise<void>;
@@ -19,7 +19,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserResponse | null>(null);
+  const [user, setUser] = useState<CurrentUserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

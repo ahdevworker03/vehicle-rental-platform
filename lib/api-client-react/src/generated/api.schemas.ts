@@ -51,6 +51,18 @@ export interface UserResponse {
   updatedAt: string;
 }
 
+export interface CurrentUserResponse {
+  id: string;
+  email: string;
+  role: string;
+  organizationId: string;
+  createdAt: string;
+}
+
+export interface CurrentUserResponseWrapper {
+  data: CurrentUserResponse | null;
+}
+
 export interface UserResponseWrapper {
   data: UserResponse | null;
 }
