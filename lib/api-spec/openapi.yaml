@@ -461,6 +461,8 @@ paths:
           required: false
           schema:
             type: string
+            minLength: 1
+            maxLength: 200
           description: Search customers by name, national ID, license number, or phone
       responses:
         "200":
@@ -662,6 +664,8 @@ paths:
           required: false
           schema:
             type: string
+            minLength: 1
+            maxLength: 200
           description: Search vehicles by plate number, make, model, or year
       responses:
         "200":
@@ -1507,6 +1511,7 @@ components:
       properties:
         email:
           type: string
+          format: email
         password:
           type: string
           minLength: 8
@@ -1523,6 +1528,7 @@ components:
       properties:
         email:
           type: string
+          format: email
         password:
           type: string
           minLength: 1
@@ -1618,6 +1624,7 @@ components:
       properties:
         email:
           type: string
+          format: email
         password:
           type: string
           minLength: 8
@@ -1883,6 +1890,8 @@ components:
           minLength: 1
         year:
           type: integer
+          minimum: 1900
+          maximum: 2100
         color:
           type: string
           minLength: 1
@@ -1898,8 +1907,10 @@ components:
           enum: [PETROL, DIESEL, ELECTRIC, HYBRID]
         seats:
           type: integer
+          minimum: 1
         current_mileage:
           type: integer
+          minimum: 0
         status:
           type: string
           enum: [AVAILABLE, RESERVED, RENTED, MAINTENANCE, OUT_OF_SERVICE, ARCHIVED]
@@ -1929,6 +1940,8 @@ components:
           minLength: 1
         year:
           type: integer
+          minimum: 1900
+          maximum: 2100
         color:
           type: string
           minLength: 1
@@ -1944,8 +1957,10 @@ components:
           enum: [PETROL, DIESEL, ELECTRIC, HYBRID]
         seats:
           type: integer
+          minimum: 1
         current_mileage:
           type: integer
+          minimum: 0
         status:
           type: string
           enum: [AVAILABLE, RESERVED, RENTED, MAINTENANCE, OUT_OF_SERVICE, ARCHIVED]

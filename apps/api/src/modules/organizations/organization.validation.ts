@@ -1,7 +1,7 @@
-import { z } from "zod";
+import { UpdateMyOrganizationBody } from "@workspace/api-zod";
 
-export const updateOrganizationSchema = z.object({
-  name: z.string().min(1, "Organization name is required"),
-});
+export const updateOrganizationSchema = UpdateMyOrganizationBody;
 
-export type UpdateOrganizationInput = z.infer<typeof updateOrganizationSchema>;
+export type UpdateOrganizationInput = {
+  name: string;
+};

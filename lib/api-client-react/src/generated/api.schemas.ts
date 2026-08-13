@@ -248,6 +248,10 @@ export interface CreateVehicleRequest {
   model: string;
   /** @minLength 1 */
   plate_number: string;
+  /**
+     * @minimum 1900
+     * @maximum 2100
+     */
   year: number;
   /** @minLength 1 */
   color: string;
@@ -255,7 +259,9 @@ export interface CreateVehicleRequest {
   engine_number?: string;
   transmission: CreateVehicleRequestTransmission;
   fuel_type: CreateVehicleRequestFuelType;
+  /** @minimum 1 */
   seats: number;
+  /** @minimum 0 */
   current_mileage: number;
   status: CreateVehicleRequestStatus;
 }
@@ -297,6 +303,10 @@ export interface UpdateVehicleRequest {
   model: string;
   /** @minLength 1 */
   plate_number: string;
+  /**
+     * @minimum 1900
+     * @maximum 2100
+     */
   year: number;
   /** @minLength 1 */
   color: string;
@@ -304,7 +314,9 @@ export interface UpdateVehicleRequest {
   engine_number?: string;
   transmission: UpdateVehicleRequestTransmission;
   fuel_type: UpdateVehicleRequestFuelType;
+  /** @minimum 1 */
   seats: number;
+  /** @minimum 0 */
   current_mileage: number;
   status: UpdateVehicleRequestStatus;
 }
@@ -372,6 +384,8 @@ export interface ErrorResponse {
 export type ListCustomersParams = {
 /**
  * Search customers by name, national ID, license number, or phone
+ * @minLength 1
+ * @maxLength 200
  */
 search?: string;
 };
@@ -379,6 +393,8 @@ search?: string;
 export type ListVehiclesParams = {
 /**
  * Search vehicles by plate number, make, model, or year
+ * @minLength 1
+ * @maxLength 200
  */
 search?: string;
 };

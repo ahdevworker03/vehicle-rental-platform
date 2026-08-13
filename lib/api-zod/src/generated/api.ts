@@ -27,7 +27,7 @@ export const registerOrganizationBodyPasswordMin = 8;
 
 
 export const RegisterOrganizationBody = zod.object({
-  "email": zod.string(),
+  "email": zod.string().email(),
   "password": zod.string().min(registerOrganizationBodyPasswordMin),
   "organizationName": zod.string().min(1)
 })
@@ -49,7 +49,7 @@ export const RegisterOrganizationResponse = zod.object({
 
 
 export const LoginBody = zod.object({
-  "email": zod.string(),
+  "email": zod.string().email(),
   "password": zod.string().min(1)
 })
 
@@ -172,7 +172,7 @@ export const createUserBodyPasswordMin = 8;
 
 
 export const CreateUserBody = zod.object({
-  "email": zod.string(),
+  "email": zod.string().email(),
   "password": zod.string().min(createUserBodyPasswordMin),
   "role": zod.enum(['MANAGER', 'EMPLOYEE'])
 })
@@ -241,8 +241,12 @@ export const DeleteUserResponse = zod.void()
 /**
  * @summary List customers in the current organization
  */
+export const listCustomersQuerySearchMax = 200;
+
+
+
 export const ListCustomersQueryParams = zod.object({
-  "search": zod.coerce.string().optional().describe('Search customers by name, national ID, license number, or phone')
+  "search": zod.coerce.string().min(1).max(listCustomersQuerySearchMax).optional().describe('Search customers by name, national ID, license number, or phone')
 })
 
 export const ListCustomersResponse = zod.object({
@@ -375,8 +379,12 @@ export const DeleteCustomerResponse = zod.void()
 /**
  * @summary List vehicles in the current organization
  */
+export const listVehiclesQuerySearchMax = 200;
+
+
+
 export const ListVehiclesQueryParams = zod.object({
-  "search": zod.coerce.string().optional().describe('Search vehicles by plate number, make, model, or year')
+  "search": zod.coerce.string().min(1).max(listVehiclesQuerySearchMax).optional().describe('Search vehicles by plate number, make, model, or year')
 })
 
 export const ListVehiclesResponse = zod.object({
@@ -406,6 +414,12 @@ export const ListVehiclesResponse = zod.object({
 
 
 
+export const createVehicleBodyYearMin = 1900;
+export const createVehicleBodyYearMax = 2100;
+
+
+
+export const createVehicleBodyCurrentMileageMin = 0;
 
 
 
@@ -413,14 +427,14 @@ export const CreateVehicleBody = zod.object({
   "make": zod.string().min(1),
   "model": zod.string().min(1),
   "plate_number": zod.string().min(1),
-  "year": zod.number(),
+  "year": zod.number().min(createVehicleBodyYearMin).max(createVehicleBodyYearMax),
   "color": zod.string().min(1),
   "vin": zod.string().optional(),
   "engine_number": zod.string().optional(),
   "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
   "fuel_type": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
-  "seats": zod.number(),
-  "current_mileage": zod.number(),
+  "seats": zod.number().min(1),
+  "current_mileage": zod.number().min(createVehicleBodyCurrentMileageMin),
   "status": zod.enum(['AVAILABLE', 'RESERVED', 'RENTED', 'MAINTENANCE', 'OUT_OF_SERVICE', 'ARCHIVED'])
 })
 
@@ -483,6 +497,12 @@ export const UpdateVehicleParams = zod.object({
 
 
 
+export const updateVehicleBodyYearMin = 1900;
+export const updateVehicleBodyYearMax = 2100;
+
+
+
+export const updateVehicleBodyCurrentMileageMin = 0;
 
 
 
@@ -490,14 +510,14 @@ export const UpdateVehicleBody = zod.object({
   "make": zod.string().min(1),
   "model": zod.string().min(1),
   "plate_number": zod.string().min(1),
-  "year": zod.number(),
+  "year": zod.number().min(updateVehicleBodyYearMin).max(updateVehicleBodyYearMax),
   "color": zod.string().min(1),
   "vin": zod.string().optional(),
   "engine_number": zod.string().optional(),
   "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
   "fuel_type": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
-  "seats": zod.number(),
-  "current_mileage": zod.number(),
+  "seats": zod.number().min(1),
+  "current_mileage": zod.number().min(updateVehicleBodyCurrentMileageMin),
   "status": zod.enum(['AVAILABLE', 'RESERVED', 'RENTED', 'MAINTENANCE', 'OUT_OF_SERVICE', 'ARCHIVED'])
 })
 

@@ -9,6 +9,8 @@
 export type ListCustomersParams = {
 /**
  * Search customers by name, national ID, license number, or phone
+ * @minLength 1
+ * @maxLength 200
  */
 search?: string;
 };

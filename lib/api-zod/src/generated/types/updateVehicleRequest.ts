@@ -16,6 +16,10 @@ export interface UpdateVehicleRequest {
   model: string;
   /** @minLength 1 */
   plate_number: string;
+  /**
+     * @minimum 1900
+     * @maximum 2100
+     */
   year: number;
   /** @minLength 1 */
   color: string;
@@ -23,7 +27,9 @@ export interface UpdateVehicleRequest {
   engine_number?: string;
   transmission: UpdateVehicleRequestTransmission;
   fuel_type: UpdateVehicleRequestFuelType;
+  /** @minimum 1 */
   seats: number;
+  /** @minimum 0 */
   current_mileage: number;
   status: UpdateVehicleRequestStatus;
 }
