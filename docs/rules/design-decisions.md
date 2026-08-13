@@ -43,5 +43,6 @@ Request confirmation before changing:
 - Core business logic
 - Major dependencies
 - User experience or product behavior
+- Generated code workflows
 
 Routine implementation within the approved architecture does not require confirmation.

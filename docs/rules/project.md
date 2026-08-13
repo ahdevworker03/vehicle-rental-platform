@@ -98,12 +98,7 @@ Some packages are generated from authoritative sources.
 
 Generated artifacts are not edited manually.
 
-Follow:
-
-- `api-contracts.md`
-- `generated-code.md`
-
-before modifying generated packages.
+Follow `api-contracts.md` before modifying generated packages.
 
 ## Repository Rules
 

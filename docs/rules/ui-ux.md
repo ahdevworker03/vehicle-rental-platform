@@ -39,9 +39,7 @@ Apply these rules to every user-facing change.
 
 ## Accessibility
 
-- Use semantic HTML whenever possible.
-- Ensure keyboard accessibility for interactive elements.
-- Maintain sufficient color contrast.
+- Follow the `accessibility` skill (WCAG 2.1/2.2) for implementation details.
 - Provide clear labels, validation messages, and feedback.
 
 ## User Feedback

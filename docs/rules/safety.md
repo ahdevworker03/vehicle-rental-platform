@@ -16,16 +16,7 @@ These are hard constraints. Safety always takes priority over speed or convenien
 
 ## Architecture Protection
 
-Request approval before changing:
-
-- System architecture.
-- Folder structure.
-- Public APIs.
-- Database schema.
-- Authentication strategy.
-- Deployment architecture.
-- Business logic.
-- Generated code workflows.
+Request approval before changing anything listed under `design-decisions.md`.
 
 Follow `design-decisions.md` whenever architectural changes are involved.
 
@@ -38,7 +29,7 @@ Follow `design-decisions.md` whenever architectural changes are involved.
 ## Generated Code
 
 - Never manually edit generated code.
-- Modify the source of truth and regenerate instead.
+- Follow `api-contracts.md` for generated artifact handling.
 - Temporary exceptions require explicit user approval.
 
 ## Secrets & Security

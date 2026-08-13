@@ -1,6 +1,6 @@
-# API Contract Rules
+# API Contract & Generated Code Rules
 
-These rules govern API contracts and generated API artifacts throughout the repository.
+These rules govern API contracts and all generated code and artifacts throughout the repository.
 
 ## Source of Truth
 
@@ -16,9 +16,18 @@ These rules govern API contracts and generated API artifacts throughout the repo
 
 ## Generated Artifacts
 
+Generated code is never the source of truth; always modify the source and regenerate.
+
 - Generated clients, schemas, and related artifacts must be regenerated from the API specification.
-- Never manually edit generated files.
-- If generated artifacts become outdated, update the specification and regenerate them.
+- Never manually edit generated files; treat them as read-only outputs.
+- If generated code is incorrect, fix the generator input rather than the generated result.
+- Do not duplicate generated logic elsewhere in the repository.
+- Keep generated artifacts synchronized with their source.
+- Regenerate affected outputs after approved changes to the source.
+- Do not leave generated packages in a partially updated state.
+- Do not move, rename, or reorganize generated outputs unless the generation process changes.
+- Preserve existing generation workflows.
+- Generated artifacts must remain compatible with the repository architecture.
 
 ## Compatibility
 
@@ -34,8 +43,9 @@ These rules govern API contracts and generated API artifacts throughout the repo
 
 ## Validation
 
-Before completing API-related work:
+Before completing API or generated-code work:
 
 - Verify the implementation matches the API contract.
-- Ensure generated artifacts are synchronized.
+- Ensure generated artifacts are up to date and synchronized with their source.
+- Confirm generated code is not manually modified.
 - Confirm documentation reflects the current contract when required.
