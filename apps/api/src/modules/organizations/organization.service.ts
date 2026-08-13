@@ -48,7 +48,7 @@ async function deleteOrganization(orgId: string): Promise<void> {
     throw new AppError(404, "ORGANIZATION_NOT_FOUND", "Organization not found.");
   }
 
-  await repo.softDelete(orgId);
+  throw new AppError(409, "CANNOT_DELETE_ORGANIZATION", "You cannot delete your own organization.");
 }
 
 export { getOrganization, updateOrganization, deleteOrganization };

@@ -46,7 +46,7 @@ async function update(req: Request, res: Response, next: NextFunction): Promise<
 async function remove(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const id = req.params.id as string;
-    await deleteUser(id, req.user!.org);
+    await deleteUser(id, req.user!.org, req.user!.sub);
     noContent(res);
   } catch (err) {
     next(err);

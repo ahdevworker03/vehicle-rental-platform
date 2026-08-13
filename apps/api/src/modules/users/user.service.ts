@@ -61,11 +61,15 @@ async function updateUser(
   return toResponse(updated);
 }
 
-async function deleteUser(userId: string, orgId: string): Promise<void> {
+async function deleteUser(userId: string, orgId: string, actorUserId: string): Promise<void> {
   const user = await repo.findById(userId, orgId);
 
   if (!user || user.deleted_at) {
     throw new AppError(404, "USER_NOT_FOUND", "User not found.");
+  }
+
+  if (userId === actorUserId) {
+    throw new AppError(409, "CANNOT_DELETE_SELF", "You cannot delete your own account.");
   }
 
   await repo.softDelete(userId);
