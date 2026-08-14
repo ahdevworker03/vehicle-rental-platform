@@ -17,6 +17,7 @@ import { InfoRow } from "@/components/ui/InfoRow";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ContractSection } from "@/components/ui/ContractSection";
 import { RENTAL_STATUS_LABELS } from "@/lib/rental-labels";
 import { formatCurrency, formatDateAr } from "@/lib/format";
 import {
@@ -289,6 +290,9 @@ export default function RentalDetailPage({ params }: Props) {
           />
           <InfoRow label="التأمين" value={formatCurrency(rental.depositAmount)} />
         </div>
+
+        {/* Contract */}
+        <ContractSection rentalId={rental.id} />
 
         {/* Action buttons — status-based */}
         {isOwner && activeAction === null && (
