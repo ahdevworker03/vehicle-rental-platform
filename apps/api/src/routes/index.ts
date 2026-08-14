@@ -6,6 +6,7 @@ import usersRouter from "../modules/users/user.routes";
 import customersRouter from "../modules/customers/customer.routes";
 import vehiclesRouter from "../modules/vehicles/vehicle.routes";
 import rentalsRouter from "../modules/rentals/rental.routes";
+import contractsRouter from "../modules/contracts/contract.routes";
 import mediaRouter from "../modules/media/media.routes";
 
 const router: IRouter = Router();
@@ -17,6 +18,7 @@ router.use(usersRouter);
 router.use(customersRouter);
 router.use(vehiclesRouter);
 router.use(rentalsRouter);
+router.use(contractsRouter);
 router.use(mediaRouter);
 
 export default router;

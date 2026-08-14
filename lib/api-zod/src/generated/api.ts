@@ -1114,3 +1114,69 @@ export const CancelRentalResponse = zod.object({
 })
 
 
+/**
+ * @summary Get the contract for a rental in the current organization
+ */
+export const GetRentalContractParams = zod.object({
+  "id": zod.coerce.string().describe('Rental ID')
+})
+
+export const GetRentalContractResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "rentalId": zod.string(),
+  "pickupDate": zod.coerce.date(),
+  "expectedReturnDate": zod.coerce.date(),
+  "dailyRate": zod.number(),
+  "totalAmount": zod.number(),
+  "depositAmount": zod.number(),
+  "customerFirstName": zod.string(),
+  "customerLastName": zod.string(),
+  "customerNationalId": zod.string(),
+  "vehicleMake": zod.string(),
+  "vehicleModel": zod.string(),
+  "vehiclePlateNumber": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Generate a contract for a rental in the current organization
+ */
+export const GenerateRentalContractParams = zod.object({
+  "id": zod.coerce.string().describe('Rental ID')
+})
+
+export const GenerateRentalContractResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "rentalId": zod.string(),
+  "pickupDate": zod.coerce.date(),
+  "expectedReturnDate": zod.coerce.date(),
+  "dailyRate": zod.number(),
+  "totalAmount": zod.number(),
+  "depositAmount": zod.number(),
+  "customerFirstName": zod.string(),
+  "customerLastName": zod.string(),
+  "customerNationalId": zod.string(),
+  "vehicleMake": zod.string(),
+  "vehicleModel": zod.string(),
+  "vehiclePlateNumber": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Soft delete the contract for a rental in the current organization
+ */
+export const DeleteRentalContractParams = zod.object({
+  "id": zod.coerce.string().describe('Rental ID')
+})
+
+export const DeleteRentalContractResponse = zod.void()
+
+

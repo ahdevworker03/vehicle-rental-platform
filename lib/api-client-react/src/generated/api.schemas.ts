@@ -418,6 +418,28 @@ export interface RentalListResponse {
   data: RentalResponse[];
 }
 
+export interface ContractResponse {
+  id: string;
+  rentalId: string;
+  pickupDate: string;
+  expectedReturnDate: string;
+  dailyRate: number;
+  totalAmount: number;
+  depositAmount: number;
+  customerFirstName: string;
+  customerLastName: string;
+  customerNationalId: string;
+  vehicleMake: string;
+  vehicleModel: string;
+  vehiclePlateNumber: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContractResponseWrapper {
+  data: ContractResponse;
+}
+
 export interface CreateRentalRequest {
   /** @minLength 1 */
   customer_id: string;

@@ -22,6 +22,8 @@ tags:
     description: Vehicle operations
   - name: rentals
     description: Rental operations
+  - name: contracts
+    description: Contract operations
 paths:
   /healthz:
     get:
@@ -1982,6 +1984,124 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /rentals/{id}/contract:
+    get:
+      operationId: getRentalContract
+      tags: [contracts]
+      summary: Get the contract for a rental in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rental ID
+      responses:
+        "200":
+          description: Contract
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rental or contract not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: generateRentalContract
+      tags: [contracts]
+      summary: Generate a contract for a rental in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rental ID
+      responses:
+        "201":
+          description: Contract generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rental not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Rental already has a contract or is not in a state that allows contract generation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteRentalContract
+      tags: [contracts]
+      summary: Soft delete the contract for a rental in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rental ID
+      responses:
+        "204":
+          description: Contract deleted
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rental or contract not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2675,6 +2795,68 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RentalResponse"
+      required:
+        - data
+
+    ContractResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        rentalId:
+          type: string
+        pickupDate:
+          type: string
+          format: date-time
+        expectedReturnDate:
+          type: string
+          format: date-time
+        dailyRate:
+          type: number
+        totalAmount:
+          type: number
+        depositAmount:
+          type: number
+        customerFirstName:
+          type: string
+        customerLastName:
+          type: string
+        customerNationalId:
+          type: string
+        vehicleMake:
+          type: string
+        vehicleModel:
+          type: string
+        vehiclePlateNumber:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - rentalId
+        - pickupDate
+        - expectedReturnDate
+        - dailyRate
+        - totalAmount
+        - depositAmount
+        - customerFirstName
+        - customerLastName
+        - customerNationalId
+        - vehicleMake
+        - vehicleModel
+        - vehiclePlateNumber
+        - createdAt
+        - updatedAt
+
+    ContractResponseWrapper:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/ContractResponse"
       required:
         - data
 

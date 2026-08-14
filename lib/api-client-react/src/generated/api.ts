@@ -22,6 +22,7 @@ import type {
 import type {
   AuthTokensResponse,
   CheckRentalAvailabilityParams,
+  ContractResponseWrapper,
   CreateCustomerRequest,
   CreateRentalRequest,
   CreateUserRequest,
@@ -3797,5 +3798,224 @@ export const useCancelRental = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getCancelRentalMutationOptions(options));
+    }
+
+export const getGetRentalContractUrl = (id: string,) => {
+
+
+
+
+  return `/api/rentals/${id}/contract`
+}
+
+/**
+ * @summary Get the contract for a rental in the current organization
+ */
+export const getRentalContract = async (id: string, options?: RequestInit): Promise<ContractResponseWrapper> => {
+
+  return customFetch<ContractResponseWrapper>(getGetRentalContractUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRentalContractQueryKey = (id: string,) => {
+    return [
+    `/api/rentals/${id}/contract`
+    ] as const;
+    }
+
+
+export const getGetRentalContractQueryOptions = <TData = Awaited<ReturnType<typeof getRentalContract>>, TError = ErrorType<ErrorResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRentalContract>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRentalContractQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRentalContract>>> = ({ signal }) => getRentalContract(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRentalContract>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRentalContractQueryResult = NonNullable<Awaited<ReturnType<typeof getRentalContract>>>
+export type GetRentalContractQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get the contract for a rental in the current organization
+ */
+
+export function useGetRentalContract<TData = Awaited<ReturnType<typeof getRentalContract>>, TError = ErrorType<ErrorResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRentalContract>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRentalContractQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGenerateRentalContractUrl = (id: string,) => {
+
+
+
+
+  return `/api/rentals/${id}/contract`
+}
+
+/**
+ * @summary Generate a contract for a rental in the current organization
+ */
+export const generateRentalContract = async (id: string, options?: RequestInit): Promise<ContractResponseWrapper> => {
+
+  return customFetch<ContractResponseWrapper>(getGenerateRentalContractUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getGenerateRentalContractMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateRentalContract>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateRentalContract>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['generateRentalContract'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateRentalContract>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  generateRentalContract(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateRentalContractMutationResult = NonNullable<Awaited<ReturnType<typeof generateRentalContract>>>
+
+    export type GenerateRentalContractMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Generate a contract for a rental in the current organization
+ */
+export const useGenerateRentalContract = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateRentalContract>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateRentalContract>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getGenerateRentalContractMutationOptions(options));
+    }
+
+export const getDeleteRentalContractUrl = (id: string,) => {
+
+
+
+
+  return `/api/rentals/${id}/contract`
+}
+
+/**
+ * @summary Soft delete the contract for a rental in the current organization
+ */
+export const deleteRentalContract = async (id: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteRentalContractUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteRentalContractMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRentalContract>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteRentalContract>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteRentalContract'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRentalContract>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteRentalContract(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteRentalContractMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRentalContract>>>
+
+    export type DeleteRentalContractMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Soft delete the contract for a rental in the current organization
+ */
+export const useDeleteRentalContract = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRentalContract>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteRentalContract>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteRentalContractMutationOptions(options));
     }
 
