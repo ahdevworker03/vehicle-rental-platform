@@ -828,3 +828,152 @@ export const DownloadCustomerDocumentParams = zod.object({
 export const DownloadCustomerDocumentResponse = zod.unknown()
 
 
+/**
+ * @summary List rentals in the current organization
+ */
+export const listRentalsQuerySearchMax = 200;
+
+
+
+export const ListRentalsQueryParams = zod.object({
+  "search": zod.coerce.string().min(1).max(listRentalsQuerySearchMax).optional().describe('Search rentals by customer or vehicle')
+})
+
+export const ListRentalsResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.string(),
+  "customerId": zod.string(),
+  "vehicleId": zod.string(),
+  "pickupDate": zod.coerce.date(),
+  "expectedReturnDate": zod.coerce.date(),
+  "actualReturnDate": zod.coerce.date().nullish(),
+  "status": zod.enum(['RESERVED', 'ACTIVE', 'RETURNED', 'CANCELLED']),
+  "dailyRate": zod.number(),
+  "totalAmount": zod.number(),
+  "depositAmount": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Create a rental in the current organization
+ */
+
+
+export const createRentalBodyDailyRateMin = 0;
+
+export const createRentalBodyTotalAmountMin = 0;
+
+export const createRentalBodyDepositAmountMin = 0;
+
+
+
+export const CreateRentalBody = zod.object({
+  "customer_id": zod.string().min(1),
+  "vehicle_id": zod.string().min(1),
+  "pickup_date": zod.coerce.date(),
+  "expected_return_date": zod.coerce.date(),
+  "daily_rate": zod.number().min(createRentalBodyDailyRateMin),
+  "total_amount": zod.number().min(createRentalBodyTotalAmountMin),
+  "deposit_amount": zod.number().min(createRentalBodyDepositAmountMin),
+  "status": zod.enum(['RESERVED', 'ACTIVE', 'RETURNED', 'CANCELLED'])
+})
+
+export const CreateRentalResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "customerId": zod.string(),
+  "vehicleId": zod.string(),
+  "pickupDate": zod.coerce.date(),
+  "expectedReturnDate": zod.coerce.date(),
+  "actualReturnDate": zod.coerce.date().nullish(),
+  "status": zod.enum(['RESERVED', 'ACTIVE', 'RETURNED', 'CANCELLED']),
+  "dailyRate": zod.number(),
+  "totalAmount": zod.number(),
+  "depositAmount": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Get a rental in the current organization
+ */
+export const GetRentalParams = zod.object({
+  "id": zod.coerce.string().describe('Rental ID')
+})
+
+export const GetRentalResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "customerId": zod.string(),
+  "vehicleId": zod.string(),
+  "pickupDate": zod.coerce.date(),
+  "expectedReturnDate": zod.coerce.date(),
+  "actualReturnDate": zod.coerce.date().nullish(),
+  "status": zod.enum(['RESERVED', 'ACTIVE', 'RETURNED', 'CANCELLED']),
+  "dailyRate": zod.number(),
+  "totalAmount": zod.number(),
+  "depositAmount": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Update a rental in the current organization
+ */
+export const UpdateRentalParams = zod.object({
+  "id": zod.coerce.string().describe('Rental ID')
+})
+
+export const updateRentalBodyDailyRateMin = 0;
+
+export const updateRentalBodyTotalAmountMin = 0;
+
+export const updateRentalBodyDepositAmountMin = 0;
+
+
+
+export const UpdateRentalBody = zod.object({
+  "pickup_date": zod.coerce.date().optional(),
+  "expected_return_date": zod.coerce.date().optional(),
+  "actual_return_date": zod.coerce.date().nullish(),
+  "daily_rate": zod.number().min(updateRentalBodyDailyRateMin).optional(),
+  "total_amount": zod.number().min(updateRentalBodyTotalAmountMin).optional(),
+  "deposit_amount": zod.number().min(updateRentalBodyDepositAmountMin).optional(),
+  "status": zod.enum(['RESERVED', 'ACTIVE', 'RETURNED', 'CANCELLED']).optional()
+})
+
+export const UpdateRentalResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "customerId": zod.string(),
+  "vehicleId": zod.string(),
+  "pickupDate": zod.coerce.date(),
+  "expectedReturnDate": zod.coerce.date(),
+  "actualReturnDate": zod.coerce.date().nullish(),
+  "status": zod.enum(['RESERVED', 'ACTIVE', 'RETURNED', 'CANCELLED']),
+  "dailyRate": zod.number(),
+  "totalAmount": zod.number(),
+  "depositAmount": zod.number(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Soft delete a rental in the current organization
+ */
+export const DeleteRentalParams = zod.object({
+  "id": zod.coerce.string().describe('Rental ID')
+})
+
+export const DeleteRentalResponse = zod.void()
+
+

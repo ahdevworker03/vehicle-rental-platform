@@ -384,6 +384,88 @@ export interface DocumentListResponse {
   data: DocumentResponse[];
 }
 
+export type RentalResponseStatus = typeof RentalResponseStatus[keyof typeof RentalResponseStatus];
+
+
+export const RentalResponseStatus = {
+  RESERVED: 'RESERVED',
+  ACTIVE: 'ACTIVE',
+  RETURNED: 'RETURNED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export interface RentalResponse {
+  id: string;
+  customerId: string;
+  vehicleId: string;
+  pickupDate: string;
+  expectedReturnDate: string;
+  actualReturnDate?: string | null;
+  status: RentalResponseStatus;
+  dailyRate: number;
+  totalAmount: number;
+  depositAmount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RentalResponseWrapper {
+  data: RentalResponse;
+}
+
+export interface RentalListResponse {
+  data: RentalResponse[];
+}
+
+export type CreateRentalRequestStatus = typeof CreateRentalRequestStatus[keyof typeof CreateRentalRequestStatus];
+
+
+export const CreateRentalRequestStatus = {
+  RESERVED: 'RESERVED',
+  ACTIVE: 'ACTIVE',
+  RETURNED: 'RETURNED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export interface CreateRentalRequest {
+  /** @minLength 1 */
+  customer_id: string;
+  /** @minLength 1 */
+  vehicle_id: string;
+  pickup_date: string;
+  expected_return_date: string;
+  /** @minimum 0 */
+  daily_rate: number;
+  /** @minimum 0 */
+  total_amount: number;
+  /** @minimum 0 */
+  deposit_amount: number;
+  status: CreateRentalRequestStatus;
+}
+
+export type UpdateRentalRequestStatus = typeof UpdateRentalRequestStatus[keyof typeof UpdateRentalRequestStatus];
+
+
+export const UpdateRentalRequestStatus = {
+  RESERVED: 'RESERVED',
+  ACTIVE: 'ACTIVE',
+  RETURNED: 'RETURNED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export interface UpdateRentalRequest {
+  pickup_date?: string;
+  expected_return_date?: string;
+  actual_return_date?: string | null;
+  /** @minimum 0 */
+  daily_rate?: number;
+  /** @minimum 0 */
+  total_amount?: number;
+  /** @minimum 0 */
+  deposit_amount?: number;
+  status?: UpdateRentalRequestStatus;
+}
+
 export type ErrorResponseError = {
   code: string;
   message: string;
@@ -443,5 +525,14 @@ export const UploadCustomerDocumentBodyCategory = {
 export type UploadCustomerDocumentBody = {
   file?: Blob;
   category?: UploadCustomerDocumentBodyCategory;
+};
+
+export type ListRentalsParams = {
+/**
+ * Search rentals by customer or vehicle
+ * @minLength 1
+ * @maxLength 200
+ */
+search?: string;
 };
 

@@ -20,6 +20,8 @@ tags:
     description: Customer operations
   - name: vehicles
     description: Vehicle operations
+  - name: rentals
+    description: Rental operations
 paths:
   /healthz:
     get:
@@ -1491,6 +1493,203 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /rentals:
+    get:
+      operationId: listRentals
+      tags: [rentals]
+      summary: List rentals in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 200
+          description: Search rentals by customer or vehicle
+      responses:
+        "200":
+          description: List of rentals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RentalListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Invalid search term
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createRental
+      tags: [rentals]
+      summary: Create a rental in the current organization
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRentalRequest"
+      responses:
+        "201":
+          description: Rental created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RentalResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Customer or vehicle not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /rentals/{id}:
+    get:
+      operationId: getRental
+      tags: [rentals]
+      summary: Get a rental in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rental ID
+      responses:
+        "200":
+          description: Rental
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RentalResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rental not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateRental
+      tags: [rentals]
+      summary: Update a rental in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rental ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRentalRequest"
+      responses:
+        "200":
+          description: Rental updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RentalResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rental not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteRental
+      tags: [rentals]
+      summary: Soft delete a rental in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rental ID
+      responses:
+        "204":
+          description: Rental deleted
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rental not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2117,6 +2316,135 @@ components:
             $ref: "#/components/schemas/DocumentResponse"
       required:
         - data
+
+    RentalResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        customerId:
+          type: string
+        vehicleId:
+          type: string
+        pickupDate:
+          type: string
+          format: date-time
+        expectedReturnDate:
+          type: string
+          format: date-time
+        actualReturnDate:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum: [RESERVED, ACTIVE, RETURNED, CANCELLED]
+        dailyRate:
+          type: number
+        totalAmount:
+          type: number
+        depositAmount:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - customerId
+        - vehicleId
+        - pickupDate
+        - expectedReturnDate
+        - status
+        - dailyRate
+        - totalAmount
+        - depositAmount
+        - createdAt
+        - updatedAt
+
+    RentalResponseWrapper:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/RentalResponse"
+      required:
+        - data
+
+    RentalListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/RentalResponse"
+      required:
+        - data
+
+    CreateRentalRequest:
+      type: object
+      properties:
+        customer_id:
+          type: string
+          minLength: 1
+        vehicle_id:
+          type: string
+          minLength: 1
+        pickup_date:
+          type: string
+          format: date-time
+        expected_return_date:
+          type: string
+          format: date-time
+        daily_rate:
+          type: number
+          minimum: 0
+        total_amount:
+          type: number
+          minimum: 0
+        deposit_amount:
+          type: number
+          minimum: 0
+        status:
+          type: string
+          enum: [RESERVED, ACTIVE, RETURNED, CANCELLED]
+      required:
+        - customer_id
+        - vehicle_id
+        - pickup_date
+        - expected_return_date
+        - daily_rate
+        - total_amount
+        - deposit_amount
+        - status
+
+    UpdateRentalRequest:
+      type: object
+      properties:
+        pickup_date:
+          type: string
+          format: date-time
+        expected_return_date:
+          type: string
+          format: date-time
+        actual_return_date:
+          type: string
+          format: date-time
+          nullable: true
+        daily_rate:
+          type: number
+          minimum: 0
+        total_amount:
+          type: number
+          minimum: 0
+        deposit_amount:
+          type: number
+          minimum: 0
+        status:
+          type: string
+          enum: [RESERVED, ACTIVE, RETURNED, CANCELLED]
+      required: []
 
     ErrorResponse:
       type: object
