@@ -2,6 +2,8 @@ import type { Decimal } from "@prisma/client/runtime/client";
 
 export type RentalStatus = "RESERVED" | "ACTIVE" | "RETURNED" | "CANCELLED";
 
+export type VehicleStatus = "AVAILABLE" | "RESERVED" | "RENTED" | "MAINTENANCE" | "OUT_OF_SERVICE" | "ARCHIVED";
+
 export interface RentalRecord {
   id: string;
   organization_id: string;
@@ -9,6 +11,7 @@ export interface RentalRecord {
   vehicle_id: string;
   pickup_date: Date;
   expected_return_date: Date;
+  actual_pickup_date: Date | null;
   actual_return_date: Date | null;
   status: RentalStatus;
   daily_rate: Decimal;
@@ -25,6 +28,7 @@ export interface RentalResponse {
   vehicleId: string;
   pickupDate: string;
   expectedReturnDate: string;
+  actualPickupDate: string | null;
   actualReturnDate: string | null;
   status: RentalStatus;
   dailyRate: number;
@@ -48,6 +52,7 @@ export interface CreateRentalInput {
 export interface UpdateRentalInput {
   pickup_date?: Date;
   expected_return_date?: Date;
+  actual_pickup_date?: Date | null;
   actual_return_date?: Date | null;
   daily_rate?: number;
   total_amount?: number;

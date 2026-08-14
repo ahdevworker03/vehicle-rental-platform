@@ -5,7 +5,6 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { CreateRentalRequestStatus } from './createRentalRequestStatus';
 
 export interface CreateRentalRequest {
   /** @minLength 1 */
@@ -20,5 +19,4 @@ export interface CreateRentalRequest {
   total_amount: number;
   /** @minimum 0 */
   deposit_amount: number;
-  status: CreateRentalRequestStatus;
 }

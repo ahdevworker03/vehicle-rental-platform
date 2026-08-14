@@ -210,6 +210,7 @@ model Rental {
   vehicle              Vehicle       @relation(fields: [vehicle_id], references: [id])
   pickup_date          DateTime
   expected_return_date DateTime
+  actual_pickup_date   DateTime?
   actual_return_date   DateTime?
   status               RentalStatus  @default(RESERVED)
   daily_rate           Decimal       @db.Decimal(10, 2)
@@ -227,6 +228,7 @@ model Rental {
   @@index([status])
   @@index([pickup_date])
   @@index([expected_return_date])
+  @@index([vehicle_id, pickup_date, expected_return_date])
   @@index([deleted_at])
 }
 

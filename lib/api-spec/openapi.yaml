@@ -1531,7 +1531,7 @@ paths:
     post:
       operationId: createRental
       tags: [rentals]
-      summary: Create a rental in the current organization
+      summary: Reserve a vehicle for a customer in the current organization
       security:
         - bearerAuth: []
       requestBody:
@@ -1565,8 +1565,74 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Vehicle is not available for the requested period
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /rentals/availability:
+    get:
+      operationId: checkRentalAvailability
+      tags: [rentals]
+      summary: Check vehicle availability for a period in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: vehicleId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Vehicle ID
+        - name: pickupDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Pickup date-time
+        - name: expectedReturnDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Expected return date-time
+        - name: excludeRentalId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Rental ID to exclude (used when checking extension availability)
+      responses:
+        "200":
+          description: Availability result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RentalAvailabilityResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Vehicle not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Invalid period
           content:
             application/json:
               schema:
@@ -1685,6 +1751,232 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Rental not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /rentals/{id}/pickup:
+    post:
+      operationId: pickupRental
+      tags: [rentals]
+      summary: Record vehicle pickup and activate a reserved rental
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rental ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PickupRentalRequest"
+      responses:
+        "200":
+          description: Rental picked up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RentalResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rental not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Rental is not in a state that allows pickup
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /rentals/{id}/return:
+    post:
+      operationId: returnRental
+      tags: [rentals]
+      summary: Complete a vehicle return and mark the rental as returned
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rental ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReturnRentalRequest"
+      responses:
+        "200":
+          description: Rental returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RentalResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rental not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Rental is not in a state that allows return
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /rentals/{id}/extend:
+    post:
+      operationId: extendRental
+      tags: [rentals]
+      summary: Extend a rental's expected return date
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rental ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExtendRentalRequest"
+      responses:
+        "200":
+          description: Rental extended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RentalResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rental not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Rental cannot be extended or the extended period overlaps another rental
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /rentals/{id}/cancel:
+    post:
+      operationId: cancelRental
+      tags: [rentals]
+      summary: Cancel a rental and release the vehicle
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rental ID
+      responses:
+        "200":
+          description: Rental cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RentalResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rental not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Rental is not in a state that allows cancellation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
           content:
             application/json:
               schema:
@@ -2332,6 +2624,10 @@ components:
         expectedReturnDate:
           type: string
           format: date-time
+        actualPickupDate:
+          type: string
+          format: date-time
+          nullable: true
         actualReturnDate:
           type: string
           format: date-time
@@ -2406,9 +2702,6 @@ components:
         deposit_amount:
           type: number
           minimum: 0
-        status:
-          type: string
-          enum: [RESERVED, ACTIVE, RETURNED, CANCELLED]
       required:
         - customer_id
         - vehicle_id
@@ -2417,7 +2710,6 @@ components:
         - daily_rate
         - total_amount
         - deposit_amount
-        - status
 
     UpdateRentalRequest:
       type: object
@@ -2428,6 +2720,10 @@ components:
         expected_return_date:
           type: string
           format: date-time
+        actual_pickup_date:
+          type: string
+          format: date-time
+          nullable: true
         actual_return_date:
           type: string
           format: date-time
@@ -2441,10 +2737,50 @@ components:
         deposit_amount:
           type: number
           minimum: 0
-        status:
-          type: string
-          enum: [RESERVED, ACTIVE, RETURNED, CANCELLED]
       required: []
+
+    PickupRentalRequest:
+      type: object
+      properties:
+        actual_pickup_date:
+          type: string
+          format: date-time
+      required:
+        - actual_pickup_date
+
+    ReturnRentalRequest:
+      type: object
+      properties:
+        actual_return_date:
+          type: string
+          format: date-time
+      required:
+        - actual_return_date
+
+    ExtendRentalRequest:
+      type: object
+      properties:
+        expected_return_date:
+          type: string
+          format: date-time
+      required:
+        - expected_return_date
+
+    RentalAvailabilityResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            available:
+              type: boolean
+            conflictingRentalId:
+              type: string
+              nullable: true
+          required:
+            - available
+      required:
+        - data
 
     ErrorResponse:
       type: object

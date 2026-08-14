@@ -5,11 +5,11 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { UpdateRentalRequestStatus } from './updateRentalRequestStatus';
 
 export interface UpdateRentalRequest {
   pickup_date?: Date;
   expected_return_date?: Date;
+  actual_pickup_date?: Date | null;
   actual_return_date?: Date | null;
   /** @minimum 0 */
   daily_rate?: number;
@@ -17,5 +17,4 @@ export interface UpdateRentalRequest {
   total_amount?: number;
   /** @minimum 0 */
   deposit_amount?: number;
-  status?: UpdateRentalRequestStatus;
 }

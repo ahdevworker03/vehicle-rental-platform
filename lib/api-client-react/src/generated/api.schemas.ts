@@ -400,6 +400,7 @@ export interface RentalResponse {
   vehicleId: string;
   pickupDate: string;
   expectedReturnDate: string;
+  actualPickupDate?: string | null;
   actualReturnDate?: string | null;
   status: RentalResponseStatus;
   dailyRate: number;
@@ -417,16 +418,6 @@ export interface RentalListResponse {
   data: RentalResponse[];
 }
 
-export type CreateRentalRequestStatus = typeof CreateRentalRequestStatus[keyof typeof CreateRentalRequestStatus];
-
-
-export const CreateRentalRequestStatus = {
-  RESERVED: 'RESERVED',
-  ACTIVE: 'ACTIVE',
-  RETURNED: 'RETURNED',
-  CANCELLED: 'CANCELLED',
-} as const;
-
 export interface CreateRentalRequest {
   /** @minLength 1 */
   customer_id: string;
@@ -440,22 +431,12 @@ export interface CreateRentalRequest {
   total_amount: number;
   /** @minimum 0 */
   deposit_amount: number;
-  status: CreateRentalRequestStatus;
 }
-
-export type UpdateRentalRequestStatus = typeof UpdateRentalRequestStatus[keyof typeof UpdateRentalRequestStatus];
-
-
-export const UpdateRentalRequestStatus = {
-  RESERVED: 'RESERVED',
-  ACTIVE: 'ACTIVE',
-  RETURNED: 'RETURNED',
-  CANCELLED: 'CANCELLED',
-} as const;
 
 export interface UpdateRentalRequest {
   pickup_date?: string;
   expected_return_date?: string;
+  actual_pickup_date?: string | null;
   actual_return_date?: string | null;
   /** @minimum 0 */
   daily_rate?: number;
@@ -463,7 +444,27 @@ export interface UpdateRentalRequest {
   total_amount?: number;
   /** @minimum 0 */
   deposit_amount?: number;
-  status?: UpdateRentalRequestStatus;
+}
+
+export interface PickupRentalRequest {
+  actual_pickup_date: string;
+}
+
+export interface ReturnRentalRequest {
+  actual_return_date: string;
+}
+
+export interface ExtendRentalRequest {
+  expected_return_date: string;
+}
+
+export type RentalAvailabilityResponseData = {
+  available: boolean;
+  conflictingRentalId?: string | null;
+};
+
+export interface RentalAvailabilityResponse {
+  data: RentalAvailabilityResponseData;
 }
 
 export type ErrorResponseError = {
@@ -534,5 +535,24 @@ export type ListRentalsParams = {
  * @maxLength 200
  */
 search?: string;
+};
+
+export type CheckRentalAvailabilityParams = {
+/**
+ * Vehicle ID
+ */
+vehicleId: string;
+/**
+ * Pickup date-time
+ */
+pickupDate: string;
+/**
+ * Expected return date-time
+ */
+expectedReturnDate: string;
+/**
+ * Rental ID to exclude (used when checking extension availability)
+ */
+excludeRentalId?: string;
 };
 

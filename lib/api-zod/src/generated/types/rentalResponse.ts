@@ -13,6 +13,7 @@ export interface RentalResponse {
   vehicleId: string;
   pickupDate: Date;
   expectedReturnDate: Date;
+  actualPickupDate?: Date | null;
   actualReturnDate?: Date | null;
   status: RentalResponseStatus;
   dailyRate: number;
