@@ -516,6 +516,17 @@ export type ListVehiclesParams = {
 search?: string;
 };
 
+export type ListAvailableVehiclesParams = {
+/**
+ * Pickup date-time
+ */
+pickupDate: string;
+/**
+ * Expected return date-time
+ */
+expectedReturnDate: string;
+};
+
 export type UploadVehiclePhotoBody = {
   file?: Blob;
   caption?: string;

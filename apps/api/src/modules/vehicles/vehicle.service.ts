@@ -1,7 +1,26 @@
 import { AppError } from "../../shared";
 import { isUniqueConstraintError } from "../../database";
 import * as repo from "./vehicle.repository";
+import { listAvailableVehicles as rentalListAvailableVehicles } from "../rentals/rental.service";
 import type { VehicleResponse, CreateVehicleInput, UpdateVehicleInput } from "./vehicle.types";
+
+export interface AvailableVehicleResponse {
+  id: string;
+  make: string;
+  model: string;
+  plateNumber: string;
+  year: number;
+  color: string;
+  vin: string | null;
+  engineNumber: string | null;
+  transmission: string;
+  fuelType: string;
+  seats: number;
+  currentMileage: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 function toResponse(record: {
   id: string;
@@ -132,4 +151,19 @@ async function deleteVehicle(vehicleId: string, orgId: string): Promise<void> {
   await repo.softDelete(vehicleId);
 }
 
-export { listVehicles, getVehicle, createVehicle, updateVehicle, deleteVehicle };
+async function listAvailableVehicles(
+  orgId: string,
+  pickupDate: Date,
+  expectedReturnDate: Date,
+): Promise<AvailableVehicleResponse[]> {
+  return rentalListAvailableVehicles(orgId, pickupDate, expectedReturnDate);
+}
+
+export {
+  listVehicles,
+  getVehicle,
+  createVehicle,
+  updateVehicle,
+  deleteVehicle,
+  listAvailableVehicles,
+};

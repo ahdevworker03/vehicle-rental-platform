@@ -5,4 +5,5 @@ export {
   isUniqueConstraintError,
   isNotFoundError,
   isForeignKeyError,
+  isTransactionConflictError,
 } from "./errors";

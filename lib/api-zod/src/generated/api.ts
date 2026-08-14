@@ -460,6 +460,35 @@ export const CreateVehicleResponse = zod.object({
 
 
 /**
+ * @summary List vehicles available for a date range in the current organization
+ */
+export const ListAvailableVehiclesQueryParams = zod.object({
+  "pickupDate": zod.coerce.date().describe('Pickup date-time'),
+  "expectedReturnDate": zod.coerce.date().describe('Expected return date-time')
+})
+
+export const ListAvailableVehiclesResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.string(),
+  "make": zod.string(),
+  "model": zod.string(),
+  "plateNumber": zod.string(),
+  "year": zod.number(),
+  "color": zod.string(),
+  "vin": zod.string().nullish(),
+  "engineNumber": zod.string().nullish(),
+  "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
+  "fuelType": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
+  "seats": zod.number(),
+  "currentMileage": zod.number(),
+  "status": zod.enum(['AVAILABLE', 'RESERVED', 'RENTED', 'MAINTENANCE', 'OUT_OF_SERVICE', 'ARCHIVED']),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+/**
  * @summary Get a vehicle in the current organization
  */
 export const GetVehicleParams = zod.object({

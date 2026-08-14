@@ -4,6 +4,24 @@ import type { RentalRecord, RentalStatus, VehicleStatus } from "./rental.types";
 
 type DbClient = typeof prisma | TxClient;
 
+export interface AvailableVehicleRow {
+  id: string;
+  make: string;
+  model: string;
+  plate_number: string;
+  year: number;
+  color: string;
+  vin: string | null;
+  engine_number: string | null;
+  transmission: string;
+  fuel_type: string;
+  seats: number;
+  current_mileage: number;
+  status: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 async function findByOrg(orgId: string): Promise<RentalRecord[]> {
   return prisma.rental.findMany({
     where: { organization_id: orgId, deleted_at: null },
@@ -65,6 +83,36 @@ async function findVehicleWithinTx(vehicleId: string, orgId: string, tx: DbClien
   return tx.vehicle.findFirst({
     where: { id: vehicleId, organization_id: orgId, deleted_at: null },
     select: { id: true, status: true },
+  });
+}
+
+async function findAvailableVehicles(
+  orgId: string,
+  pickupDate: Date,
+  expectedReturnDate: Date,
+): Promise<AvailableVehicleRow[]> {
+  const conflictingVehicleIds = await prisma.rental.findMany({
+    where: {
+      organization_id: orgId,
+      deleted_at: null,
+      status: { in: ["RESERVED", "ACTIVE"] },
+      pickup_date: { lt: expectedReturnDate },
+      expected_return_date: { gt: pickupDate },
+    },
+    select: { vehicle_id: true },
+    distinct: ["vehicle_id"],
+  });
+
+  const blockedIds = conflictingVehicleIds.map((r) => r.vehicle_id);
+
+  return prisma.vehicle.findMany({
+    where: {
+      organization_id: orgId,
+      deleted_at: null,
+      status: { notIn: ["MAINTENANCE", "OUT_OF_SERVICE", "ARCHIVED"] },
+      ...(blockedIds.length > 0 ? { id: { notIn: blockedIds } } : {}),
+    },
+    orderBy: { created_at: "desc" },
   });
 }
 
@@ -206,6 +254,7 @@ export {
   findCustomerWithinTx,
   findVehicle,
   findVehicleWithinTx,
+  findAvailableVehicles,
   findOverlapping,
   findOverlappingWithinTx,
   create,

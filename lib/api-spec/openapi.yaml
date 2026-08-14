@@ -734,6 +734,48 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /vehicles/availability:
+    get:
+      operationId: listAvailableVehicles
+      tags: [vehicles]
+      summary: List vehicles available for a date range in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: pickupDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Pickup date-time
+        - name: expectedReturnDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Expected return date-time
+      responses:
+        "200":
+          description: List of available vehicles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Invalid period
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /vehicles/{id}:
     get:
       operationId: getVehicle

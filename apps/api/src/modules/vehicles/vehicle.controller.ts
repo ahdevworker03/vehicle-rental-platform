@@ -1,12 +1,38 @@
 import type { Request, Response, NextFunction } from "express";
-import { listVehicles, getVehicle, createVehicle, updateVehicle, deleteVehicle } from "./vehicle.service";
+import {
+  listVehicles,
+  getVehicle,
+  createVehicle,
+  updateVehicle,
+  deleteVehicle,
+  listAvailableVehicles,
+} from "./vehicle.service";
 import { ok, created, noContent } from "../../shared";
-import type { CreateVehicleInput, UpdateVehicleInput, ListVehiclesQuery } from "./vehicle.validation";
+import type {
+  CreateVehicleInput,
+  UpdateVehicleInput,
+  ListVehiclesQuery,
+  ListAvailableVehiclesQuery,
+} from "./vehicle.validation";
 
 async function list(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const query = req.query as ListVehiclesQuery;
     const vehicles = await listVehicles(req.user!.org, query.search);
+    ok(res, vehicles);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function availability(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const query = req.query as unknown as ListAvailableVehiclesQuery;
+    const vehicles = await listAvailableVehicles(
+      req.user!.org,
+      new Date(query.pickupDate),
+      new Date(query.expectedReturnDate),
+    );
     ok(res, vehicles);
   } catch (err) {
     next(err);
@@ -54,4 +80,4 @@ async function remove(req: Request, res: Response, next: NextFunction): Promise<
   }
 }
 
-export { list, get, create, update, remove };
+export { list, get, create, update, remove, availability };

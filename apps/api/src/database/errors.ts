@@ -21,4 +21,11 @@ function isForeignKeyError(error: unknown): boolean {
   );
 }
 
-export { isUniqueConstraintError, isNotFoundError, isForeignKeyError };
+function isTransactionConflictError(error: unknown): boolean {
+  return (
+    error instanceof PrismaClientKnownRequestError &&
+    (error as PrismaClientKnownRequestError).code === "P2034"
+  );
+}
+
+export { isUniqueConstraintError, isNotFoundError, isForeignKeyError, isTransactionConflictError };

@@ -2,11 +2,13 @@ import {
   CreateVehicleBody,
   UpdateVehicleBody,
   ListVehiclesQueryParams,
+  ListAvailableVehiclesQueryParams,
 } from "@workspace/api-zod";
 
 export const createVehicleSchema = CreateVehicleBody;
 export const updateVehicleSchema = UpdateVehicleBody;
 export const listVehiclesQuerySchema = ListVehiclesQueryParams;
+export const listAvailableVehiclesQuerySchema = ListAvailableVehiclesQueryParams;
 
 export type CreateVehicleInput = {
   make: string;
@@ -39,3 +41,8 @@ export type UpdateVehicleInput = {
 };
 
 export type ListVehiclesQuery = { search?: string };
+
+export type ListAvailableVehiclesQuery = {
+  pickupDate: string;
+  expectedReturnDate: string;
+};

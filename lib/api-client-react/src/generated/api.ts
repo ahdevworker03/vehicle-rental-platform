@@ -35,6 +35,7 @@ import type {
   ErrorResponse,
   ExtendRentalRequest,
   HealthStatus,
+  ListAvailableVehiclesParams,
   ListCustomersParams,
   ListRentalsParams,
   ListVehiclesParams,
@@ -1652,6 +1653,90 @@ export const useCreateVehicle = <TError = ErrorType<ErrorResponse>,
       > => {
       return useMutation(getCreateVehicleMutationOptions(options));
     }
+
+export const getListAvailableVehiclesUrl = (params: ListAvailableVehiclesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/vehicles/availability?${stringifiedParams}` : `/api/vehicles/availability`
+}
+
+/**
+ * @summary List vehicles available for a date range in the current organization
+ */
+export const listAvailableVehicles = async (params: ListAvailableVehiclesParams, options?: RequestInit): Promise<VehicleListResponse> => {
+
+  return customFetch<VehicleListResponse>(getListAvailableVehiclesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAvailableVehiclesQueryKey = (params?: ListAvailableVehiclesParams,) => {
+    return [
+    `/api/vehicles/availability`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListAvailableVehiclesQueryOptions = <TData = Awaited<ReturnType<typeof listAvailableVehicles>>, TError = ErrorType<ErrorResponse>>(params: ListAvailableVehiclesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAvailableVehicles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAvailableVehiclesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAvailableVehicles>>> = ({ signal }) => listAvailableVehicles(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAvailableVehicles>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAvailableVehiclesQueryResult = NonNullable<Awaited<ReturnType<typeof listAvailableVehicles>>>
+export type ListAvailableVehiclesQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary List vehicles available for a date range in the current organization
+ */
+
+export function useListAvailableVehicles<TData = Awaited<ReturnType<typeof listAvailableVehicles>>, TError = ErrorType<ErrorResponse>>(
+ params: ListAvailableVehiclesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAvailableVehicles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAvailableVehiclesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetVehicleUrl = (id: string,) => {
 

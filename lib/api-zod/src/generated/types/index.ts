@@ -32,6 +32,7 @@ export * from './errorResponse';
 export * from './errorResponseError';
 export * from './extendRentalRequest';
 export * from './healthStatus';
+export * from './listAvailableVehiclesParams';
 export * from './listCustomersParams';
 export * from './listRentalsParams';
 export * from './listVehiclesParams';
