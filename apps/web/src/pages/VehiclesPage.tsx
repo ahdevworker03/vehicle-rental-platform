@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { FilterChips } from "@/components/ui/FilterChips";
 import { VehicleCard } from "@/components/ui/VehicleCard";
+import { VehicleAvailabilitySection } from "@/components/ui/VehicleAvailabilitySection";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Spinner } from "@/components/ui/spinner";
 import { useListVehicles } from "@workspace/api-client-react";
@@ -78,6 +79,10 @@ export default function VehiclesPage() {
             عرض {filtered.length} {search ? "نتيجة بحث" : "سيارة"}
           </p>
         )}
+      </div>
+
+      <div className="px-4 pb-4">
+        <VehicleAvailabilitySection />
       </div>
 
       <div className="px-4 pb-6 space-y-3">

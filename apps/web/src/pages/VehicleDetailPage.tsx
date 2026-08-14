@@ -8,11 +8,13 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { VehicleStatusBadge } from "@/components/ui/VehicleStatusBadge";
 import { MediaGallery } from "@/components/ui/MediaGallery";
 import { DocumentList } from "@/components/ui/DocumentList";
+import { RentalHistorySection } from "@/components/ui/RentalHistorySection";
 import { useGetVehicle, useDeleteVehicle, getListVehiclesQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/providers/AuthProvider";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { useVehiclePhotos, useVehicleDocuments } from "@/features/media/hooks";
+import { useRentalsForVehicle } from "@/features/rentals/api-hooks";
 import { TRANSMISSION_LABELS, FUEL_TYPE_LABELS } from "@/lib/vehicle-labels";
 
 interface DetailPageParams {
@@ -41,6 +43,8 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
 
   const photos = useVehiclePhotos(id);
   const documents = useVehicleDocuments(id);
+  const { rentals: vehicleRentals, isLoading: rentalsLoading, isError: rentalsError, error: rentalsErr } =
+    useRentalsForVehicle(id);
 
   async function handleUploadPhoto(file: File) {
     await photos.upload.mutateAsync({ vehicleId: id, data: { file } });
@@ -199,6 +203,16 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
             onDownload={handleDownloadDocument}
           />
         </div>
+
+        {/* Rental History */}
+        <RentalHistorySection
+          rentals={vehicleRentals}
+          isLoading={rentalsLoading}
+          isError={rentalsError}
+          error={rentalsErr}
+          title="سجل الإيجارات"
+          emptyMessage="لا توجد إيجارات لهذه السيارة"
+        />
 
         {/* Delete (OWNER only) */}
         {isOwner && (

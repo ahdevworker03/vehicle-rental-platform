@@ -6,8 +6,10 @@ import { InfoRow } from "@/components/ui/InfoRow";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { DocumentList } from "@/components/ui/DocumentList";
+import { RentalHistorySection } from "@/components/ui/RentalHistorySection";
 import { formatDateAr, formatInitials } from "@/lib/format";
 import { useAuth } from "@/providers/AuthProvider";
+import { useRentalsForCustomer } from "@/features/rentals/api-hooks";
 import {
   useGetCustomer,
   useDeleteCustomer,
@@ -42,6 +44,8 @@ export default function CustomerDetailPage({ params }: DetailPageParams) {
   });
 
   const documents = useCustomerDocuments(id);
+  const { rentals: customerRentals, isLoading: rentalsLoading, isError: rentalsError, error: rentalsErr } =
+    useRentalsForCustomer(id);
 
   async function handleUploadDocument(file: File, category: string) {
     await documents.upload.mutateAsync({
@@ -179,6 +183,16 @@ export default function CustomerDetailPage({ params }: DetailPageParams) {
             onDownload={handleDownloadDocument}
           />
         </div>
+
+        {/* ── Rental History ──────────────────────────────────────── */}
+        <RentalHistorySection
+          rentals={customerRentals}
+          isLoading={rentalsLoading}
+          isError={rentalsError}
+          error={rentalsErr}
+          title="سجل الإيجارات"
+          emptyMessage="لا توجد إيجارات لهذا العميل"
+        />
 
         {/* ── Delete (OWNER only) ──────────────────────────────────── */}
         {isOwner && (
