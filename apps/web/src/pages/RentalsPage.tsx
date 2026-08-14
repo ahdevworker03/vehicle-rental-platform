@@ -1,84 +1,93 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Plus, FileText } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
-import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { RentalCard } from "@/components/ui/RentalCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Spinner } from "@/components/ui/spinner";
 
-import { useRentals } from "@/features/rentals/hooks";
-import { useCustomer } from "@/features/customers/hooks";
-import { useVehicle } from "@/features/vehicles/hooks";
+import {
+  useListRentals,
+  useListCustomers,
+  useListVehicles,
+} from "@workspace/api-client-react";
+import { getApiErrorMessage } from "@/lib/api-error";
+import { useAuth } from "@/providers/AuthProvider";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export default function RentalsPage() {
   const [, setLocation] = useLocation();
-  const [tab, setTab] = useState<"active" | "ended">("active");
   const [search, setSearch] = useState("");
-  const rentals = useRentals();
-  const getCustomerById = useCustomer;
-  const getVehicleById = useVehicle;
+  const { user } = useAuth();
+  const isOwner = user?.role === "OWNER";
+  const debouncedSearch = useDebouncedValue(search.trim(), 300);
 
-  const filtered = rentals
-    .filter((r) => r.status === (tab === "active" ? "active" : "ended"))
-    .filter((r) => {
-      if (!search.trim()) return true;
-      const q = search.trim().toLowerCase();
-      const customer = getCustomerById(r.customerId);
-      const vehicleNames = r.vehicleIds
-        .map((vid) => getVehicleById(vid))
-        .filter(Boolean)
-        .map((v) => `${v!.make} ${v!.model} ${v!.plate}`)
-        .join(" ");
-      return (
-        customer?.name.includes(q) ||
-        customer?.phone.includes(q) ||
-        vehicleNames.toLowerCase().includes(q)
-      );
-    });
+  const { data, isLoading, isError, error } = useListRentals(
+    debouncedSearch ? { search: debouncedSearch } : undefined,
+  );
+  const { data: customersData } = useListCustomers();
+  const { data: vehiclesData } = useListVehicles();
+
+  const rentals = useMemo(() => data?.data ?? [], [data]);
+
+  const customerById = useMemo(() => {
+    const map = new Map<string, { firstName: string; lastName: string }>();
+    (customersData?.data ?? []).forEach((c) => map.set(c.id, c));
+    return map;
+  }, [customersData]);
+
+  const vehicleById = useMemo(() => {
+    const map = new Map<string, { make: string; model: string; plateNumber: string }>();
+    (vehiclesData?.data ?? []).forEach((v) => map.set(v.id, v));
+    return map;
+  }, [vehiclesData]);
 
   return (
     <div className="min-h-full">
       <PageHeader
         title="الإيجارات"
         action={
-          <button
-            onClick={() => setLocation("/rentals/new")}
-            aria-label="إيجار جديد"
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm active:scale-95 transition-transform"
-          >
-            <Plus className="w-5 h-5" strokeWidth={2.5} />
-          </button>
+          isOwner ? (
+            <button
+              onClick={() => setLocation("/rentals/new")}
+              aria-label="إيجار جديد"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm active:scale-95 transition-transform"
+            >
+              <Plus className="w-5 h-5" strokeWidth={2.5} />
+            </button>
+          ) : undefined
         }
       />
 
       <div className="px-4 pt-4 pb-2 space-y-3">
-        <SegmentedControl
-          options={[
-            { label: "نشطة", value: "active" },
-            { label: "منتهية", value: "ended" },
-          ]}
-          value={tab}
-          onChange={(v) => setTab(v as "active" | "ended")}
-        />
         <SearchBar
           placeholder="ابحث بالعميل أو السيارة..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onClear={() => setSearch("")}
         />
-        {(search || filtered.length > 0) && (
+        {search && rentals.length > 0 && (
           <p className="text-xs text-muted-foreground text-right">
-            {filtered.length === 0
-              ? `لم يتم العثور على نتائج`
-              : `عرض ${filtered.length} ${tab === "active" ? "إيجار نشط" : "إيجار منتهي"}`}
+            عرض {rentals.length} نتيجة بحث
           </p>
         )}
       </div>
 
       <div className="px-4 pb-6 space-y-3">
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Spinner className="size-6" />
+          </div>
+        ) : isError ? (
+          <EmptyState
+            icon={FileText}
+            title="حدث خطأ"
+            description={getApiErrorMessage(error).title}
+            className="py-16"
+          />
+        ) : rentals.length === 0 ? (
           search ? (
             <EmptyState
               icon={FileText}
@@ -89,37 +98,32 @@ export default function RentalsPage() {
           ) : (
             <EmptyState
               icon={FileText}
-              title={
-                tab === "active"
-                  ? "لا توجد إيجارات نشطة"
-                  : "لا توجد إيجارات منتهية"
-              }
-              description={
-                tab === "active" ? "اضغط على + لإنشاء إيجار جديد" : undefined
-              }
+              title="لا توجد إيجارات بعد"
+              description={isOwner ? "اضغط على + لإنشاء إيجار جديد" : "لا توجد إيجارات في هذه المنظمة حالياً"}
               action={
-                tab === "active"
+                isOwner
                   ? {
                       label: "إيجار جديد",
                       onClick: () => setLocation("/rentals/new"),
                     }
                   : undefined
               }
+              className="py-16"
             />
           )
         ) : (
-          filtered.map((rental) => {
-            const customer = getCustomerById(rental.customerId);
-            const vehicle = getVehicleById(rental.vehicleIds[0]);
+          rentals.map((rental) => {
+            const customer = customerById.get(rental.customerId);
+            const vehicle = vehicleById.get(rental.vehicleId);
             return (
               <RentalCard
                 key={rental.id}
                 rental={rental}
-                customerName={customer?.name ?? "—"}
-                vehicleName={
-                  vehicle ? `${vehicle.make} ${vehicle.model}` : "—"
+                customerName={
+                  customer ? `${customer.firstName} ${customer.lastName}` : "—"
                 }
-                vehiclePlate={vehicle?.plate ?? ""}
+                vehicleName={vehicle ? `${vehicle.make} ${vehicle.model}` : "—"}
+                vehiclePlate={vehicle?.plateNumber ?? ""}
                 onClick={() => setLocation(`/rentals/${rental.id}`)}
               />
             );

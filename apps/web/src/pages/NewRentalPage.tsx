@@ -1,17 +1,30 @@
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
-import { Car, User, ChevronRight, Check, Search, X } from "lucide-react";
+import { Car, User, ChevronRight, Check, Search, X, AlertCircle } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { FormField, inputClass } from "@/components/ui/FormField";
+import { Spinner } from "@/components/ui/spinner";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { MOCK_TODAY_STR, toISO } from "@/lib/mock-date";
 import { useTimeout } from "@/hooks/useTimeout";
-import { useRentals } from "@/features/rentals/hooks";
-import { useVehicles } from "@/features/vehicles/hooks";
-import { useCustomers } from "@/features/customers/hooks";
-import type { Rental } from "@/data/types";
+import {
+  useListVehicles,
+  useListCustomers,
+  useCreateRental,
+  useCheckRentalAvailability,
+  getListRentalsQueryKey,
+  getListVehiclesQueryKey,
+  getCheckRentalAvailabilityQueryKey,
+} from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { getApiErrorMessage } from "@/lib/api-error";
+import type { VehicleResponse } from "@workspace/api-client-react";
+
+function toDateInput(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 function calcDays(start: string, end: string): number {
   if (!start || !end) return 0;
@@ -21,12 +34,12 @@ function calcDays(start: string, end: string): number {
 
 export default function NewRentalPage() {
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
 
   const params = new URLSearchParams(window.location.search);
   const preVehicle = params.get("vehicle") ?? "";
   const preCustomer = params.get("customer") ?? "";
 
-  // ── Form state ────────────────────────────────────────────────────────────
   const [selectedVehicleId, setSelectedVehicleId] = useState(preVehicle);
   const [selectedCustomerId, setSelectedCustomerId] = useState(preCustomer);
 
@@ -36,27 +49,61 @@ export default function NewRentalPage() {
   const [showVehiclePicker, setShowVehiclePicker] = useState(!preVehicle);
   const [showCustomerPicker, setShowCustomerPicker] = useState(!!preVehicle && !preCustomer);
 
-  const [startDate, setStartDate] = useState(MOCK_TODAY_STR);
-  const [endDate, setEndDate] = useState("");
-  const [dailyPrice, setDailyPrice] = useState("");
-  const [paidAmount, setPaidAmount] = useState("");
-  const [notes, setNotes] = useState("");
+  const [pickupDate, setPickupDate] = useState(toDateInput(new Date()));
+  const [returnDate, setReturnDate] = useState("");
+  const [dailyRate, setDailyRate] = useState("");
+  const [depositAmount, setDepositAmount] = useState("");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  // Redirect after save, cleaned up if the user navigates away first
   useTimeout(() => setLocation("/rentals"), saved ? 1200 : null);
 
-  const rentals = useRentals();
-  const vehicles = useVehicles();
-  const customers = useCustomers();
+  const { data: vehiclesData, isLoading: vehiclesLoading } = useListVehicles();
+  const { data: customersData, isLoading: customersLoading } = useListCustomers();
 
-  // ── Derived ───────────────────────────────────────────────────────────────
-  const availableVehicles = useMemo(
-    () => vehicles.filter((v) => v.status === "available"),
-    []
+  const createMutation = useCreateRental({
+    mutation: {
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: getListRentalsQueryKey() });
+        void queryClient.invalidateQueries({ queryKey: getListVehiclesQueryKey() });
+      },
+    },
+  });
+
+  const vehicles = useMemo(() => vehiclesData?.data ?? [], [vehiclesData]);
+  const customers = useMemo(() => customersData?.data ?? [], [customersData]);
+
+  const availabilityParams = useMemo(() => {
+    if (!pickupDate || !returnDate || returnDate <= pickupDate) return null;
+    return {
+      vehicleId: selectedVehicleId || "x",
+      pickupDate: new Date(`${pickupDate}T09:00:00Z`).toISOString(),
+      expectedReturnDate: new Date(`${returnDate}T09:00:00Z`).toISOString(),
+    };
+  }, [pickupDate, returnDate, selectedVehicleId]);
+
+  const availabilityQueryKey = availabilityParams
+    ? getCheckRentalAvailabilityQueryKey(availabilityParams)
+    : [];
+
+  const { data: availabilityData } = useCheckRentalAvailability(
+    availabilityParams ?? { vehicleId: "x", pickupDate: "", expectedReturnDate: "" },
+    {
+      query: {
+        enabled: Boolean(availabilityParams),
+        queryKey: availabilityQueryKey,
+      },
+    },
   );
+
+  const periodSet = Boolean(pickupDate && returnDate && returnDate > pickupDate);
+
+  const availableVehicles = useMemo(() => {
+    if (!periodSet) return vehicles;
+    return vehicles.filter((v) => v.status === "AVAILABLE");
+  }, [vehicles, periodSet]);
 
   const filteredVehicles = useMemo(() => {
     const q = vehicleSearch.trim().toLowerCase();
@@ -64,7 +111,7 @@ export default function NewRentalPage() {
     return availableVehicles.filter(
       (v) =>
         `${v.make} ${v.model}`.toLowerCase().includes(q) ||
-        v.plate.toLowerCase().includes(q)
+        v.plateNumber.toLowerCase().includes(q)
     );
   }, [availableVehicles, vehicleSearch]);
 
@@ -73,22 +120,28 @@ export default function NewRentalPage() {
     if (!q) return customers;
     return customers.filter(
       (c) =>
-        c.name.includes(q) ||
-        c.phone.includes(q) ||
-        c.location.toLowerCase().includes(q)
+        `${c.firstName} ${c.lastName}`.toLowerCase().includes(q) ||
+        c.phone.toLowerCase().includes(q)
     );
-  }, [customerSearch]);
+  }, [customers, customerSearch]);
 
   const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
   const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
 
-  const days = calcDays(startDate, endDate);
-  const price = parseInt(dailyPrice.replace(/,/g, ""), 10) || 0;
-  const total = days * price;
-  const paid = parseInt(paidAmount.replace(/,/g, ""), 10) || 0;
-  const remaining = Math.max(0, total - paid);
+  const days = calcDays(pickupDate, returnDate);
+  const rate = parseFloat(dailyRate.replace(/,/g, "")) || 0;
+  const deposit = parseFloat(depositAmount.replace(/,/g, "")) || 0;
+  const total = days * rate;
 
-  const canSave = !!selectedVehicleId && !!selectedCustomerId && !!startDate && !!endDate && !!dailyPrice && price > 0;
+  const availabilityAvailable = availabilityData?.data?.available ?? true;
+
+  const canSave =
+    !!selectedVehicleId &&
+    !!selectedCustomerId &&
+    !!pickupDate &&
+    !!returnDate &&
+    returnDate > pickupDate &&
+    rate > 0;
 
   const stepVehicleDone = !!selectedVehicleId;
   const stepCustomerDone = !!selectedCustomerId;
@@ -116,15 +169,12 @@ export default function NewRentalPage() {
     return "future";
   }
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
   function selectVehicle(id: string) {
     const v = vehicles.find((v) => v.id === id);
     setSelectedVehicleId(id);
     setShowVehiclePicker(false);
-    if (v && !dailyPrice) {
-      setDailyPrice(String(v.dailyPrice));
-    }
     if (!selectedCustomerId) setShowCustomerPicker(true);
+    void v;
   }
 
   function selectCustomer(id: string) {
@@ -135,7 +185,6 @@ export default function NewRentalPage() {
   function removeVehicle() {
     setSelectedVehicleId("");
     setShowVehiclePicker(true);
-    setDailyPrice("");
     setVehicleSearch("");
   }
 
@@ -145,48 +194,43 @@ export default function NewRentalPage() {
     setCustomerSearch("");
   }
 
-  function validate() {
+  function validate(): boolean {
     const errs: Record<string, string> = {};
     if (!selectedVehicleId) errs.vehicle = "اختر سيارة";
     if (!selectedCustomerId) errs.customer = "اختر عميلاً";
-    if (!startDate) errs.startDate = "أدخل تاريخ البداية";
-    if (!endDate) errs.endDate = "أدخل تاريخ الانتهاء";
-    if (endDate && startDate && endDate <= startDate)
-      errs.endDate = "تاريخ الانتهاء يجب أن يكون بعد تاريخ البداية";
-    if (!dailyPrice || price <= 0) errs.dailyPrice = "أدخل الأجرة اليومية";
-    if (paid > total && total > 0) errs.paidAmount = "المبلغ المدفوع أكبر من الإجمالي";
+    if (!pickupDate) errs.pickupDate = "أدخل تاريخ الاستلام";
+    if (!returnDate) errs.returnDate = "أدخل تاريخ الإرجاع";
+    if (returnDate && pickupDate && returnDate <= pickupDate)
+      errs.returnDate = "تاريخ الإرجاع يجب أن يكون بعد تاريخ الاستلام";
+    if (!dailyRate || rate <= 0) errs.dailyRate = "أدخل الأجرة اليومية";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
 
-  function handleSave() {
+  async function handleSave() {
+    if (createMutation.isPending) return;
     if (!validate()) return;
 
-    const newRental: Rental = {
-      id: `r-${Date.now()}`,
-      vehicleIds: [selectedVehicleId],
-      customerId: selectedCustomerId,
-      startDate: toISO(startDate),
-      endDate: toISO(endDate),
-      dailyPrices: { [selectedVehicleId]: price },
-      payments: paid > 0
-        ? [{ id: `pay-${Date.now()}`, amount: paid, date: toISO(startDate) }]
-        : [],
-      totalAmount: total,
-      notes: notes.trim() || undefined,
-      status: "active",
-    };
+    setFormError(null);
 
-    rentals.push(newRental);
-    const vIdx = vehicles.findIndex((v) => v.id === selectedVehicleId);
-    if (vIdx !== -1) {
-      vehicles[vIdx] = { ...vehicles[vIdx], status: "rented" };
+    try {
+      await createMutation.mutateAsync({
+        data: {
+          customer_id: selectedCustomerId,
+          vehicle_id: selectedVehicleId,
+          pickup_date: new Date(`${pickupDate}T09:00:00Z`).toISOString(),
+          expected_return_date: new Date(`${returnDate}T09:00:00Z`).toISOString(),
+          daily_rate: rate,
+          total_amount: total,
+          deposit_amount: deposit,
+        },
+      });
+      setSaved(true);
+    } catch (err) {
+      setFormError(getApiErrorMessage(err).title);
     }
-
-    setSaved(true);
   }
 
-  // ── Success screen ────────────────────────────────────────────────────────
   if (saved) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-background px-6 gap-3">
@@ -195,8 +239,12 @@ export default function NewRentalPage() {
         </div>
         <h2 className="text-xl font-bold text-foreground">تم إنشاء عقد الإيجار</h2>
         <div className="text-center text-sm text-muted-foreground space-y-1">
-          <p>{selectedVehicle?.make} {selectedVehicle?.model}</p>
-          <p>العميل: {selectedCustomer?.name}</p>
+          {selectedVehicle && (
+            <p>{selectedVehicle.make} {selectedVehicle.model}</p>
+          )}
+          {selectedCustomer && (
+            <p>العميل: {selectedCustomer.firstName} {selectedCustomer.lastName}</p>
+          )}
         </div>
         <p className="text-xs text-muted-foreground pt-2">
           جاري العودة إلى قائمة الإيجارات...
@@ -213,7 +261,7 @@ export default function NewRentalPage() {
         onBack={() => setLocation("/rentals")}
       />
 
-      {/* ── Step Progress ───────────────────────────────────────────────── */}
+      {/* Step Progress */}
       <div className="flex items-start justify-center gap-0 px-6 pt-3 pb-1">
         {STEPS.map((step, idx) => {
           const state = stepState(idx);
@@ -258,10 +306,15 @@ export default function NewRentalPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 pt-2 pb-8 space-y-4">
+        {formError && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3 text-sm text-destructive flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
+            <span>{formError}</span>
+          </div>
+        )}
 
-        {/* ── 1. Vehicle picker ─────────────────────────────────────────── */}
+        {/* 1. Vehicle picker */}
         <div className="bg-card rounded-2xl border border-card-border shadow-sm overflow-hidden">
-          {/* Overlay toggle keeps the clear-selection button from nesting inside another button */}
           <div className="relative">
             <button
               type="button"
@@ -271,57 +324,47 @@ export default function NewRentalPage() {
               className="absolute inset-0 w-full rounded-2xl"
             />
             <div className="w-full flex items-center justify-between p-4 pointer-events-none">
-            <ChevronRight
-              className={`w-4 h-4 text-muted-foreground transition-transform ${
-                showVehiclePicker ? "-rotate-90" : ""
-              }`}
-              strokeWidth={2}
-            />
-            <div className="flex items-center gap-3 flex-1 justify-end">
-              {selectedVehicle ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={removeVehicle}
-                    className="pointer-events-auto relative w-8 h-8 rounded-full flex items-center justify-center bg-muted text-muted-foreground hover:bg-destructive/10 hover:text-destructive active:scale-90 transition-all flex-shrink-0"
-                    aria-label="إلغاء اختيار السيارة"
-                  >
-                    <X className="w-4 h-4" strokeWidth={2} />
-                  </button>
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-foreground">
-                      {selectedVehicle.make} {selectedVehicle.model}
+              <ChevronRight
+                className={`w-4 h-4 text-muted-foreground transition-transform ${
+                  showVehiclePicker ? "-rotate-90" : ""
+                }`}
+                strokeWidth={2}
+              />
+              <div className="flex items-center gap-3 flex-1 justify-end">
+                {selectedVehicle ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={removeVehicle}
+                      className="pointer-events-auto relative w-8 h-8 rounded-full flex items-center justify-center bg-muted text-muted-foreground hover:bg-destructive/10 hover:text-destructive active:scale-90 transition-all flex-shrink-0"
+                      aria-label="إلغاء اختيار السيارة"
+                    >
+                      <X className="w-4 h-4" strokeWidth={2} />
+                    </button>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-foreground">
+                        {selectedVehicle.make} {selectedVehicle.model}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        {selectedVehicle.plateNumber}
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {selectedVehicle.plate}
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs font-semibold text-foreground">
-                        {formatCurrency(selectedVehicle.dailyPrice)}/يوم
-                      </span>
-                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-[hsl(var(--status-available-bg))] text-[hsl(var(--status-available))]">
-                        متاحة
-                      </span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <span className="text-sm font-semibold text-muted-foreground">
-                  اختر السيارة
-                  <span className="text-destructive mr-1">*</span>
-                </span>
-              )}
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Car className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                  </>
+                ) : (
+                  <span className="text-sm font-semibold text-muted-foreground">
+                    اختر السيارة
+                    <span className="text-destructive mr-1">*</span>
+                  </span>
+                )}
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Car className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                </div>
               </div>
-            </div>
             </div>
           </div>
 
           {errors.vehicle && (
-            <p className="text-xs text-destructive px-4 pb-2 text-right">
-              {errors.vehicle}
-            </p>
+            <p className="text-xs text-destructive px-4 pb-2 text-right">{errors.vehicle}</p>
           )}
 
           {showVehiclePicker && (
@@ -339,16 +382,20 @@ export default function NewRentalPage() {
                 />
               </div>
 
-              {availableVehicles.length === 0 ? (
+              {vehiclesLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Spinner />
+                </div>
+              ) : availableVehicles.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  جميع السيارات مؤجرة حالياً
+                  {periodSet
+                    ? "لا توجد سيارات متاحة في هذه الفترة"
+                    : "حدّد فترة الإيجار أولاً لعرض السيارات المتاحة"}
                 </p>
               ) : filteredVehicles.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-3">
-                  لا توجد نتائج
-                </p>
+                <p className="text-sm text-muted-foreground text-center py-3">لا توجد نتائج</p>
               ) : (
-                filteredVehicles.map((v) => (
+                filteredVehicles.map((v: VehicleResponse) => (
                   <button
                     key={v.id}
                     onClick={() => selectVehicle(v.id)}
@@ -362,31 +409,10 @@ export default function NewRentalPage() {
                       <div className="text-sm font-bold text-foreground">
                         {v.make} {v.model}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {v.plate} · {formatCurrency(v.dailyPrice)}/يوم
-                      </div>
-                    </div>
-                    <div className="w-12 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                      {v.photos.length > 0 ? (
-                        <img
-                          src={v.photos[0]}
-                          alt={`${v.make} ${v.model}`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Car
-                            className="w-5 h-5 text-muted-foreground"
-                            strokeWidth={1.5}
-                          />
-                        </div>
-                      )}
+                      <div className="text-xs text-muted-foreground">{v.plateNumber}</div>
                     </div>
                     {selectedVehicleId === v.id && (
-                      <Check
-                        className="w-4 h-4 text-primary flex-shrink-0"
-                        strokeWidth={2.5}
-                      />
+                      <Check className="w-4 h-4 text-primary flex-shrink-0" strokeWidth={2.5} />
                     )}
                   </button>
                 ))
@@ -395,9 +421,8 @@ export default function NewRentalPage() {
           )}
         </div>
 
-        {/* ── 2. Customer picker ────────────────────────────────────────── */}
+        {/* 2. Customer picker */}
         <div className="bg-card rounded-2xl border border-card-border shadow-sm overflow-hidden">
-          {/* Overlay toggle keeps the clear-selection button from nesting inside another button */}
           <div className="relative">
             <button
               type="button"
@@ -407,52 +432,47 @@ export default function NewRentalPage() {
               className="absolute inset-0 w-full rounded-2xl"
             />
             <div className="w-full flex items-center justify-between p-4 pointer-events-none">
-            <ChevronRight
-              className={`w-4 h-4 text-muted-foreground transition-transform ${
-                showCustomerPicker ? "-rotate-90" : ""
-              }`}
-              strokeWidth={2}
-            />
-            <div className="flex items-center gap-3 flex-1 justify-end">
-              {selectedCustomer ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={removeCustomer}
-                    className="pointer-events-auto relative w-8 h-8 rounded-full flex items-center justify-center bg-muted text-muted-foreground hover:bg-destructive/10 hover:text-destructive active:scale-90 transition-all flex-shrink-0"
-                    aria-label="إلغاء اختيار العميل"
-                  >
-                    <X className="w-4 h-4" strokeWidth={2} />
-                  </button>
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-foreground">
-                      {selectedCustomer.name}
+              <ChevronRight
+                className={`w-4 h-4 text-muted-foreground transition-transform ${
+                  showCustomerPicker ? "-rotate-90" : ""
+                }`}
+                strokeWidth={2}
+              />
+              <div className="flex items-center gap-3 flex-1 justify-end">
+                {selectedCustomer ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={removeCustomer}
+                      className="pointer-events-auto relative w-8 h-8 rounded-full flex items-center justify-center bg-muted text-muted-foreground hover:bg-destructive/10 hover:text-destructive active:scale-90 transition-all flex-shrink-0"
+                      aria-label="إلغاء اختيار العميل"
+                    >
+                      <X className="w-4 h-4" strokeWidth={2} />
+                    </button>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-foreground">
+                        {selectedCustomer.firstName} {selectedCustomer.lastName}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        {selectedCustomer.phone}
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {selectedCustomer.phone}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {selectedCustomer.location}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <span className="text-sm font-semibold text-muted-foreground">
-                  اختر العميل
-                  <span className="text-destructive mr-1">*</span>
-                </span>
-              )}
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <User className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                  </>
+                ) : (
+                  <span className="text-sm font-semibold text-muted-foreground">
+                    اختر العميل
+                    <span className="text-destructive mr-1">*</span>
+                  </span>
+                )}
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <User className="w-5 h-5 text-primary" strokeWidth={1.5} />
+                </div>
               </div>
-            </div>
             </div>
           </div>
 
           {errors.customer && (
-            <p className="text-xs text-destructive px-4 pb-2 text-right">
-              {errors.customer}
-            </p>
+            <p className="text-xs text-destructive px-4 pb-2 text-right">{errors.customer}</p>
           )}
 
           {showCustomerPicker && (
@@ -470,10 +490,12 @@ export default function NewRentalPage() {
                 />
               </div>
 
-              {filteredCustomers.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-3">
-                  لا توجد نتائج
-                </p>
+              {customersLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Spinner />
+                </div>
+              ) : filteredCustomers.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-3">لا توجد نتائج</p>
               ) : (
                 filteredCustomers.map((c) => (
                   <button
@@ -487,20 +509,15 @@ export default function NewRentalPage() {
                   >
                     <div className="text-right flex-1">
                       <div className="text-sm font-bold text-foreground">
-                        {c.name}
+                        {c.firstName} {c.lastName}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {c.phone} · {c.location}
-                      </div>
+                      <div className="text-xs text-muted-foreground">{c.phone}</div>
                     </div>
                     <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">
-                      {c.name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("")}
+                      {`${c.firstName[0] ?? ""}${c.lastName[0] ?? ""}`}
                     </div>
                     {selectedCustomerId === c.id && (
-                      <Check
-                        className="w-4 h-4 text-primary flex-shrink-0"
-                        strokeWidth={2.5}
-                      />
+                      <Check className="w-4 h-4 text-primary flex-shrink-0" strokeWidth={2.5} />
                     )}
                   </button>
                 ))
@@ -509,58 +526,74 @@ export default function NewRentalPage() {
           )}
         </div>
 
-        {/* ── 3. Rental details ─────────────────────────────────────────── */}
+        {/* 3. Rental details */}
         <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <FormField label="تاريخ البداية" required error={errors.startDate}>
+            <FormField label="تاريخ الاستلام" required error={errors.pickupDate}>
               <input
                 type="date"
-                value={startDate}
-                onChange={(e) => { setStartDate(e.target.value); clearError("startDate"); }}
-                className={errors.startDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
+                value={pickupDate}
+                onChange={(e) => { setPickupDate(e.target.value); clearError("pickupDate"); }}
+                className={errors.pickupDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
               />
             </FormField>
 
-            <FormField label="تاريخ الانتهاء" required error={errors.endDate}>
+            <FormField label="تاريخ الإرجاع" required error={errors.returnDate}>
               <input
                 type="date"
-                value={endDate}
-                min={startDate}
-                onChange={(e) => { setEndDate(e.target.value); clearError("endDate"); }}
-                className={errors.endDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
+                value={returnDate}
+                min={pickupDate}
+                onChange={(e) => { setReturnDate(e.target.value); clearError("returnDate"); }}
+                className={errors.returnDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
               />
             </FormField>
           </div>
 
-          <FormField
-            label="الأجرة اليومية"
-            required
-            hint="بالدولار"
-            error={errors.dailyPrice}
-          >
-            <input
-              type="number"
-              inputMode="numeric"
-              placeholder="مثال: 300000"
-              value={dailyPrice}
-              onChange={(e) => { setDailyPrice(e.target.value); clearError("dailyPrice"); }}
-              className={errors.dailyPrice ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-            />
-          </FormField>
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="الأجرة اليومية" required hint="بالدولار" error={errors.dailyRate}>
+              <input
+                type="number"
+                inputMode="decimal"
+                placeholder="0"
+                value={dailyRate}
+                onChange={(e) => { setDailyRate(e.target.value); clearError("dailyRate"); }}
+                className={errors.dailyRate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
+              />
+            </FormField>
 
-          <FormField label="الدفعة الأولى" hint="اختياري" error={errors.paidAmount}>
-            <input
-              type="number"
-              inputMode="numeric"
-              placeholder="0"
-              value={paidAmount}
-              onChange={(e) => { setPaidAmount(e.target.value); clearError("paidAmount"); }}
-              className={errors.paidAmount ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-            />
-          </FormField>
+            <FormField label="التأمين" hint="بالدولار">
+              <input
+                type="number"
+                inputMode="decimal"
+                placeholder="0"
+                value={depositAmount}
+                onChange={(e) => setDepositAmount(e.target.value)}
+                className={inputClass}
+              />
+            </FormField>
+          </div>
 
-          {/* ── Rental Summary ──────────────────────────────────────────── */}
-          {days > 0 && price > 0 && selectedVehicle && selectedCustomer && (
+          {/* Availability warning */}
+          {periodSet && selectedVehicleId && availabilityData && (
+            <div
+              className={cn(
+                "rounded-xl px-4 py-3 text-sm font-semibold flex items-center gap-2",
+                availabilityAvailable
+                  ? "bg-[hsl(var(--status-available-bg))] text-[hsl(var(--status-available))]"
+                  : "bg-destructive/10 text-destructive"
+              )}
+            >
+              <AlertCircle className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
+              <span>
+                {availabilityAvailable
+                  ? "السيارة متاحة في هذه الفترة"
+                  : "السيارة غير متاحة في هذه الفترة"}
+              </span>
+            </div>
+          )}
+
+          {/* Rental Summary */}
+          {days > 0 && rate > 0 && selectedVehicle && selectedCustomer && (
             <div className="border-t border-border pt-4 mt-2 space-y-3">
               <h3 className="text-sm font-bold text-foreground">ملخص الإيجار</h3>
               <div className="space-y-2">
@@ -570,15 +603,15 @@ export default function NewRentalPage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">العميل</span>
-                  <span className="font-semibold text-foreground">{selectedCustomer.name}</span>
+                  <span className="font-semibold text-foreground">{selectedCustomer.firstName} {selectedCustomer.lastName}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">المدة</span>
-                  <span className="font-semibold text-foreground">{startDate} → {endDate}</span>
+                  <span className="font-semibold text-foreground">{pickupDate} → {returnDate}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">الأجرة اليومية</span>
-                  <span className="font-semibold text-foreground">{formatCurrency(price)}</span>
+                  <span className="font-semibold text-foreground">{formatCurrency(rate)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">عدد الأيام</span>
@@ -590,52 +623,23 @@ export default function NewRentalPage() {
                     <span className="text-lg font-bold text-foreground">{formatCurrency(total)}</span>
                   </div>
                 </div>
-                {paid > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">المدفوع</span>
-                    <span className="font-semibold text-foreground">{formatCurrency(paid)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">الرصيد المتبقي</span>
-                  <span
-                    className={`font-bold ${
-                      remaining > 0
-                        ? "text-[hsl(var(--status-danger))]"
-                        : "text-[hsl(var(--status-available))]"
-                    }`}
-                  >
-                    {remaining > 0 ? formatCurrency(remaining) : "مدفوع بالكامل"}
-                  </span>
-                </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* ── 4. Notes ──────────────────────────────────────────────────── */}
-        <FormField label="ملاحظات" hint="اختياري">
-          <textarea
-            placeholder="أي ملاحظات إضافية..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            className={`${inputClass} resize-none`}
-          />
-        </FormField>
-
-        {/* ── Save button ───────────────────────────────────────────────── */}
+        {/* Save button */}
         <button
           onClick={handleSave}
-          disabled={!canSave}
+          disabled={!canSave || createMutation.isPending}
           className={cn(
-            "w-full rounded-2xl py-4 text-base font-bold transition-all shadow-sm",
-            canSave
+            "w-full rounded-2xl py-4 text-base font-bold transition-all shadow-sm flex items-center justify-center gap-2",
+            canSave && !createMutation.isPending
               ? "bg-primary text-primary-foreground active:scale-[0.98]"
-              : "bg-muted text-muted-foreground cursor-not-allowed"
+              : "bg-muted text-muted-foreground cursor-not-allowed",
           )}
         >
-          حفظ الإيجار
+          {createMutation.isPending ? <Spinner /> : "حفظ الإيجار"}
         </button>
       </div>
     </>
