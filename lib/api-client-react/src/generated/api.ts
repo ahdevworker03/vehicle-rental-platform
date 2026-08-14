@@ -56,6 +56,7 @@ import type {
   UpdateUserRequest,
   UpdateVehicleRequest,
   UploadCustomerDocumentBody,
+  UploadRentalContractSignedDocumentBody,
   UploadVehicleDocumentBody,
   UploadVehiclePhotoBody,
   UserListResponse,
@@ -4018,4 +4019,548 @@ export const useDeleteRentalContract = <TError = ErrorType<ErrorResponse>,
       > => {
       return useMutation(getDeleteRentalContractMutationOptions(options));
     }
+
+export const getGetRentalContractPrintableUrl = (id: string,) => {
+
+
+
+
+  return `/api/rentals/${id}/contract/printable`
+}
+
+/**
+ * @summary Get the printable HTML representation of a rental contract
+ */
+export const getRentalContractPrintable = async (id: string, options?: RequestInit): Promise<string> => {
+
+  return customFetch<string>(getGetRentalContractPrintableUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRentalContractPrintableQueryKey = (id: string,) => {
+    return [
+    `/api/rentals/${id}/contract/printable`
+    ] as const;
+    }
+
+
+export const getGetRentalContractPrintableQueryOptions = <TData = Awaited<ReturnType<typeof getRentalContractPrintable>>, TError = ErrorType<ErrorResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRentalContractPrintable>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRentalContractPrintableQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRentalContractPrintable>>> = ({ signal }) => getRentalContractPrintable(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRentalContractPrintable>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRentalContractPrintableQueryResult = NonNullable<Awaited<ReturnType<typeof getRentalContractPrintable>>>
+export type GetRentalContractPrintableQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get the printable HTML representation of a rental contract
+ */
+
+export function useGetRentalContractPrintable<TData = Awaited<ReturnType<typeof getRentalContractPrintable>>, TError = ErrorType<ErrorResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRentalContractPrintable>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRentalContractPrintableQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetRentalContractPdfUrl = (id: string,) => {
+
+
+
+
+  return `/api/rentals/${id}/contract/pdf`
+}
+
+/**
+ * @summary Export a rental contract as a PDF
+ */
+export const getRentalContractPdf = async (id: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getGetRentalContractPdfUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRentalContractPdfQueryKey = (id: string,) => {
+    return [
+    `/api/rentals/${id}/contract/pdf`
+    ] as const;
+    }
+
+
+export const getGetRentalContractPdfQueryOptions = <TData = Awaited<ReturnType<typeof getRentalContractPdf>>, TError = ErrorType<ErrorResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRentalContractPdf>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRentalContractPdfQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRentalContractPdf>>> = ({ signal }) => getRentalContractPdf(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRentalContractPdf>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRentalContractPdfQueryResult = NonNullable<Awaited<ReturnType<typeof getRentalContractPdf>>>
+export type GetRentalContractPdfQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Export a rental contract as a PDF
+ */
+
+export function useGetRentalContractPdf<TData = Awaited<ReturnType<typeof getRentalContractPdf>>, TError = ErrorType<ErrorResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRentalContractPdf>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRentalContractPdfQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListRentalContractSignedDocumentsUrl = (id: string,) => {
+
+
+
+
+  return `/api/rentals/${id}/contract/signed`
+}
+
+/**
+ * @summary List signed documents for a rental contract
+ */
+export const listRentalContractSignedDocuments = async (id: string, options?: RequestInit): Promise<DocumentListResponse> => {
+
+  return customFetch<DocumentListResponse>(getListRentalContractSignedDocumentsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRentalContractSignedDocumentsQueryKey = (id: string,) => {
+    return [
+    `/api/rentals/${id}/contract/signed`
+    ] as const;
+    }
+
+
+export const getListRentalContractSignedDocumentsQueryOptions = <TData = Awaited<ReturnType<typeof listRentalContractSignedDocuments>>, TError = ErrorType<ErrorResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRentalContractSignedDocuments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRentalContractSignedDocumentsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRentalContractSignedDocuments>>> = ({ signal }) => listRentalContractSignedDocuments(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRentalContractSignedDocuments>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRentalContractSignedDocumentsQueryResult = NonNullable<Awaited<ReturnType<typeof listRentalContractSignedDocuments>>>
+export type ListRentalContractSignedDocumentsQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary List signed documents for a rental contract
+ */
+
+export function useListRentalContractSignedDocuments<TData = Awaited<ReturnType<typeof listRentalContractSignedDocuments>>, TError = ErrorType<ErrorResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRentalContractSignedDocuments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRentalContractSignedDocumentsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUploadRentalContractSignedDocumentUrl = (id: string,) => {
+
+
+
+
+  return `/api/rentals/${id}/contract/signed`
+}
+
+/**
+ * @summary Upload a signed contract document
+ */
+export const uploadRentalContractSignedDocument = async (id: string,
+    uploadRentalContractSignedDocumentBody: UploadRentalContractSignedDocumentBody, options?: RequestInit): Promise<DocumentResponseWrapper> => {
+    const formData = new FormData();
+if(uploadRentalContractSignedDocumentBody.file !== undefined) {
+ formData.append(`file`, uploadRentalContractSignedDocumentBody.file);
+ }
+
+  return customFetch<DocumentResponseWrapper>(getUploadRentalContractSignedDocumentUrl(id),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getUploadRentalContractSignedDocumentMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadRentalContractSignedDocument>>, TError,{id: string;data: BodyType<UploadRentalContractSignedDocumentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof uploadRentalContractSignedDocument>>, TError,{id: string;data: BodyType<UploadRentalContractSignedDocumentBody>}, TContext> => {
+
+const mutationKey = ['uploadRentalContractSignedDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadRentalContractSignedDocument>>, {id: string;data: BodyType<UploadRentalContractSignedDocumentBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  uploadRentalContractSignedDocument(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UploadRentalContractSignedDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof uploadRentalContractSignedDocument>>>
+    export type UploadRentalContractSignedDocumentMutationBody = BodyType<UploadRentalContractSignedDocumentBody>
+    export type UploadRentalContractSignedDocumentMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Upload a signed contract document
+ */
+export const useUploadRentalContractSignedDocument = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof uploadRentalContractSignedDocument>>, TError,{id: string;data: BodyType<UploadRentalContractSignedDocumentBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof uploadRentalContractSignedDocument>>,
+        TError,
+        {id: string;data: BodyType<UploadRentalContractSignedDocumentBody>},
+        TContext
+      > => {
+      return useMutation(getUploadRentalContractSignedDocumentMutationOptions(options));
+    }
+
+export const getGetRentalContractSignedDocumentUrl = (id: string,
+    documentId: string,) => {
+
+
+
+
+  return `/api/rentals/${id}/contract/signed/${documentId}`
+}
+
+/**
+ * @summary Get a signed contract document
+ */
+export const getRentalContractSignedDocument = async (id: string,
+    documentId: string, options?: RequestInit): Promise<DocumentResponseWrapper> => {
+
+  return customFetch<DocumentResponseWrapper>(getGetRentalContractSignedDocumentUrl(id,documentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRentalContractSignedDocumentQueryKey = (id: string,
+    documentId: string,) => {
+    return [
+    `/api/rentals/${id}/contract/signed/${documentId}`
+    ] as const;
+    }
+
+
+export const getGetRentalContractSignedDocumentQueryOptions = <TData = Awaited<ReturnType<typeof getRentalContractSignedDocument>>, TError = ErrorType<ErrorResponse>>(id: string,
+    documentId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRentalContractSignedDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRentalContractSignedDocumentQueryKey(id,documentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRentalContractSignedDocument>>> = ({ signal }) => getRentalContractSignedDocument(id,documentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && documentId !== null && documentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRentalContractSignedDocument>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRentalContractSignedDocumentQueryResult = NonNullable<Awaited<ReturnType<typeof getRentalContractSignedDocument>>>
+export type GetRentalContractSignedDocumentQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get a signed contract document
+ */
+
+export function useGetRentalContractSignedDocument<TData = Awaited<ReturnType<typeof getRentalContractSignedDocument>>, TError = ErrorType<ErrorResponse>>(
+ id: string,
+    documentId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRentalContractSignedDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRentalContractSignedDocumentQueryOptions(id,documentId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeleteRentalContractSignedDocumentUrl = (id: string,
+    documentId: string,) => {
+
+
+
+
+  return `/api/rentals/${id}/contract/signed/${documentId}`
+}
+
+/**
+ * @summary Soft delete a signed contract document
+ */
+export const deleteRentalContractSignedDocument = async (id: string,
+    documentId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteRentalContractSignedDocumentUrl(id,documentId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteRentalContractSignedDocumentMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRentalContractSignedDocument>>, TError,{id: string;documentId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteRentalContractSignedDocument>>, TError,{id: string;documentId: string}, TContext> => {
+
+const mutationKey = ['deleteRentalContractSignedDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRentalContractSignedDocument>>, {id: string;documentId: string}> = (props) => {
+          const {id,documentId} = props ?? {};
+
+          return  deleteRentalContractSignedDocument(id,documentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteRentalContractSignedDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRentalContractSignedDocument>>>
+
+    export type DeleteRentalContractSignedDocumentMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Soft delete a signed contract document
+ */
+export const useDeleteRentalContractSignedDocument = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRentalContractSignedDocument>>, TError,{id: string;documentId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteRentalContractSignedDocument>>,
+        TError,
+        {id: string;documentId: string},
+        TContext
+      > => {
+      return useMutation(getDeleteRentalContractSignedDocumentMutationOptions(options));
+    }
+
+export const getDownloadRentalContractSignedDocumentUrl = (id: string,
+    documentId: string,) => {
+
+
+
+
+  return `/api/rentals/${id}/contract/signed/${documentId}/download`
+}
+
+/**
+ * @summary Download a signed contract document
+ */
+export const downloadRentalContractSignedDocument = async (id: string,
+    documentId: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getDownloadRentalContractSignedDocumentUrl(id,documentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDownloadRentalContractSignedDocumentQueryKey = (id: string,
+    documentId: string,) => {
+    return [
+    `/api/rentals/${id}/contract/signed/${documentId}/download`
+    ] as const;
+    }
+
+
+export const getDownloadRentalContractSignedDocumentQueryOptions = <TData = Awaited<ReturnType<typeof downloadRentalContractSignedDocument>>, TError = ErrorType<ErrorResponse>>(id: string,
+    documentId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadRentalContractSignedDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDownloadRentalContractSignedDocumentQueryKey(id,documentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof downloadRentalContractSignedDocument>>> = ({ signal }) => downloadRentalContractSignedDocument(id,documentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined && documentId !== null && documentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof downloadRentalContractSignedDocument>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DownloadRentalContractSignedDocumentQueryResult = NonNullable<Awaited<ReturnType<typeof downloadRentalContractSignedDocument>>>
+export type DownloadRentalContractSignedDocumentQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Download a signed contract document
+ */
+
+export function useDownloadRentalContractSignedDocument<TData = Awaited<ReturnType<typeof downloadRentalContractSignedDocument>>, TError = ErrorType<ErrorResponse>>(
+ id: string,
+    documentId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof downloadRentalContractSignedDocument>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDownloadRentalContractSignedDocumentQueryOptions(id,documentId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 

@@ -60,3 +60,32 @@ export interface ContractSourceData {
     plate_number: string;
   };
 }
+
+export type DocumentCategory = "REGISTRATION" | "INSURANCE" | "OTHER";
+
+export interface ContractDocumentRecord {
+  id: string;
+  organization_id: string;
+  contract_id: string | null;
+  category: DocumentCategory;
+  original_filename: string;
+  mime_type: string;
+  file_size: number;
+  storage_key: string;
+  created_at: Date;
+  updated_at: Date;
+  deleted_at: Date | null;
+}
+
+export interface ContractDocumentResponse {
+  id: string;
+  contractId: string;
+  rentalId: string;
+  category: DocumentCategory;
+  originalFilename: string;
+  mimeType: string;
+  fileSize: number;
+  url: string;
+  createdAt: string;
+  updatedAt: string;
+}

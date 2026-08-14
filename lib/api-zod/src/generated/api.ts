@@ -1180,3 +1180,115 @@ export const DeleteRentalContractParams = zod.object({
 export const DeleteRentalContractResponse = zod.void()
 
 
+/**
+ * @summary Get the printable HTML representation of a rental contract
+ */
+export const GetRentalContractPrintableParams = zod.object({
+  "id": zod.coerce.string().describe('Rental ID')
+})
+
+export const GetRentalContractPrintableResponse = zod.unknown()
+
+
+/**
+ * @summary Export a rental contract as a PDF
+ */
+export const GetRentalContractPdfParams = zod.object({
+  "id": zod.coerce.string().describe('Rental ID')
+})
+
+export const GetRentalContractPdfResponse = zod.unknown()
+
+
+/**
+ * @summary List signed documents for a rental contract
+ */
+export const ListRentalContractSignedDocumentsParams = zod.object({
+  "id": zod.coerce.string().describe('Rental ID')
+})
+
+export const ListRentalContractSignedDocumentsResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string().nullish(),
+  "customerId": zod.string().nullish(),
+  "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Upload a signed contract document
+ */
+export const UploadRentalContractSignedDocumentParams = zod.object({
+  "id": zod.coerce.string().describe('Rental ID')
+})
+
+export const UploadRentalContractSignedDocumentResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string().nullish(),
+  "customerId": zod.string().nullish(),
+  "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Get a signed contract document
+ */
+export const GetRentalContractSignedDocumentParams = zod.object({
+  "id": zod.coerce.string().describe('Rental ID'),
+  "documentId": zod.coerce.string().describe('Document ID')
+})
+
+export const GetRentalContractSignedDocumentResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string().nullish(),
+  "customerId": zod.string().nullish(),
+  "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+
+/**
+ * @summary Soft delete a signed contract document
+ */
+export const DeleteRentalContractSignedDocumentParams = zod.object({
+  "id": zod.coerce.string().describe('Rental ID'),
+  "documentId": zod.coerce.string().describe('Document ID')
+})
+
+export const DeleteRentalContractSignedDocumentResponse = zod.void()
+
+
+/**
+ * @summary Download a signed contract document
+ */
+export const DownloadRentalContractSignedDocumentParams = zod.object({
+  "id": zod.coerce.string().describe('Rental ID'),
+  "documentId": zod.coerce.string().describe('Document ID')
+})
+
+export const DownloadRentalContractSignedDocumentResponse = zod.unknown()
+
+

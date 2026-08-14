@@ -1,2 +1,13 @@
-export { getContract, generateContract, deleteContract } from "./contract.service";
-export type { ContractResponse } from "./contract.types";
+export {
+  getContract,
+  generateContract,
+  deleteContract,
+  getPrintableContract,
+  exportContractPdf,
+  listSignedDocuments,
+  uploadSignedDocument,
+  getSignedDocument,
+  downloadSignedDocument,
+  deleteSignedDocument,
+} from "./contract.service";
+export type { ContractResponse, ContractDocumentResponse } from "./contract.types";

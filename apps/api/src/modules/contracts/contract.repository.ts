@@ -1,9 +1,15 @@
 import { prisma } from "../../database";
-import type { ContractRecord } from "./contract.types";
+import type { ContractRecord, ContractDocumentRecord, DocumentCategory } from "./contract.types";
 
 async function findByRental(rentalId: string, orgId: string): Promise<ContractRecord | null> {
   return prisma.contract.findFirst({
     where: { rental_id: rentalId, organization_id: orgId },
+  });
+}
+
+async function findById(contractId: string, orgId: string): Promise<ContractRecord | null> {
+  return prisma.contract.findFirst({
+    where: { id: contractId, organization_id: orgId },
   });
 }
 
@@ -89,4 +95,36 @@ async function softDelete(contractId: string): Promise<ContractRecord> {
   });
 }
 
-export { findByRental, findRentalWithRelations, create, softDelete };
+async function listDocuments(contractId: string, orgId: string): Promise<ContractDocumentRecord[]> {
+  return prisma.document.findMany({
+    where: { contract_id: contractId, organization_id: orgId, deleted_at: null },
+    orderBy: { created_at: "desc" },
+  });
+}
+
+async function findDocument(documentId: string, contractId: string, orgId: string): Promise<ContractDocumentRecord | null> {
+  return prisma.document.findFirst({
+    where: { id: documentId, contract_id: contractId, organization_id: orgId },
+  });
+}
+
+async function createDocument(data: {
+  organization_id: string;
+  contract_id: string;
+  category: DocumentCategory;
+  original_filename: string;
+  mime_type: string;
+  file_size: number;
+  storage_key: string;
+}): Promise<ContractDocumentRecord> {
+  return prisma.document.create({ data });
+}
+
+async function softDeleteDocument(documentId: string): Promise<ContractDocumentRecord> {
+  return prisma.document.update({
+    where: { id: documentId },
+    data: { deleted_at: new Date() },
+  });
+}
+
+export { findByRental, findById, findRentalWithRelations, create, softDelete, listDocuments, findDocument, createDocument, softDeleteDocument };

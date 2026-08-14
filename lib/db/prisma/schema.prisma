@@ -162,6 +162,8 @@ model Document {
   vehicle           Vehicle?         @relation(fields: [vehicle_id], references: [id], onDelete: Restrict)
   customer_id       String?          @db.Uuid
   customer          Customer?        @relation(fields: [customer_id], references: [id], onDelete: Restrict)
+  contract_id       String?          @db.Uuid
+  contract          Contract?        @relation(fields: [contract_id], references: [id], onDelete: Restrict)
   category          DocumentCategory @default(OTHER)
   original_filename String
   mime_type         String
@@ -174,6 +176,7 @@ model Document {
   @@index([organization_id])
   @@index([vehicle_id])
   @@index([customer_id])
+  @@index([contract_id])
   @@index([category])
   @@index([deleted_at])
 }
@@ -252,6 +255,8 @@ model Contract {
   created_at           DateTime      @default(now())
   updated_at           DateTime      @updatedAt
   deleted_at           DateTime?
+
+  documents Document[]
 
   @@unique([rental_id])
   @@index([organization_id])

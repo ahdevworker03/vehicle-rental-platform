@@ -578,3 +578,7 @@ expectedReturnDate: string;
 excludeRentalId?: string;
 };
 
+export type UploadRentalContractSignedDocumentBody = {
+  file?: Blob;
+};
+
