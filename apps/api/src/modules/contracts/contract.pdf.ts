@@ -28,9 +28,15 @@ export function renderContractHtml(contract: ContractResponse): string {
     ["Daily Rate", formatMoney(contract.dailyRate)],
     ["Total Amount", formatMoney(contract.totalAmount)],
     ["Deposit Amount", formatMoney(contract.depositAmount)],
-    ["Customer", `${escapeHtml(contract.customerFirstName)} ${escapeHtml(contract.customerLastName)}`],
+    [
+      "Customer",
+      `${escapeHtml(contract.customerFirstName)} ${escapeHtml(contract.customerLastName)}`,
+    ],
     ["Customer National ID", escapeHtml(contract.customerNationalId)],
-    ["Vehicle", `${escapeHtml(contract.vehicleMake)} ${escapeHtml(contract.vehicleModel)}`],
+    [
+      "Vehicle",
+      `${escapeHtml(contract.vehicleMake)} ${escapeHtml(contract.vehicleModel)}`,
+    ],
     ["Vehicle Plate Number", escapeHtml(contract.vehiclePlateNumber)],
   ];
 
@@ -65,7 +71,9 @@ ${rowsHtml}
 }
 
 /** Generates a PDF Buffer from the immutable Contract snapshot. */
-export async function renderContractPdf(contract: ContractResponse): Promise<Buffer> {
+export async function renderContractPdf(
+  contract: ContractResponse,
+): Promise<Buffer> {
   const doc = new PDFDocument({ margin: 50 });
   const chunks: Buffer[] = [];
 
@@ -83,7 +91,9 @@ export async function renderContractPdf(contract: ContractResponse): Promise<Buf
 
     const line = (label: string, value: string) => {
       doc.fontSize(11);
-      doc.font("Helvetica-Bold").text(label, 50, undefined, { continued: true });
+      doc
+        .font("Helvetica-Bold")
+        .text(label, 50, undefined, { continued: true });
       doc.font("Helvetica").text(` ${value}`, valueX);
       doc.moveDown(0.4);
     };
@@ -95,7 +105,10 @@ export async function renderContractPdf(contract: ContractResponse): Promise<Buf
     line("Daily Rate:", formatMoney(contract.dailyRate));
     line("Total Amount:", formatMoney(contract.totalAmount));
     line("Deposit Amount:", formatMoney(contract.depositAmount));
-    line("Customer:", `${contract.customerFirstName} ${contract.customerLastName}`);
+    line(
+      "Customer:",
+      `${contract.customerFirstName} ${contract.customerLastName}`,
+    );
     line("Customer National ID:", contract.customerNationalId);
     line("Vehicle:", `${contract.vehicleMake} ${contract.vehicleModel}`);
     line("Vehicle Plate Number:", contract.vehiclePlateNumber);

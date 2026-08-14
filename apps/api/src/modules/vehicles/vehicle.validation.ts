@@ -8,7 +8,8 @@ import {
 export const createVehicleSchema = CreateVehicleBody;
 export const updateVehicleSchema = UpdateVehicleBody;
 export const listVehiclesQuerySchema = ListVehiclesQueryParams;
-export const listAvailableVehiclesQuerySchema = ListAvailableVehiclesQueryParams;
+export const listAvailableVehiclesQuerySchema =
+  ListAvailableVehiclesQueryParams;
 
 export type CreateVehicleInput = {
   make: string;
@@ -22,7 +23,13 @@ export type CreateVehicleInput = {
   fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
   seats: number;
   current_mileage: number;
-  status: "AVAILABLE" | "RESERVED" | "RENTED" | "MAINTENANCE" | "OUT_OF_SERVICE" | "ARCHIVED";
+  status:
+    | "AVAILABLE"
+    | "RESERVED"
+    | "RENTED"
+    | "MAINTENANCE"
+    | "OUT_OF_SERVICE"
+    | "ARCHIVED";
 };
 
 export type UpdateVehicleInput = {
@@ -37,7 +44,13 @@ export type UpdateVehicleInput = {
   fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
   seats: number;
   current_mileage: number;
-  status: "AVAILABLE" | "RESERVED" | "RENTED" | "MAINTENANCE" | "OUT_OF_SERVICE" | "ARCHIVED";
+  status:
+    | "AVAILABLE"
+    | "RESERVED"
+    | "RENTED"
+    | "MAINTENANCE"
+    | "OUT_OF_SERVICE"
+    | "ARCHIVED";
 };
 
 export type ListVehiclesQuery = { search?: string };

@@ -7,12 +7,25 @@ import {
   revokeRefreshToken,
 } from "./auth.service";
 import { ok, created, noContent } from "../../shared";
-import type { RegisterInput, LoginInput, RefreshInput, LogoutInput } from "./auth.validation";
+import type {
+  RegisterInput,
+  LoginInput,
+  RefreshInput,
+  LogoutInput,
+} from "./auth.validation";
 
-async function register(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function register(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const input = req.body as RegisterInput;
-    const tokens = await registerOrganization(input.email, input.password, input.organizationName);
+    const tokens = await registerOrganization(
+      input.email,
+      input.password,
+      input.organizationName,
+    );
     created(res, {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -23,7 +36,11 @@ async function register(req: Request, res: Response, next: NextFunction): Promis
   }
 }
 
-async function loginHandler(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function loginHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const input = req.body as LoginInput;
     const tokens = await login(input.email, input.password);
@@ -37,7 +54,11 @@ async function loginHandler(req: Request, res: Response, next: NextFunction): Pr
   }
 }
 
-async function refresh(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function refresh(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const input = req.body as RefreshInput;
     const tokens = await rotateRefreshToken(input.refreshToken);
@@ -51,7 +72,11 @@ async function refresh(req: Request, res: Response, next: NextFunction): Promise
   }
 }
 
-async function logout(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function logout(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const input = req.body as LogoutInput;
     await revokeRefreshToken(input.refreshToken);
@@ -61,7 +86,11 @@ async function logout(req: Request, res: Response, next: NextFunction): Promise<
   }
 }
 
-async function currentUser(req: Request, res: Response, _next: NextFunction): Promise<void> {
+async function currentUser(
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+): Promise<void> {
   try {
     const authHeader = req.headers.authorization;
 

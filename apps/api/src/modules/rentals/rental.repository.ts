@@ -29,7 +29,10 @@ async function findByOrg(orgId: string): Promise<RentalRecord[]> {
   });
 }
 
-async function searchByOrg(orgId: string, term: string): Promise<RentalRecord[]> {
+async function searchByOrg(
+  orgId: string,
+  term: string,
+): Promise<RentalRecord[]> {
   return prisma.rental.findMany({
     where: {
       organization_id: orgId,
@@ -46,40 +49,61 @@ async function searchByOrg(orgId: string, term: string): Promise<RentalRecord[]>
   });
 }
 
-async function findById(rentalId: string, orgId: string): Promise<RentalRecord | null> {
+async function findById(
+  rentalId: string,
+  orgId: string,
+): Promise<RentalRecord | null> {
   return prisma.rental.findFirst({
     where: { id: rentalId, organization_id: orgId },
   });
 }
 
-async function findByIdWithinTx(rentalId: string, orgId: string, tx: DbClient): Promise<RentalRecord | null> {
+async function findByIdWithinTx(
+  rentalId: string,
+  orgId: string,
+  tx: DbClient,
+): Promise<RentalRecord | null> {
   return tx.rental.findFirst({
     where: { id: rentalId, organization_id: orgId },
   });
 }
 
-async function findCustomer(customerId: string, orgId: string): Promise<{ id: string } | null> {
+async function findCustomer(
+  customerId: string,
+  orgId: string,
+): Promise<{ id: string } | null> {
   return prisma.customer.findFirst({
     where: { id: customerId, organization_id: orgId, deleted_at: null },
     select: { id: true },
   });
 }
 
-async function findCustomerWithinTx(customerId: string, orgId: string, tx: DbClient): Promise<{ id: string } | null> {
+async function findCustomerWithinTx(
+  customerId: string,
+  orgId: string,
+  tx: DbClient,
+): Promise<{ id: string } | null> {
   return tx.customer.findFirst({
     where: { id: customerId, organization_id: orgId, deleted_at: null },
     select: { id: true },
   });
 }
 
-async function findVehicle(vehicleId: string, orgId: string): Promise<{ id: string; status: string } | null> {
+async function findVehicle(
+  vehicleId: string,
+  orgId: string,
+): Promise<{ id: string; status: string } | null> {
   return prisma.vehicle.findFirst({
     where: { id: vehicleId, organization_id: orgId, deleted_at: null },
     select: { id: true, status: true },
   });
 }
 
-async function findVehicleWithinTx(vehicleId: string, orgId: string, tx: DbClient): Promise<{ id: string; status: string } | null> {
+async function findVehicleWithinTx(
+  vehicleId: string,
+  orgId: string,
+  tx: DbClient,
+): Promise<{ id: string; status: string } | null> {
   return tx.vehicle.findFirst({
     where: { id: vehicleId, organization_id: orgId, deleted_at: null },
     select: { id: true, status: true },
@@ -188,16 +212,19 @@ async function createWithinTx(
   return tx.rental.create({ data });
 }
 
-async function update(rentalId: string, data: {
-  pickup_date?: Date;
-  expected_return_date?: Date;
-  actual_pickup_date?: Date | null;
-  actual_return_date?: Date | null;
-  status?: RentalStatus;
-  daily_rate?: number;
-  total_amount?: number;
-  deposit_amount?: number;
-}): Promise<RentalRecord> {
+async function update(
+  rentalId: string,
+  data: {
+    pickup_date?: Date;
+    expected_return_date?: Date;
+    actual_pickup_date?: Date | null;
+    actual_return_date?: Date | null;
+    status?: RentalStatus;
+    daily_rate?: number;
+    total_amount?: number;
+    deposit_amount?: number;
+  },
+): Promise<RentalRecord> {
   return prisma.rental.update({
     where: { id: rentalId },
     data,
@@ -224,14 +251,21 @@ async function updateWithinTx(
   });
 }
 
-async function updateVehicleStatus(vehicleId: string, status: VehicleStatus): Promise<void> {
+async function updateVehicleStatus(
+  vehicleId: string,
+  status: VehicleStatus,
+): Promise<void> {
   await prisma.vehicle.update({
     where: { id: vehicleId },
     data: { status },
   });
 }
 
-async function updateVehicleStatusWithinTx(vehicleId: string, status: VehicleStatus, tx: DbClient): Promise<void> {
+async function updateVehicleStatusWithinTx(
+  vehicleId: string,
+  status: VehicleStatus,
+  tx: DbClient,
+): Promise<void> {
   await tx.vehicle.update({
     where: { id: vehicleId },
     data: { status },

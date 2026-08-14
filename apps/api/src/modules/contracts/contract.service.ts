@@ -11,7 +11,11 @@ import type {
 
 const GENERATABLE_RENTAL_STATUSES = ["RESERVED", "ACTIVE"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
-const DOCUMENT_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png"] as const;
+const DOCUMENT_MIME_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+] as const;
 
 function extensionForMimeType(mimeType: string): string {
   switch (mimeType) {
@@ -95,21 +99,35 @@ function toResponse(record: {
   };
 }
 
-async function getContract(rentalId: string, orgId: string): Promise<ContractResponse> {
+async function getContract(
+  rentalId: string,
+  orgId: string,
+): Promise<ContractResponse> {
   const contract = await repo.findByRental(rentalId, orgId);
 
   if (!contract || contract.deleted_at) {
-    throw new AppError(404, "CONTRACT_NOT_FOUND", "Contract not found for this rental.");
+    throw new AppError(
+      404,
+      "CONTRACT_NOT_FOUND",
+      "Contract not found for this rental.",
+    );
   }
 
   return toResponse(contract);
 }
 
-async function generateContract(rentalId: string, orgId: string): Promise<ContractResponse> {
+async function generateContract(
+  rentalId: string,
+  orgId: string,
+): Promise<ContractResponse> {
   const existing = await repo.findByRental(rentalId, orgId);
 
   if (existing) {
-    throw new AppError(409, "CONTRACT_EXISTS", "This rental already has a contract.");
+    throw new AppError(
+      409,
+      "CONTRACT_EXISTS",
+      "This rental already has a contract.",
+    );
   }
 
   const data = await repo.findRentalWithRelations(rentalId, orgId);
@@ -119,11 +137,19 @@ async function generateContract(rentalId: string, orgId: string): Promise<Contra
   }
 
   if (!GENERATABLE_RENTAL_STATUSES.includes(data.rental.status)) {
-    throw new AppError(409, "INVALID_RENTAL_STATE", "Contract can only be generated for a reserved or active rental.");
+    throw new AppError(
+      409,
+      "INVALID_RENTAL_STATE",
+      "Contract can only be generated for a reserved or active rental.",
+    );
   }
 
   if (!data.customer || !data.vehicle) {
-    throw new AppError(409, "RENTAL_MISSING_RELATIONS", "Rental is missing customer or vehicle information.");
+    throw new AppError(
+      409,
+      "RENTAL_MISSING_RELATIONS",
+      "Rental is missing customer or vehicle information.",
+    );
   }
 
   const contract = await repo.create({
@@ -149,7 +175,11 @@ async function deleteContract(rentalId: string, orgId: string): Promise<void> {
   const contract = await repo.findByRental(rentalId, orgId);
 
   if (!contract || contract.deleted_at) {
-    throw new AppError(404, "CONTRACT_NOT_FOUND", "Contract not found for this rental.");
+    throw new AppError(
+      404,
+      "CONTRACT_NOT_FOUND",
+      "Contract not found for this rental.",
+    );
   }
 
   await repo.softDelete(contract.id);
@@ -159,23 +189,36 @@ async function ensureActiveContract(rentalId: string, orgId: string) {
   const contract = await repo.findByRental(rentalId, orgId);
 
   if (!contract || contract.deleted_at) {
-    throw new AppError(404, "CONTRACT_NOT_FOUND", "Contract not found for this rental.");
+    throw new AppError(
+      404,
+      "CONTRACT_NOT_FOUND",
+      "Contract not found for this rental.",
+    );
   }
 
   return contract;
 }
 
-async function getPrintableContract(rentalId: string, orgId: string): Promise<string> {
+async function getPrintableContract(
+  rentalId: string,
+  orgId: string,
+): Promise<string> {
   const contract = await ensureActiveContract(rentalId, orgId);
   return renderContractHtml(toResponse(contract));
 }
 
-async function exportContractPdf(rentalId: string, orgId: string): Promise<Buffer> {
+async function exportContractPdf(
+  rentalId: string,
+  orgId: string,
+): Promise<Buffer> {
   const contract = await ensureActiveContract(rentalId, orgId);
   return renderContractPdf(toResponse(contract));
 }
 
-async function listSignedDocuments(rentalId: string, orgId: string): Promise<ContractDocumentResponse[]> {
+async function listSignedDocuments(
+  rentalId: string,
+  orgId: string,
+): Promise<ContractDocumentResponse[]> {
   const contract = await ensureActiveContract(rentalId, orgId);
   const documents = await repo.listDocuments(contract.id, orgId);
   return documents.map((d) => toDocumentResponse(d, rentalId));
@@ -184,16 +227,29 @@ async function listSignedDocuments(rentalId: string, orgId: string): Promise<Con
 async function uploadSignedDocument(
   rentalId: string,
   orgId: string,
-  file: { originalname: string; mimetype: string; size: number; buffer: Buffer },
+  file: {
+    originalname: string;
+    mimetype: string;
+    size: number;
+    buffer: Buffer;
+  },
 ): Promise<ContractDocumentResponse> {
   const contract = await ensureActiveContract(rentalId, orgId);
 
   if (!(DOCUMENT_MIME_TYPES as readonly string[]).includes(file.mimetype)) {
-    throw new AppError(422, "UNSUPPORTED_MIME_TYPE", "Signed contract must be a PDF, JPEG, or PNG file.");
+    throw new AppError(
+      422,
+      "UNSUPPORTED_MIME_TYPE",
+      "Signed contract must be a PDF, JPEG, or PNG file.",
+    );
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    throw new AppError(422, "FILE_TOO_LARGE", "Signed contract exceeds the 10 MB size limit.");
+    throw new AppError(
+      422,
+      "FILE_TOO_LARGE",
+      "Signed contract exceeds the 10 MB size limit.",
+    );
   }
 
   const extension = extensionForMimeType(file.mimetype);
@@ -222,7 +278,11 @@ async function getSignedDocument(
   const document = await repo.findDocument(documentId, contract.id, orgId);
 
   if (!document || document.deleted_at) {
-    throw new AppError(404, "DOCUMENT_NOT_FOUND", "Signed contract document not found.");
+    throw new AppError(
+      404,
+      "DOCUMENT_NOT_FOUND",
+      "Signed contract document not found.",
+    );
   }
 
   return toDocumentResponse(document, rentalId);
@@ -232,12 +292,21 @@ async function downloadSignedDocument(
   rentalId: string,
   orgId: string,
   documentId: string,
-): Promise<{ buffer: Buffer; mimeType: string; filename: string; size: number }> {
+): Promise<{
+  buffer: Buffer;
+  mimeType: string;
+  filename: string;
+  size: number;
+}> {
   const contract = await ensureActiveContract(rentalId, orgId);
   const document = await repo.findDocument(documentId, contract.id, orgId);
 
   if (!document || document.deleted_at) {
-    throw new AppError(404, "DOCUMENT_NOT_FOUND", "Signed contract document not found.");
+    throw new AppError(
+      404,
+      "DOCUMENT_NOT_FOUND",
+      "Signed contract document not found.",
+    );
   }
 
   const buffer = await storageProvider.retrieve(document.storage_key);
@@ -250,12 +319,20 @@ async function downloadSignedDocument(
   };
 }
 
-async function deleteSignedDocument(rentalId: string, orgId: string, documentId: string): Promise<void> {
+async function deleteSignedDocument(
+  rentalId: string,
+  orgId: string,
+  documentId: string,
+): Promise<void> {
   const contract = await ensureActiveContract(rentalId, orgId);
   const document = await repo.findDocument(documentId, contract.id, orgId);
 
   if (!document || document.deleted_at) {
-    throw new AppError(404, "DOCUMENT_NOT_FOUND", "Signed contract document not found.");
+    throw new AppError(
+      404,
+      "DOCUMENT_NOT_FOUND",
+      "Signed contract document not found.",
+    );
   }
 
   await repo.softDeleteDocument(document.id);

@@ -1,9 +1,19 @@
 import { hashPassword } from "../auth";
 import { AppError } from "../../shared";
 import * as repo from "./user.repository";
-import type { UserResponse, CreateUserInput, UpdateUserInput } from "./user.types";
+import type {
+  UserResponse,
+  CreateUserInput,
+  UpdateUserInput,
+} from "./user.types";
 
-function toResponse(record: { id: string; email: string; role: string; created_at: Date; updated_at: Date }): UserResponse {
+function toResponse(record: {
+  id: string;
+  email: string;
+  role: string;
+  created_at: Date;
+  updated_at: Date;
+}): UserResponse {
   return {
     id: record.id,
     email: record.email,
@@ -35,7 +45,11 @@ async function createUser(
   const existing = await repo.findByEmail(input.email);
 
   if (existing) {
-    throw new AppError(409, "EMAIL_ALREADY_EXISTS", "A user with this email already exists.");
+    throw new AppError(
+      409,
+      "EMAIL_ALREADY_EXISTS",
+      "A user with this email already exists.",
+    );
   }
 
   const passwordHash = await hashPassword(input.password);
@@ -61,7 +75,11 @@ async function updateUser(
   return toResponse(updated);
 }
 
-async function deleteUser(userId: string, orgId: string, actorUserId: string): Promise<void> {
+async function deleteUser(
+  userId: string,
+  orgId: string,
+  actorUserId: string,
+): Promise<void> {
   const user = await repo.findById(userId, orgId);
 
   if (!user || user.deleted_at) {
@@ -69,7 +87,11 @@ async function deleteUser(userId: string, orgId: string, actorUserId: string): P
   }
 
   if (userId === actorUserId) {
-    throw new AppError(409, "CANNOT_DELETE_SELF", "You cannot delete your own account.");
+    throw new AppError(
+      409,
+      "CANNOT_DELETE_SELF",
+      "You cannot delete your own account.",
+    );
   }
 
   await repo.softDelete(userId);

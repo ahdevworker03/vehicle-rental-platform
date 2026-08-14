@@ -8,7 +8,10 @@ async function findByOrg(orgId: string): Promise<VehicleRecord[]> {
   });
 }
 
-async function searchByOrg(orgId: string, term: string): Promise<VehicleRecord[]> {
+async function searchByOrg(
+  orgId: string,
+  term: string,
+): Promise<VehicleRecord[]> {
   const year = Number(term);
 
   return prisma.vehicle.findMany({
@@ -26,26 +29,38 @@ async function searchByOrg(orgId: string, term: string): Promise<VehicleRecord[]
   });
 }
 
-async function findById(vehicleId: string, orgId: string): Promise<VehicleRecord | null> {
+async function findById(
+  vehicleId: string,
+  orgId: string,
+): Promise<VehicleRecord | null> {
   return prisma.vehicle.findFirst({
     where: { id: vehicleId, organization_id: orgId },
   });
 }
 
-async function create(data: {
-  make: string;
-  model: string;
-  plate_number: string;
-  year: number;
-  color: string;
-  vin?: string;
-  engine_number?: string;
-  transmission: "MANUAL" | "AUTOMATIC";
-  fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
-  seats: number;
-  current_mileage: number;
-  status: "AVAILABLE" | "RESERVED" | "RENTED" | "MAINTENANCE" | "OUT_OF_SERVICE" | "ARCHIVED";
-}, orgId: string): Promise<VehicleRecord> {
+async function create(
+  data: {
+    make: string;
+    model: string;
+    plate_number: string;
+    year: number;
+    color: string;
+    vin?: string;
+    engine_number?: string;
+    transmission: "MANUAL" | "AUTOMATIC";
+    fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
+    seats: number;
+    current_mileage: number;
+    status:
+      | "AVAILABLE"
+      | "RESERVED"
+      | "RENTED"
+      | "MAINTENANCE"
+      | "OUT_OF_SERVICE"
+      | "ARCHIVED";
+  },
+  orgId: string,
+): Promise<VehicleRecord> {
   return prisma.vehicle.create({
     data: {
       ...data,
@@ -54,20 +69,29 @@ async function create(data: {
   });
 }
 
-async function update(vehicleId: string, data: {
-  make: string;
-  model: string;
-  plate_number: string;
-  year: number;
-  color: string;
-  vin?: string;
-  engine_number?: string;
-  transmission: "MANUAL" | "AUTOMATIC";
-  fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
-  seats: number;
-  current_mileage: number;
-  status: "AVAILABLE" | "RESERVED" | "RENTED" | "MAINTENANCE" | "OUT_OF_SERVICE" | "ARCHIVED";
-}): Promise<VehicleRecord> {
+async function update(
+  vehicleId: string,
+  data: {
+    make: string;
+    model: string;
+    plate_number: string;
+    year: number;
+    color: string;
+    vin?: string;
+    engine_number?: string;
+    transmission: "MANUAL" | "AUTOMATIC";
+    fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
+    seats: number;
+    current_mileage: number;
+    status:
+      | "AVAILABLE"
+      | "RESERVED"
+      | "RENTED"
+      | "MAINTENANCE"
+      | "OUT_OF_SERVICE"
+      | "ARCHIVED";
+  },
+): Promise<VehicleRecord> {
   return prisma.vehicle.update({
     where: { id: vehicleId },
     data,

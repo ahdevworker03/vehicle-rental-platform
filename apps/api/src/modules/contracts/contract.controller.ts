@@ -23,7 +23,13 @@ function handleUpload(req: Request, res: Response, next: NextFunction): void {
   upload.single("file")(req, res, (err: unknown) => {
     if (err instanceof multer.MulterError) {
       if (err.code === "LIMIT_FILE_SIZE") {
-        next(new AppError(422, "FILE_TOO_LARGE", "File exceeds the 10 MB size limit."));
+        next(
+          new AppError(
+            422,
+            "FILE_TOO_LARGE",
+            "File exceeds the 10 MB size limit.",
+          ),
+        );
         return;
       }
       next(new AppError(422, "UPLOAD_ERROR", err.message));
@@ -37,7 +43,11 @@ function handleUpload(req: Request, res: Response, next: NextFunction): void {
   });
 }
 
-async function get(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function get(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const rentalId = req.params.id as string;
     const contract = await getContract(rentalId, req.user!.org);
@@ -47,7 +57,11 @@ async function get(req: Request, res: Response, next: NextFunction): Promise<voi
   }
 }
 
-async function generate(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function generate(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const rentalId = req.params.id as string;
     const contract = await generateContract(rentalId, req.user!.org);
@@ -57,7 +71,11 @@ async function generate(req: Request, res: Response, next: NextFunction): Promis
   }
 }
 
-async function remove(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function remove(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const rentalId = req.params.id as string;
     await deleteContract(rentalId, req.user!.org);
@@ -67,7 +85,11 @@ async function remove(req: Request, res: Response, next: NextFunction): Promise<
   }
 }
 
-async function printable(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function printable(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const rentalId = req.params.id as string;
     const html = await getPrintableContract(rentalId, req.user!.org);
@@ -78,20 +100,31 @@ async function printable(req: Request, res: Response, next: NextFunction): Promi
   }
 }
 
-async function pdf(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function pdf(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const rentalId = req.params.id as string;
     const buffer = await exportContractPdf(rentalId, req.user!.org);
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Length", String(buffer.length));
-    res.setHeader("Content-Disposition", `attachment; filename="contract-${rentalId}.pdf"`);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="contract-${rentalId}.pdf"`,
+    );
     res.status(200).send(buffer);
   } catch (err) {
     next(err);
   }
 }
 
-async function listSigned(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function listSigned(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const rentalId = req.params.id as string;
     const documents = await listSignedDocuments(rentalId, req.user!.org);
@@ -101,7 +134,11 @@ async function listSigned(req: Request, res: Response, next: NextFunction): Prom
   }
 }
 
-async function uploadSigned(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function uploadSigned(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const rentalId = req.params.id as string;
     const file = req.file;
@@ -117,18 +154,29 @@ async function uploadSigned(req: Request, res: Response, next: NextFunction): Pr
   }
 }
 
-async function getSigned(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function getSigned(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const rentalId = req.params.id as string;
     const documentId = req.params.documentId as string;
-    const document = await getSignedDocument(rentalId, req.user!.org, documentId);
+    const document = await getSignedDocument(
+      rentalId,
+      req.user!.org,
+      documentId,
+    );
     ok(res, document);
   } catch (err) {
     next(err);
   }
 }
 
-function sendFile(res: Response, result: Awaited<ReturnType<typeof downloadSignedDocument>>): void {
+function sendFile(
+  res: Response,
+  result: Awaited<ReturnType<typeof downloadSignedDocument>>,
+): void {
   res.setHeader("Content-Type", result.mimeType);
   res.setHeader("Content-Length", String(result.size));
   res.setHeader(
@@ -138,18 +186,30 @@ function sendFile(res: Response, result: Awaited<ReturnType<typeof downloadSigne
   res.status(200).send(result.buffer);
 }
 
-async function downloadSigned(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function downloadSigned(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const rentalId = req.params.id as string;
     const documentId = req.params.documentId as string;
-    const result = await downloadSignedDocument(rentalId, req.user!.org, documentId);
+    const result = await downloadSignedDocument(
+      rentalId,
+      req.user!.org,
+      documentId,
+    );
     sendFile(res, result);
   } catch (err) {
     next(err);
   }
 }
 
-async function deleteSigned(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function deleteSigned(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const rentalId = req.params.id as string;
     const documentId = req.params.documentId as string;

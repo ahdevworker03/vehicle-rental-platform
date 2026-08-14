@@ -1,9 +1,17 @@
 import type { Request, Response, NextFunction } from "express";
-import { getOrganization, updateOrganization, deleteOrganization } from "./organization.service";
+import {
+  getOrganization,
+  updateOrganization,
+  deleteOrganization,
+} from "./organization.service";
 import { ok, noContent } from "../../shared";
 import type { UpdateOrganizationInput } from "./organization.validation";
 
-async function get(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function get(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const org = await getOrganization(req.user!.org);
     ok(res, org);
@@ -12,7 +20,11 @@ async function get(req: Request, res: Response, next: NextFunction): Promise<voi
   }
 }
 
-async function update(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function update(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const input = req.body as UpdateOrganizationInput;
     const org = await updateOrganization(req.user!.org, input);
@@ -22,7 +34,11 @@ async function update(req: Request, res: Response, next: NextFunction): Promise<
   }
 }
 
-async function remove(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function remove(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     await deleteOrganization(req.user!.org);
     noContent(res);

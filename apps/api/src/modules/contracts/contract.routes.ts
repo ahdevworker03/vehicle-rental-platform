@@ -21,8 +21,17 @@ router.get("/rentals/:id/contract/printable", authenticate, printable);
 router.get("/rentals/:id/contract/pdf", authenticate, pdf);
 router.get("/rentals/:id/contract/signed", authenticate, listSigned);
 router.get("/rentals/:id/contract/signed/:documentId", authenticate, getSigned);
-router.get("/rentals/:id/contract/signed/:documentId/download", authenticate, downloadSigned);
-router.post("/rentals/:id/contract", authenticate, requireRole("OWNER"), generate);
+router.get(
+  "/rentals/:id/contract/signed/:documentId/download",
+  authenticate,
+  downloadSigned,
+);
+router.post(
+  "/rentals/:id/contract",
+  authenticate,
+  requireRole("OWNER"),
+  generate,
+);
 router.post(
   "/rentals/:id/contract/signed",
   authenticate,
@@ -30,7 +39,12 @@ router.post(
   handleUpload,
   uploadSigned,
 );
-router.delete("/rentals/:id/contract", authenticate, requireRole("OWNER"), remove);
+router.delete(
+  "/rentals/:id/contract",
+  authenticate,
+  requireRole("OWNER"),
+  remove,
+);
 router.delete(
   "/rentals/:id/contract/signed/:documentId",
   authenticate,

@@ -2,7 +2,11 @@ import { AppError } from "../../shared";
 import { isUniqueConstraintError } from "../../database";
 import * as repo from "./vehicle.repository";
 import { listAvailableVehicles as rentalListAvailableVehicles } from "../rentals/rental.service";
-import type { VehicleResponse, CreateVehicleInput, UpdateVehicleInput } from "./vehicle.types";
+import type {
+  VehicleResponse,
+  CreateVehicleInput,
+  UpdateVehicleInput,
+} from "./vehicle.types";
 
 export interface AvailableVehicleResponse {
   id: string;
@@ -58,12 +62,20 @@ function toResponse(record: {
   };
 }
 
-async function listVehicles(orgId: string, search?: string): Promise<VehicleResponse[]> {
-  const vehicles = search ? await repo.searchByOrg(orgId, search) : await repo.findByOrg(orgId);
+async function listVehicles(
+  orgId: string,
+  search?: string,
+): Promise<VehicleResponse[]> {
+  const vehicles = search
+    ? await repo.searchByOrg(orgId, search)
+    : await repo.findByOrg(orgId);
   return vehicles.map(toResponse);
 }
 
-async function getVehicle(vehicleId: string, orgId: string): Promise<VehicleResponse> {
+async function getVehicle(
+  vehicleId: string,
+  orgId: string,
+): Promise<VehicleResponse> {
   const vehicle = await repo.findById(vehicleId, orgId);
 
   if (!vehicle || vehicle.deleted_at) {
@@ -99,7 +111,11 @@ async function createVehicle(
     return toResponse(vehicle);
   } catch (err) {
     if (isUniqueConstraintError(err)) {
-      throw new AppError(409, "DUPLICATE_PLATE", "A vehicle with this plate number already exists in your organization.");
+      throw new AppError(
+        409,
+        "DUPLICATE_PLATE",
+        "A vehicle with this plate number already exists in your organization.",
+      );
     }
     throw err;
   }
@@ -135,7 +151,11 @@ async function updateVehicle(
     return toResponse(updated);
   } catch (err) {
     if (isUniqueConstraintError(err)) {
-      throw new AppError(409, "DUPLICATE_PLATE", "A vehicle with this plate number already exists in your organization.");
+      throw new AppError(
+        409,
+        "DUPLICATE_PLATE",
+        "A vehicle with this plate number already exists in your organization.",
+      );
     }
     throw err;
   }

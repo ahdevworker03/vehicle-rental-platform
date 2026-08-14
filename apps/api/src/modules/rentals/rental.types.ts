@@ -2,7 +2,13 @@ import type { Decimal } from "@prisma/client/runtime/client";
 
 export type RentalStatus = "RESERVED" | "ACTIVE" | "RETURNED" | "CANCELLED";
 
-export type VehicleStatus = "AVAILABLE" | "RESERVED" | "RENTED" | "MAINTENANCE" | "OUT_OF_SERVICE" | "ARCHIVED";
+export type VehicleStatus =
+  | "AVAILABLE"
+  | "RESERVED"
+  | "RENTED"
+  | "MAINTENANCE"
+  | "OUT_OF_SERVICE"
+  | "ARCHIVED";
 
 export interface RentalRecord {
   id: string;

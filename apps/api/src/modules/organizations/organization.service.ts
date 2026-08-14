@@ -1,6 +1,9 @@
 import { AppError } from "../../shared";
 import * as repo from "./organization.repository";
-import type { OrganizationResponse, UpdateOrganizationInput } from "./organization.types";
+import type {
+  OrganizationResponse,
+  UpdateOrganizationInput,
+} from "./organization.types";
 
 function toResponse(record: {
   id: string;
@@ -20,7 +23,11 @@ async function getOrganization(orgId: string): Promise<OrganizationResponse> {
   const org = await repo.findById(orgId);
 
   if (!org || org.deleted_at) {
-    throw new AppError(404, "ORGANIZATION_NOT_FOUND", "Organization not found.");
+    throw new AppError(
+      404,
+      "ORGANIZATION_NOT_FOUND",
+      "Organization not found.",
+    );
   }
 
   return toResponse(org);
@@ -33,7 +40,11 @@ async function updateOrganization(
   const org = await repo.findById(orgId);
 
   if (!org || org.deleted_at) {
-    throw new AppError(404, "ORGANIZATION_NOT_FOUND", "Organization not found.");
+    throw new AppError(
+      404,
+      "ORGANIZATION_NOT_FOUND",
+      "Organization not found.",
+    );
   }
 
   const updated = await repo.update(orgId, input);
@@ -45,10 +56,18 @@ async function deleteOrganization(orgId: string): Promise<void> {
   const org = await repo.findById(orgId);
 
   if (!org || org.deleted_at) {
-    throw new AppError(404, "ORGANIZATION_NOT_FOUND", "Organization not found.");
+    throw new AppError(
+      404,
+      "ORGANIZATION_NOT_FOUND",
+      "Organization not found.",
+    );
   }
 
-  throw new AppError(409, "CANNOT_DELETE_ORGANIZATION", "You cannot delete your own organization.");
+  throw new AppError(
+    409,
+    "CANNOT_DELETE_ORGANIZATION",
+    "You cannot delete your own organization.",
+  );
 }
 
 export { getOrganization, updateOrganization, deleteOrganization };

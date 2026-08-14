@@ -26,7 +26,9 @@ interface AvailableVehicleResponse {
   updatedAt: string;
 }
 
-function toVehicleResponse(record: AvailableVehicleRow): AvailableVehicleResponse {
+function toVehicleResponse(
+  record: AvailableVehicleRow,
+): AvailableVehicleResponse {
   return {
     id: record.id,
     make: record.make,
@@ -67,8 +69,12 @@ function toResponse(record: {
     vehicleId: record.vehicle_id,
     pickupDate: record.pickup_date.toISOString(),
     expectedReturnDate: record.expected_return_date.toISOString(),
-    actualPickupDate: record.actual_pickup_date ? record.actual_pickup_date.toISOString() : null,
-    actualReturnDate: record.actual_return_date ? record.actual_return_date.toISOString() : null,
+    actualPickupDate: record.actual_pickup_date
+      ? record.actual_pickup_date.toISOString()
+      : null,
+    actualReturnDate: record.actual_return_date
+      ? record.actual_return_date.toISOString()
+      : null,
     status: record.status as RentalResponse["status"],
     dailyRate: Number(record.daily_rate.toString()),
     totalAmount: Number(record.total_amount.toString()),
@@ -80,22 +86,42 @@ function toResponse(record: {
 
 function assertValidPeriod(pickupDate: Date, expectedReturnDate: Date): void {
   if (expectedReturnDate.getTime() <= pickupDate.getTime()) {
-    throw new AppError(422, "INVALID_RENTAL_PERIOD", "Expected return date must be after the pickup date.");
+    throw new AppError(
+      422,
+      "INVALID_RENTAL_PERIOD",
+      "Expected return date must be after the pickup date.",
+    );
   }
 }
 
 function assertVehicleOperationallyAvailable(vehicleStatus: string): void {
-  if (vehicleStatus === "MAINTENANCE" || vehicleStatus === "OUT_OF_SERVICE" || vehicleStatus === "ARCHIVED") {
-    throw new AppError(409, "VEHICLE_UNAVAILABLE", "Vehicle is not available for rental.");
+  if (
+    vehicleStatus === "MAINTENANCE" ||
+    vehicleStatus === "OUT_OF_SERVICE" ||
+    vehicleStatus === "ARCHIVED"
+  ) {
+    throw new AppError(
+      409,
+      "VEHICLE_UNAVAILABLE",
+      "Vehicle is not available for rental.",
+    );
   }
 }
 
-async function listRentals(orgId: string, search?: string): Promise<RentalResponse[]> {
-  const rentals = search ? await repo.searchByOrg(orgId, search) : await repo.findByOrg(orgId);
+async function listRentals(
+  orgId: string,
+  search?: string,
+): Promise<RentalResponse[]> {
+  const rentals = search
+    ? await repo.searchByOrg(orgId, search)
+    : await repo.findByOrg(orgId);
   return rentals.map(toResponse);
 }
 
-async function getRental(rentalId: string, orgId: string): Promise<RentalResponse> {
+async function getRental(
+  rentalId: string,
+  orgId: string,
+): Promise<RentalResponse> {
   const rental = await repo.findById(rentalId, orgId);
 
   if (!rental || rental.deleted_at) {
@@ -115,53 +141,72 @@ async function createRental(
   assertValidPeriod(pickupDate, expectedReturnDate);
 
   async function run(): Promise<RentalResponse> {
-    const rental = await transaction(async (tx) => {
-      const customer = await repo.findCustomerWithinTx(input.customer_id, orgId, tx);
+    const rental = await transaction(
+      async (tx) => {
+        const customer = await repo.findCustomerWithinTx(
+          input.customer_id,
+          orgId,
+          tx,
+        );
 
-      if (!customer) {
-        throw new AppError(404, "CUSTOMER_NOT_FOUND", "Customer not found.");
-      }
+        if (!customer) {
+          throw new AppError(404, "CUSTOMER_NOT_FOUND", "Customer not found.");
+        }
 
-      const vehicle = await repo.findVehicleWithinTx(input.vehicle_id, orgId, tx);
+        const vehicle = await repo.findVehicleWithinTx(
+          input.vehicle_id,
+          orgId,
+          tx,
+        );
 
-      if (!vehicle) {
-        throw new AppError(404, "VEHICLE_NOT_FOUND", "Vehicle not found.");
-      }
+        if (!vehicle) {
+          throw new AppError(404, "VEHICLE_NOT_FOUND", "Vehicle not found.");
+        }
 
-      assertVehicleOperationallyAvailable(vehicle.status);
+        assertVehicleOperationallyAvailable(vehicle.status);
 
-      const overlapping = await repo.findOverlappingWithinTx(
-        input.vehicle_id,
-        orgId,
-        pickupDate,
-        expectedReturnDate,
-        undefined,
-        tx,
-      );
+        const overlapping = await repo.findOverlappingWithinTx(
+          input.vehicle_id,
+          orgId,
+          pickupDate,
+          expectedReturnDate,
+          undefined,
+          tx,
+        );
 
-      if (overlapping.length > 0) {
-        throw new AppError(409, "VEHICLE_UNAVAILABLE", "Vehicle is already reserved for the requested period.");
-      }
+        if (overlapping.length > 0) {
+          throw new AppError(
+            409,
+            "VEHICLE_UNAVAILABLE",
+            "Vehicle is already reserved for the requested period.",
+          );
+        }
 
-      const rental = await repo.createWithinTx(
-        {
-          organization_id: orgId,
-          customer_id: input.customer_id,
-          vehicle_id: input.vehicle_id,
-          pickup_date: pickupDate,
-          expected_return_date: expectedReturnDate,
-          status: "RESERVED",
-          daily_rate: input.daily_rate,
-          total_amount: input.total_amount,
-          deposit_amount: input.deposit_amount,
-        },
-        tx,
-      );
+        const rental = await repo.createWithinTx(
+          {
+            organization_id: orgId,
+            customer_id: input.customer_id,
+            vehicle_id: input.vehicle_id,
+            pickup_date: pickupDate,
+            expected_return_date: expectedReturnDate,
+            status: "RESERVED",
+            daily_rate: input.daily_rate,
+            total_amount: input.total_amount,
+            deposit_amount: input.deposit_amount,
+          },
+          tx,
+        );
 
-      await repo.updateVehicleStatusWithinTx(input.vehicle_id, "RESERVED", tx);
+        await repo.updateVehicleStatusWithinTx(
+          input.vehicle_id,
+          "RESERVED",
+          tx,
+        );
 
-      return rental;
-    }, { isolationLevel: "Serializable" });
+        return rental;
+      },
+      { isolationLevel: "Serializable" },
+    );
 
     return toResponse(rental);
   }
@@ -189,13 +234,19 @@ async function updateRental(
 
   const updated = await repo.update(rentalId, {
     pickup_date: input.pickup_date ? new Date(input.pickup_date) : undefined,
-    expected_return_date: input.expected_return_date ? new Date(input.expected_return_date) : undefined,
-    actual_pickup_date: input.actual_pickup_date === null || input.actual_pickup_date === undefined
-      ? undefined
-      : new Date(input.actual_pickup_date),
-    actual_return_date: input.actual_return_date === null || input.actual_return_date === undefined
-      ? undefined
-      : new Date(input.actual_return_date),
+    expected_return_date: input.expected_return_date
+      ? new Date(input.expected_return_date)
+      : undefined,
+    actual_pickup_date:
+      input.actual_pickup_date === null ||
+      input.actual_pickup_date === undefined
+        ? undefined
+        : new Date(input.actual_pickup_date),
+    actual_return_date:
+      input.actual_return_date === null ||
+      input.actual_return_date === undefined
+        ? undefined
+        : new Date(input.actual_return_date),
     daily_rate: input.daily_rate,
     total_amount: input.total_amount,
     deposit_amount: input.deposit_amount,
@@ -209,30 +260,37 @@ async function pickupRental(
   orgId: string,
   actualPickupDate: Date,
 ): Promise<RentalResponse> {
-  return transaction(async (tx) => {
-    const rental = await repo.findByIdWithinTx(rentalId, orgId, tx);
+  return transaction(
+    async (tx) => {
+      const rental = await repo.findByIdWithinTx(rentalId, orgId, tx);
 
-    if (!rental || rental.deleted_at) {
-      throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
-    }
+      if (!rental || rental.deleted_at) {
+        throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
+      }
 
-    if (rental.status !== "RESERVED") {
-      throw new AppError(409, "INVALID_RENTAL_TRANSITION", "Only a reserved rental can be picked up.");
-    }
+      if (rental.status !== "RESERVED") {
+        throw new AppError(
+          409,
+          "INVALID_RENTAL_TRANSITION",
+          "Only a reserved rental can be picked up.",
+        );
+      }
 
-    const updated = await repo.updateWithinTx(
-      rentalId,
-      {
-        status: "ACTIVE",
-        actual_pickup_date: new Date(actualPickupDate),
-      },
-      tx,
-    );
+      const updated = await repo.updateWithinTx(
+        rentalId,
+        {
+          status: "ACTIVE",
+          actual_pickup_date: new Date(actualPickupDate),
+        },
+        tx,
+      );
 
-    await repo.updateVehicleStatusWithinTx(rental.vehicle_id, "RENTED", tx);
+      await repo.updateVehicleStatusWithinTx(rental.vehicle_id, "RENTED", tx);
 
-    return updated;
-  }, { isolationLevel: "Serializable" }).then(toResponse);
+      return updated;
+    },
+    { isolationLevel: "Serializable" },
+  ).then(toResponse);
 }
 
 async function returnRental(
@@ -240,34 +298,49 @@ async function returnRental(
   orgId: string,
   actualReturnDate: Date,
 ): Promise<RentalResponse> {
-  return transaction(async (tx) => {
-    const rental = await repo.findByIdWithinTx(rentalId, orgId, tx);
+  return transaction(
+    async (tx) => {
+      const rental = await repo.findByIdWithinTx(rentalId, orgId, tx);
 
-    if (!rental || rental.deleted_at) {
-      throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
-    }
+      if (!rental || rental.deleted_at) {
+        throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
+      }
 
-    if (rental.status !== "ACTIVE") {
-      throw new AppError(409, "INVALID_RENTAL_TRANSITION", "Only an active rental can be returned.");
-    }
+      if (rental.status !== "ACTIVE") {
+        throw new AppError(
+          409,
+          "INVALID_RENTAL_TRANSITION",
+          "Only an active rental can be returned.",
+        );
+      }
 
-    const updated = await repo.updateWithinTx(
-      rentalId,
-      {
-        status: "RETURNED",
-        actual_return_date: new Date(actualReturnDate),
-      },
-      tx,
-    );
+      const updated = await repo.updateWithinTx(
+        rentalId,
+        {
+          status: "RETURNED",
+          actual_return_date: new Date(actualReturnDate),
+        },
+        tx,
+      );
 
-    const vehicle = await repo.findVehicleWithinTx(rental.vehicle_id, orgId, tx);
+      const vehicle = await repo.findVehicleWithinTx(
+        rental.vehicle_id,
+        orgId,
+        tx,
+      );
 
-    if (vehicle && vehicle.status === "RENTED") {
-      await repo.updateVehicleStatusWithinTx(rental.vehicle_id, "AVAILABLE", tx);
-    }
+      if (vehicle && vehicle.status === "RENTED") {
+        await repo.updateVehicleStatusWithinTx(
+          rental.vehicle_id,
+          "AVAILABLE",
+          tx,
+        );
+      }
 
-    return updated;
-  }, { isolationLevel: "Serializable" }).then(toResponse);
+      return updated;
+    },
+    { isolationLevel: "Serializable" },
+  ).then(toResponse);
 }
 
 async function extendRental(
@@ -275,76 +348,113 @@ async function extendRental(
   orgId: string,
   expectedReturnDate: Date,
 ): Promise<RentalResponse> {
-  return transaction(async (tx) => {
-    const rental = await repo.findByIdWithinTx(rentalId, orgId, tx);
+  return transaction(
+    async (tx) => {
+      const rental = await repo.findByIdWithinTx(rentalId, orgId, tx);
 
-    if (!rental || rental.deleted_at) {
-      throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
-    }
+      if (!rental || rental.deleted_at) {
+        throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
+      }
 
-    if (rental.status !== "RESERVED" && rental.status !== "ACTIVE") {
-      throw new AppError(409, "INVALID_RENTAL_TRANSITION", "Only a reserved or active rental can be extended.");
-    }
+      if (rental.status !== "RESERVED" && rental.status !== "ACTIVE") {
+        throw new AppError(
+          409,
+          "INVALID_RENTAL_TRANSITION",
+          "Only a reserved or active rental can be extended.",
+        );
+      }
 
-    const newReturnDate = new Date(expectedReturnDate);
+      const newReturnDate = new Date(expectedReturnDate);
 
-    if (newReturnDate.getTime() <= rental.pickup_date.getTime()) {
-      throw new AppError(422, "INVALID_RENTAL_PERIOD", "Expected return date must be after the pickup date.");
-    }
+      if (newReturnDate.getTime() <= rental.pickup_date.getTime()) {
+        throw new AppError(
+          422,
+          "INVALID_RENTAL_PERIOD",
+          "Expected return date must be after the pickup date.",
+        );
+      }
 
-    if (newReturnDate.getTime() <= rental.expected_return_date.getTime()) {
-      throw new AppError(422, "INVALID_RENTAL_EXTENSION", "New expected return date must be after the current expected return date.");
-    }
+      if (newReturnDate.getTime() <= rental.expected_return_date.getTime()) {
+        throw new AppError(
+          422,
+          "INVALID_RENTAL_EXTENSION",
+          "New expected return date must be after the current expected return date.",
+        );
+      }
 
-    const overlapping = await repo.findOverlappingWithinTx(
-      rental.vehicle_id,
-      orgId,
-      rental.pickup_date,
-      newReturnDate,
-      rental.id,
-      tx,
-    );
+      const overlapping = await repo.findOverlappingWithinTx(
+        rental.vehicle_id,
+        orgId,
+        rental.pickup_date,
+        newReturnDate,
+        rental.id,
+        tx,
+      );
 
-    if (overlapping.length > 0) {
-      throw new AppError(409, "VEHICLE_UNAVAILABLE", "Vehicle is already reserved during part of the extended period.");
-    }
+      if (overlapping.length > 0) {
+        throw new AppError(
+          409,
+          "VEHICLE_UNAVAILABLE",
+          "Vehicle is already reserved during part of the extended period.",
+        );
+      }
 
-    const updated = await repo.updateWithinTx(
-      rentalId,
-      { expected_return_date: newReturnDate },
-      tx,
-    );
+      const updated = await repo.updateWithinTx(
+        rentalId,
+        { expected_return_date: newReturnDate },
+        tx,
+      );
 
-    return updated;
-  }, { isolationLevel: "Serializable" }).then(toResponse);
+      return updated;
+    },
+    { isolationLevel: "Serializable" },
+  ).then(toResponse);
 }
 
-async function cancelRental(rentalId: string, orgId: string): Promise<RentalResponse> {
-  return transaction(async (tx) => {
-    const rental = await repo.findByIdWithinTx(rentalId, orgId, tx);
+async function cancelRental(
+  rentalId: string,
+  orgId: string,
+): Promise<RentalResponse> {
+  return transaction(
+    async (tx) => {
+      const rental = await repo.findByIdWithinTx(rentalId, orgId, tx);
 
-    if (!rental || rental.deleted_at) {
-      throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
-    }
+      if (!rental || rental.deleted_at) {
+        throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
+      }
 
-    if (rental.status !== "RESERVED") {
-      throw new AppError(409, "INVALID_RENTAL_TRANSITION", "Only a reserved rental can be cancelled.");
-    }
+      if (rental.status !== "RESERVED") {
+        throw new AppError(
+          409,
+          "INVALID_RENTAL_TRANSITION",
+          "Only a reserved rental can be cancelled.",
+        );
+      }
 
-    const updated = await repo.updateWithinTx(
-      rentalId,
-      { status: "CANCELLED" },
-      tx,
-    );
+      const updated = await repo.updateWithinTx(
+        rentalId,
+        { status: "CANCELLED" },
+        tx,
+      );
 
-    const vehicle = await repo.findVehicleWithinTx(rental.vehicle_id, orgId, tx);
+      const vehicle = await repo.findVehicleWithinTx(
+        rental.vehicle_id,
+        orgId,
+        tx,
+      );
 
-    if (vehicle && vehicle.status === "RESERVED") {
-      await repo.updateVehicleStatusWithinTx(rental.vehicle_id, "AVAILABLE", tx);
-    }
+      if (vehicle && vehicle.status === "RESERVED") {
+        await repo.updateVehicleStatusWithinTx(
+          rental.vehicle_id,
+          "AVAILABLE",
+          tx,
+        );
+      }
 
-    return updated;
-  }, { isolationLevel: "Serializable" }).then(toResponse);
+      return updated;
+    },
+    { isolationLevel: "Serializable" },
+  ).then(toResponse);
 }
 
 async function deleteRental(rentalId: string, orgId: string): Promise<void> {
@@ -402,7 +512,11 @@ async function listAvailableVehicles(
 ): Promise<AvailableVehicleResponse[]> {
   assertValidPeriod(pickupDate, expectedReturnDate);
 
-  const vehicles = await repo.findAvailableVehicles(orgId, pickupDate, expectedReturnDate);
+  const vehicles = await repo.findAvailableVehicles(
+    orgId,
+    pickupDate,
+    expectedReturnDate,
+  );
   return vehicles.map(toVehicleResponse);
 }
 

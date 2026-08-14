@@ -7,7 +7,10 @@ async function findById(orgId: string): Promise<OrganizationRecord | null> {
   });
 }
 
-async function update(orgId: string, data: { name: string }): Promise<OrganizationRecord> {
+async function update(
+  orgId: string,
+  data: { name: string },
+): Promise<OrganizationRecord> {
   return prisma.organization.update({
     where: { id: orgId },
     data: { name: data.name },

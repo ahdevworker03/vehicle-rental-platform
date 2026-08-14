@@ -12,7 +12,8 @@ export class LocalFilesystemProvider implements StorageProvider {
   private resolvePath(key: string): string {
     const normalized = normalize(key);
     const resolved = resolve(this.root, normalized);
-    const withinRoot = resolved.startsWith(this.root + sep) || resolved === this.root;
+    const withinRoot =
+      resolved.startsWith(this.root + sep) || resolved === this.root;
 
     if (!withinRoot) {
       throw new Error("Storage key escapes the storage root.");

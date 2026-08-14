@@ -2,11 +2,15 @@ const JWT_SECRET = process.env["JWT_SECRET"];
 const REFRESH_TOKEN_SECRET = process.env["REFRESH_TOKEN_SECRET"];
 
 if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET environment variable is required but was not provided.");
+  throw new Error(
+    "JWT_SECRET environment variable is required but was not provided.",
+  );
 }
 
 if (!REFRESH_TOKEN_SECRET) {
-  throw new Error("REFRESH_TOKEN_SECRET environment variable is required but was not provided.");
+  throw new Error(
+    "REFRESH_TOKEN_SECRET environment variable is required but was not provided.",
+  );
 }
 
 export const authConfig = {

@@ -1,28 +1,45 @@
 import { prisma } from "../../database";
-import type { PhotoRecord, DocumentRecord, DocumentCategory } from "./media.types";
+import type {
+  PhotoRecord,
+  DocumentRecord,
+  DocumentCategory,
+} from "./media.types";
 
-async function findVehicle(vehicleId: string, orgId: string): Promise<{ id: string } | null> {
+async function findVehicle(
+  vehicleId: string,
+  orgId: string,
+): Promise<{ id: string } | null> {
   return prisma.vehicle.findFirst({
     where: { id: vehicleId, organization_id: orgId, deleted_at: null },
     select: { id: true },
   });
 }
 
-async function findCustomer(customerId: string, orgId: string): Promise<{ id: string } | null> {
+async function findCustomer(
+  customerId: string,
+  orgId: string,
+): Promise<{ id: string } | null> {
   return prisma.customer.findFirst({
     where: { id: customerId, organization_id: orgId, deleted_at: null },
     select: { id: true },
   });
 }
 
-async function listPhotos(vehicleId: string, orgId: string): Promise<PhotoRecord[]> {
+async function listPhotos(
+  vehicleId: string,
+  orgId: string,
+): Promise<PhotoRecord[]> {
   return prisma.photo.findMany({
     where: { vehicle_id: vehicleId, organization_id: orgId, deleted_at: null },
     orderBy: { sort_order: "asc" },
   });
 }
 
-async function findPhoto(photoId: string, vehicleId: string, orgId: string): Promise<PhotoRecord | null> {
+async function findPhoto(
+  photoId: string,
+  vehicleId: string,
+  orgId: string,
+): Promise<PhotoRecord | null> {
   return prisma.photo.findFirst({
     where: { id: photoId, vehicle_id: vehicleId, organization_id: orgId },
   });
@@ -48,14 +65,21 @@ async function softDeletePhoto(photoId: string): Promise<PhotoRecord> {
   });
 }
 
-async function listDocuments(vehicleId: string, orgId: string): Promise<DocumentRecord[]> {
+async function listDocuments(
+  vehicleId: string,
+  orgId: string,
+): Promise<DocumentRecord[]> {
   return prisma.document.findMany({
     where: { vehicle_id: vehicleId, organization_id: orgId, deleted_at: null },
     orderBy: { created_at: "desc" },
   });
 }
 
-async function findDocument(documentId: string, vehicleId: string, orgId: string): Promise<DocumentRecord | null> {
+async function findDocument(
+  documentId: string,
+  vehicleId: string,
+  orgId: string,
+): Promise<DocumentRecord | null> {
   return prisma.document.findFirst({
     where: { id: documentId, vehicle_id: vehicleId, organization_id: orgId },
   });
@@ -73,14 +97,25 @@ async function createDocument(data: {
   return prisma.document.create({ data });
 }
 
-async function listCustomerDocuments(customerId: string, orgId: string): Promise<DocumentRecord[]> {
+async function listCustomerDocuments(
+  customerId: string,
+  orgId: string,
+): Promise<DocumentRecord[]> {
   return prisma.document.findMany({
-    where: { customer_id: customerId, organization_id: orgId, deleted_at: null },
+    where: {
+      customer_id: customerId,
+      organization_id: orgId,
+      deleted_at: null,
+    },
     orderBy: { created_at: "desc" },
   });
 }
 
-async function findCustomerDocument(documentId: string, customerId: string, orgId: string): Promise<DocumentRecord | null> {
+async function findCustomerDocument(
+  documentId: string,
+  customerId: string,
+  orgId: string,
+): Promise<DocumentRecord | null> {
   return prisma.document.findFirst({
     where: { id: documentId, customer_id: customerId, organization_id: orgId },
   });

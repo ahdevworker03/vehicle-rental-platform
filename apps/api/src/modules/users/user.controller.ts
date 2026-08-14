@@ -1,9 +1,19 @@
 import type { Request, Response, NextFunction } from "express";
-import { listUsers, getUser, createUser, updateUser, deleteUser } from "./user.service";
+import {
+  listUsers,
+  getUser,
+  createUser,
+  updateUser,
+  deleteUser,
+} from "./user.service";
 import { ok, created, noContent } from "../../shared";
 import type { CreateUserInput, UpdateUserInput } from "./user.validation";
 
-async function list(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function list(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const users = await listUsers(req.user!.org);
     ok(res, users);
@@ -12,7 +22,11 @@ async function list(req: Request, res: Response, next: NextFunction): Promise<vo
   }
 }
 
-async function get(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function get(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const id = req.params.id as string;
     const user = await getUser(id, req.user!.org);
@@ -22,7 +36,11 @@ async function get(req: Request, res: Response, next: NextFunction): Promise<voi
   }
 }
 
-async function create(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function create(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const input = req.body as CreateUserInput;
     const user = await createUser(req.user!.org, input);
@@ -32,7 +50,11 @@ async function create(req: Request, res: Response, next: NextFunction): Promise<
   }
 }
 
-async function update(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function update(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const id = req.params.id as string;
     const input = req.body as UpdateUserInput;
@@ -43,7 +65,11 @@ async function update(req: Request, res: Response, next: NextFunction): Promise<
   }
 }
 
-async function remove(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function remove(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const id = req.params.id as string;
     await deleteUser(id, req.user!.org, req.user!.sub);

@@ -51,4 +51,10 @@ function isTokenExpired(expiresAt: Date): boolean {
   return expiresAt < new Date();
 }
 
-export { storeRefreshToken, findRefreshToken, deleteRefreshToken, generateRefreshTokenValue, isTokenExpired };
+export {
+  storeRefreshToken,
+  findRefreshToken,
+  deleteRefreshToken,
+  generateRefreshTokenValue,
+  isTokenExpired,
+};

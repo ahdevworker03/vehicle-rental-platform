@@ -1,7 +1,11 @@
 import { AppError } from "../../shared";
 import { isUniqueConstraintError } from "../../database";
 import * as repo from "./customer.repository";
-import type { CustomerResponse, CreateCustomerInput, UpdateCustomerInput } from "./customer.types";
+import type {
+  CustomerResponse,
+  CreateCustomerInput,
+  UpdateCustomerInput,
+} from "./customer.types";
 
 function toResponse(record: {
   id: string;
@@ -29,12 +33,20 @@ function toResponse(record: {
   };
 }
 
-async function listCustomers(orgId: string, search?: string): Promise<CustomerResponse[]> {
-  const customers = search ? await repo.searchByOrg(orgId, search) : await repo.findByOrg(orgId);
+async function listCustomers(
+  orgId: string,
+  search?: string,
+): Promise<CustomerResponse[]> {
+  const customers = search
+    ? await repo.searchByOrg(orgId, search)
+    : await repo.findByOrg(orgId);
   return customers.map(toResponse);
 }
 
-async function getCustomer(customerId: string, orgId: string): Promise<CustomerResponse> {
+async function getCustomer(
+  customerId: string,
+  orgId: string,
+): Promise<CustomerResponse> {
   const customer = await repo.findById(customerId, orgId);
 
   if (!customer || customer.deleted_at) {
@@ -65,7 +77,11 @@ async function createCustomer(
     return toResponse(customer);
   } catch (err) {
     if (isUniqueConstraintError(err)) {
-      throw new AppError(409, "DUPLICATE_CUSTOMER", "A customer with this national ID or license number already exists.");
+      throw new AppError(
+        409,
+        "DUPLICATE_CUSTOMER",
+        "A customer with this national ID or license number already exists.",
+      );
     }
     throw err;
   }
@@ -96,13 +112,20 @@ async function updateCustomer(
     return toResponse(updated);
   } catch (err) {
     if (isUniqueConstraintError(err)) {
-      throw new AppError(409, "DUPLICATE_CUSTOMER", "A customer with this national ID or license number already exists.");
+      throw new AppError(
+        409,
+        "DUPLICATE_CUSTOMER",
+        "A customer with this national ID or license number already exists.",
+      );
     }
     throw err;
   }
 }
 
-async function deleteCustomer(customerId: string, orgId: string): Promise<void> {
+async function deleteCustomer(
+  customerId: string,
+  orgId: string,
+): Promise<void> {
   const customer = await repo.findById(customerId, orgId);
 
   if (!customer || customer.deleted_at) {
@@ -112,4 +135,10 @@ async function deleteCustomer(customerId: string, orgId: string): Promise<void> 
   await repo.softDelete(customerId);
 }
 
-export { listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer };
+export {
+  listCustomers,
+  getCustomer,
+  createCustomer,
+  updateCustomer,
+  deleteCustomer,
+};

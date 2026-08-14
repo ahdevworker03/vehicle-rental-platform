@@ -1,7 +1,18 @@
 import { Router, type IRouter } from "express";
-import { register, login, refresh, logout, currentUser } from "./auth.controller";
+import {
+  register,
+  login,
+  refresh,
+  logout,
+  currentUser,
+} from "./auth.controller";
 import { validateBody } from "../../middleware";
-import { registerSchema, loginSchema, refreshSchema, logoutSchema } from "./auth.validation";
+import {
+  registerSchema,
+  loginSchema,
+  refreshSchema,
+  logoutSchema,
+} from "./auth.validation";
 
 const router: IRouter = Router();
 

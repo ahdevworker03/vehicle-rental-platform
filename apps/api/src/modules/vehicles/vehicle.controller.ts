@@ -15,7 +15,11 @@ import type {
   ListAvailableVehiclesQuery,
 } from "./vehicle.validation";
 
-async function list(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function list(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const query = req.query as ListVehiclesQuery;
     const vehicles = await listVehicles(req.user!.org, query.search);
@@ -25,7 +29,11 @@ async function list(req: Request, res: Response, next: NextFunction): Promise<vo
   }
 }
 
-async function availability(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function availability(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const query = req.query as unknown as ListAvailableVehiclesQuery;
     const vehicles = await listAvailableVehicles(
@@ -39,7 +47,11 @@ async function availability(req: Request, res: Response, next: NextFunction): Pr
   }
 }
 
-async function get(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function get(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const id = req.params.id as string;
     const vehicle = await getVehicle(id, req.user!.org);
@@ -49,7 +61,11 @@ async function get(req: Request, res: Response, next: NextFunction): Promise<voi
   }
 }
 
-async function create(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function create(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const input = req.body as CreateVehicleInput;
     const vehicle = await createVehicle(req.user!.org, input);
@@ -59,7 +75,11 @@ async function create(req: Request, res: Response, next: NextFunction): Promise<
   }
 }
 
-async function update(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function update(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const id = req.params.id as string;
     const input = req.body as UpdateVehicleInput;
@@ -70,7 +90,11 @@ async function update(req: Request, res: Response, next: NextFunction): Promise<
   }
 }
 
-async function remove(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function remove(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const id = req.params.id as string;
     await deleteVehicle(id, req.user!.org);

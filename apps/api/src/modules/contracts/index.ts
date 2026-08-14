@@ -10,4 +10,7 @@ export {
   downloadSignedDocument,
   deleteSignedDocument,
 } from "./contract.service";
-export type { ContractResponse, ContractDocumentResponse } from "./contract.types";
+export type {
+  ContractResponse,
+  ContractDocumentResponse,
+} from "./contract.types";

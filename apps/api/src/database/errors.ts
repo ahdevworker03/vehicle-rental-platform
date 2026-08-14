@@ -28,4 +28,9 @@ function isTransactionConflictError(error: unknown): boolean {
   );
 }
 
-export { isUniqueConstraintError, isNotFoundError, isForeignKeyError, isTransactionConflictError };
+export {
+  isUniqueConstraintError,
+  isNotFoundError,
+  isForeignKeyError,
+  isTransactionConflictError,
+};

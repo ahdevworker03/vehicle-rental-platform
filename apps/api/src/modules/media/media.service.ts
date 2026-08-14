@@ -2,8 +2,19 @@ import { randomUUID } from "node:crypto";
 import { AppError } from "../../shared";
 import { storageProvider } from "../../config/storage";
 import * as repo from "./media.repository";
-import { MAX_FILE_SIZE, isPhotoMimeType, isDocumentMimeType, extensionForMimeType } from "./media.validation";
-import type { PhotoResponse, DocumentResponse, CreatePhotoInput, CreateDocumentInput, DocumentCategory } from "./media.types";
+import {
+  MAX_FILE_SIZE,
+  isPhotoMimeType,
+  isDocumentMimeType,
+  extensionForMimeType,
+} from "./media.validation";
+import type {
+  PhotoResponse,
+  DocumentResponse,
+  CreatePhotoInput,
+  CreateDocumentInput,
+  DocumentCategory,
+} from "./media.types";
 
 function generateStorageKey(
   orgId: string,
@@ -71,7 +82,10 @@ function toDocumentResponse(record: {
   };
 }
 
-async function ensureVehicleInOrg(vehicleId: string, orgId: string): Promise<void> {
+async function ensureVehicleInOrg(
+  vehicleId: string,
+  orgId: string,
+): Promise<void> {
   const vehicle = await repo.findVehicle(vehicleId, orgId);
 
   if (!vehicle) {
@@ -79,13 +93,20 @@ async function ensureVehicleInOrg(vehicleId: string, orgId: string): Promise<voi
   }
 }
 
-export async function listVehiclePhotos(vehicleId: string, orgId: string): Promise<PhotoResponse[]> {
+export async function listVehiclePhotos(
+  vehicleId: string,
+  orgId: string,
+): Promise<PhotoResponse[]> {
   await ensureVehicleInOrg(vehicleId, orgId);
   const photos = await repo.listPhotos(vehicleId, orgId);
   return photos.map(toPhotoResponse);
 }
 
-export async function getVehiclePhoto(photoId: string, vehicleId: string, orgId: string): Promise<PhotoResponse> {
+export async function getVehiclePhoto(
+  photoId: string,
+  vehicleId: string,
+  orgId: string,
+): Promise<PhotoResponse> {
   await ensureVehicleInOrg(vehicleId, orgId);
   const photo = await repo.findPhoto(photoId, vehicleId, orgId);
 
@@ -120,17 +141,30 @@ export async function serveVehiclePhoto(
 export async function uploadVehiclePhoto(
   vehicleId: string,
   orgId: string,
-  file: { originalname: string; mimetype: string; size: number; buffer: Buffer },
+  file: {
+    originalname: string;
+    mimetype: string;
+    size: number;
+    buffer: Buffer;
+  },
   input: CreatePhotoInput,
 ): Promise<PhotoResponse> {
   await ensureVehicleInOrg(vehicleId, orgId);
 
   if (!isPhotoMimeType(file.mimetype)) {
-    throw new AppError(422, "UNSUPPORTED_MIME_TYPE", "Photo type must be JPEG, PNG, or WebP.");
+    throw new AppError(
+      422,
+      "UNSUPPORTED_MIME_TYPE",
+      "Photo type must be JPEG, PNG, or WebP.",
+    );
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    throw new AppError(422, "FILE_TOO_LARGE", "Photo exceeds the 10 MB size limit.");
+    throw new AppError(
+      422,
+      "FILE_TOO_LARGE",
+      "Photo exceeds the 10 MB size limit.",
+    );
   }
 
   const storageKey = generateStorageKey(orgId, "vehicle", file.mimetype);
@@ -150,7 +184,11 @@ export async function uploadVehiclePhoto(
   return toPhotoResponse(record);
 }
 
-export async function deleteVehiclePhoto(photoId: string, vehicleId: string, orgId: string): Promise<void> {
+export async function deleteVehiclePhoto(
+  photoId: string,
+  vehicleId: string,
+  orgId: string,
+): Promise<void> {
   await ensureVehicleInOrg(vehicleId, orgId);
   const photo = await repo.findPhoto(photoId, vehicleId, orgId);
 
@@ -161,13 +199,20 @@ export async function deleteVehiclePhoto(photoId: string, vehicleId: string, org
   await repo.softDeletePhoto(photoId);
 }
 
-export async function listVehicleDocuments(vehicleId: string, orgId: string): Promise<DocumentResponse[]> {
+export async function listVehicleDocuments(
+  vehicleId: string,
+  orgId: string,
+): Promise<DocumentResponse[]> {
   await ensureVehicleInOrg(vehicleId, orgId);
   const documents = await repo.listDocuments(vehicleId, orgId);
   return documents.map(toDocumentResponse);
 }
 
-export async function getVehicleDocument(documentId: string, vehicleId: string, orgId: string): Promise<DocumentResponse> {
+export async function getVehicleDocument(
+  documentId: string,
+  vehicleId: string,
+  orgId: string,
+): Promise<DocumentResponse> {
   await ensureVehicleInOrg(vehicleId, orgId);
   const document = await repo.findDocument(documentId, vehicleId, orgId);
 
@@ -181,17 +226,30 @@ export async function getVehicleDocument(documentId: string, vehicleId: string, 
 export async function uploadVehicleDocument(
   vehicleId: string,
   orgId: string,
-  file: { originalname: string; mimetype: string; size: number; buffer: Buffer },
+  file: {
+    originalname: string;
+    mimetype: string;
+    size: number;
+    buffer: Buffer;
+  },
   input: CreateDocumentInput,
 ): Promise<DocumentResponse> {
   await ensureVehicleInOrg(vehicleId, orgId);
 
   if (!isDocumentMimeType(file.mimetype)) {
-    throw new AppError(422, "UNSUPPORTED_MIME_TYPE", "Document type must be PDF, JPEG, or PNG.");
+    throw new AppError(
+      422,
+      "UNSUPPORTED_MIME_TYPE",
+      "Document type must be PDF, JPEG, or PNG.",
+    );
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    throw new AppError(422, "FILE_TOO_LARGE", "Document exceeds the 10 MB size limit.");
+    throw new AppError(
+      422,
+      "FILE_TOO_LARGE",
+      "Document exceeds the 10 MB size limit.",
+    );
   }
 
   const storageKey = generateStorageKey(orgId, "vehicle", file.mimetype);
@@ -210,7 +268,11 @@ export async function uploadVehicleDocument(
   return toDocumentResponse(record);
 }
 
-export async function deleteVehicleDocument(documentId: string, vehicleId: string, orgId: string): Promise<void> {
+export async function deleteVehicleDocument(
+  documentId: string,
+  vehicleId: string,
+  orgId: string,
+): Promise<void> {
   await ensureVehicleInOrg(vehicleId, orgId);
   const document = await repo.findDocument(documentId, vehicleId, orgId);
 
@@ -221,7 +283,10 @@ export async function deleteVehicleDocument(documentId: string, vehicleId: strin
   await repo.softDeleteDocument(documentId);
 }
 
-async function ensureCustomerInOrg(customerId: string, orgId: string): Promise<void> {
+async function ensureCustomerInOrg(
+  customerId: string,
+  orgId: string,
+): Promise<void> {
   const customer = await repo.findCustomer(customerId, orgId);
 
   if (!customer) {
@@ -229,15 +294,26 @@ async function ensureCustomerInOrg(customerId: string, orgId: string): Promise<v
   }
 }
 
-export async function listCustomerDocuments(customerId: string, orgId: string): Promise<DocumentResponse[]> {
+export async function listCustomerDocuments(
+  customerId: string,
+  orgId: string,
+): Promise<DocumentResponse[]> {
   await ensureCustomerInOrg(customerId, orgId);
   const documents = await repo.listCustomerDocuments(customerId, orgId);
   return documents.map(toDocumentResponse);
 }
 
-export async function getCustomerDocument(documentId: string, customerId: string, orgId: string): Promise<DocumentResponse> {
+export async function getCustomerDocument(
+  documentId: string,
+  customerId: string,
+  orgId: string,
+): Promise<DocumentResponse> {
   await ensureCustomerInOrg(customerId, orgId);
-  const document = await repo.findCustomerDocument(documentId, customerId, orgId);
+  const document = await repo.findCustomerDocument(
+    documentId,
+    customerId,
+    orgId,
+  );
 
   if (!document || document.deleted_at) {
     throw new AppError(404, "DOCUMENT_NOT_FOUND", "Document not found.");
@@ -249,17 +325,30 @@ export async function getCustomerDocument(documentId: string, customerId: string
 export async function uploadCustomerDocument(
   customerId: string,
   orgId: string,
-  file: { originalname: string; mimetype: string; size: number; buffer: Buffer },
+  file: {
+    originalname: string;
+    mimetype: string;
+    size: number;
+    buffer: Buffer;
+  },
   input: CreateDocumentInput,
 ): Promise<DocumentResponse> {
   await ensureCustomerInOrg(customerId, orgId);
 
   if (!isDocumentMimeType(file.mimetype)) {
-    throw new AppError(422, "UNSUPPORTED_MIME_TYPE", "Document type must be PDF, JPEG, or PNG.");
+    throw new AppError(
+      422,
+      "UNSUPPORTED_MIME_TYPE",
+      "Document type must be PDF, JPEG, or PNG.",
+    );
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    throw new AppError(422, "FILE_TOO_LARGE", "Document exceeds the 10 MB size limit.");
+    throw new AppError(
+      422,
+      "FILE_TOO_LARGE",
+      "Document exceeds the 10 MB size limit.",
+    );
   }
 
   const storageKey = generateStorageKey(orgId, "customer", file.mimetype);
@@ -278,9 +367,17 @@ export async function uploadCustomerDocument(
   return toDocumentResponse(record);
 }
 
-export async function deleteCustomerDocument(documentId: string, customerId: string, orgId: string): Promise<void> {
+export async function deleteCustomerDocument(
+  documentId: string,
+  customerId: string,
+  orgId: string,
+): Promise<void> {
   await ensureCustomerInOrg(customerId, orgId);
-  const document = await repo.findCustomerDocument(documentId, customerId, orgId);
+  const document = await repo.findCustomerDocument(
+    documentId,
+    customerId,
+    orgId,
+  );
 
   if (!document || document.deleted_at) {
     throw new AppError(404, "DOCUMENT_NOT_FOUND", "Document not found.");
@@ -324,7 +421,11 @@ export async function downloadCustomerDocument(
   orgId: string,
 ): Promise<DownloadResult> {
   await ensureCustomerInOrg(customerId, orgId);
-  const document = await repo.findCustomerDocument(documentId, customerId, orgId);
+  const document = await repo.findCustomerDocument(
+    documentId,
+    customerId,
+    orgId,
+  );
 
   if (!document || document.deleted_at) {
     throw new AppError(404, "DOCUMENT_NOT_FOUND", "Document not found.");

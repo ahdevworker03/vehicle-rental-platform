@@ -12,7 +12,13 @@ export interface VehicleRecord {
   fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
   seats: number;
   current_mileage: number;
-  status: "AVAILABLE" | "RESERVED" | "RENTED" | "MAINTENANCE" | "OUT_OF_SERVICE" | "ARCHIVED";
+  status:
+    | "AVAILABLE"
+    | "RESERVED"
+    | "RENTED"
+    | "MAINTENANCE"
+    | "OUT_OF_SERVICE"
+    | "ARCHIVED";
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
@@ -48,7 +54,13 @@ export interface CreateVehicleInput {
   fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
   seats: number;
   current_mileage: number;
-  status: "AVAILABLE" | "RESERVED" | "RENTED" | "MAINTENANCE" | "OUT_OF_SERVICE" | "ARCHIVED";
+  status:
+    | "AVAILABLE"
+    | "RESERVED"
+    | "RENTED"
+    | "MAINTENANCE"
+    | "OUT_OF_SERVICE"
+    | "ARCHIVED";
 }
 
 export interface UpdateVehicleInput {
@@ -63,5 +75,11 @@ export interface UpdateVehicleInput {
   fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
   seats: number;
   current_mileage: number;
-  status: "AVAILABLE" | "RESERVED" | "RENTED" | "MAINTENANCE" | "OUT_OF_SERVICE" | "ARCHIVED";
+  status:
+    | "AVAILABLE"
+    | "RESERVED"
+    | "RENTED"
+    | "MAINTENANCE"
+    | "OUT_OF_SERVICE"
+    | "ARCHIVED";
 }

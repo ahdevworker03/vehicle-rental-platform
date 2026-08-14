@@ -7,8 +7,20 @@ const router: IRouter = Router();
 
 router.get("/users", authenticate, list);
 router.get("/users/:id", authenticate, get);
-router.post("/users", authenticate, requireRole("OWNER"), validateBody(createUserSchema), create);
-router.patch("/users/:id", authenticate, requireRole("OWNER"), validateBody(updateUserSchema), update);
+router.post(
+  "/users",
+  authenticate,
+  requireRole("OWNER"),
+  validateBody(createUserSchema),
+  create,
+);
+router.patch(
+  "/users/:id",
+  authenticate,
+  requireRole("OWNER"),
+  validateBody(updateUserSchema),
+  update,
+);
 router.delete("/users/:id", authenticate, requireRole("OWNER"), remove);
 
 export default router;

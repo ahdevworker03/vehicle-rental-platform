@@ -1,6 +1,11 @@
 import { hashPassword, verifyPassword } from "./auth.hash";
 import { generateAccessToken, verifyAccessToken } from "./auth.jwt";
-import { storeRefreshToken, findRefreshToken, deleteRefreshToken, isTokenExpired } from "./auth.refresh";
+import {
+  storeRefreshToken,
+  findRefreshToken,
+  deleteRefreshToken,
+  isTokenExpired,
+} from "./auth.refresh";
 import { prisma } from "../../database";
 import { AppError } from "../../shared";
 import type { AuthTokens, AccessTokenPayload } from "./auth.types";
@@ -16,7 +21,11 @@ async function registerOrganization(
   });
 
   if (existingUser) {
-    throw new AppError(409, "EMAIL_ALREADY_EXISTS", "A user with this email already exists.");
+    throw new AppError(
+      409,
+      "EMAIL_ALREADY_EXISTS",
+      "A user with this email already exists.",
+    );
   }
 
   const passwordHash = await hashPassword(password);
@@ -53,17 +62,29 @@ async function login(email: string, password: string): Promise<AuthTokens> {
   });
 
   if (!user) {
-    throw new AppError(401, "INVALID_CREDENTIALS", "Invalid email or password.");
+    throw new AppError(
+      401,
+      "INVALID_CREDENTIALS",
+      "Invalid email or password.",
+    );
   }
 
   if (user.deleted_at) {
-    throw new AppError(401, "ACCOUNT_DEACTIVATED", "This account has been deactivated.");
+    throw new AppError(
+      401,
+      "ACCOUNT_DEACTIVATED",
+      "This account has been deactivated.",
+    );
   }
 
   const valid = await verifyPassword(password, user.password_hash);
 
   if (!valid) {
-    throw new AppError(401, "INVALID_CREDENTIALS", "Invalid email or password.");
+    throw new AppError(
+      401,
+      "INVALID_CREDENTIALS",
+      "Invalid email or password.",
+    );
   }
 
   return issueTokens(user.id, user.organization_id, user.role);
@@ -110,12 +131,20 @@ async function rotateRefreshToken(oldToken: string): Promise<AuthTokens> {
   const stored = await findRefreshToken(oldToken);
 
   if (!stored) {
-    throw new AppError(401, "INVALID_REFRESH_TOKEN", "Refresh token not found or already used.");
+    throw new AppError(
+      401,
+      "INVALID_REFRESH_TOKEN",
+      "Refresh token not found or already used.",
+    );
   }
 
   if (isTokenExpired(stored.expires_at)) {
     await deleteRefreshToken(oldToken);
-    throw new AppError(401, "EXPIRED_REFRESH_TOKEN", "Refresh token has expired.");
+    throw new AppError(
+      401,
+      "EXPIRED_REFRESH_TOKEN",
+      "Refresh token has expired.",
+    );
   }
 
   const user = await prisma.user.findUniqueOrThrow({

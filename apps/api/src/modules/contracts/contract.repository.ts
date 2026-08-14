@@ -1,13 +1,23 @@
 import { prisma } from "../../database";
-import type { ContractRecord, ContractDocumentRecord, DocumentCategory } from "./contract.types";
+import type {
+  ContractRecord,
+  ContractDocumentRecord,
+  DocumentCategory,
+} from "./contract.types";
 
-async function findByRental(rentalId: string, orgId: string): Promise<ContractRecord | null> {
+async function findByRental(
+  rentalId: string,
+  orgId: string,
+): Promise<ContractRecord | null> {
   return prisma.contract.findFirst({
     where: { rental_id: rentalId, organization_id: orgId },
   });
 }
 
-async function findById(contractId: string, orgId: string): Promise<ContractRecord | null> {
+async function findById(
+  contractId: string,
+  orgId: string,
+): Promise<ContractRecord | null> {
   return prisma.contract.findFirst({
     where: { id: contractId, organization_id: orgId },
   });
@@ -27,7 +37,11 @@ async function findRentalWithRelations(
     deposit_amount: { toString(): string };
     status: string;
   } | null;
-  customer: { first_name: string; last_name: string; national_id: string } | null;
+  customer: {
+    first_name: string;
+    last_name: string;
+    national_id: string;
+  } | null;
   vehicle: { make: string; model: string; plate_number: string } | null;
 }> {
   const rental = await prisma.rental.findFirst({
@@ -95,14 +109,25 @@ async function softDelete(contractId: string): Promise<ContractRecord> {
   });
 }
 
-async function listDocuments(contractId: string, orgId: string): Promise<ContractDocumentRecord[]> {
+async function listDocuments(
+  contractId: string,
+  orgId: string,
+): Promise<ContractDocumentRecord[]> {
   return prisma.document.findMany({
-    where: { contract_id: contractId, organization_id: orgId, deleted_at: null },
+    where: {
+      contract_id: contractId,
+      organization_id: orgId,
+      deleted_at: null,
+    },
     orderBy: { created_at: "desc" },
   });
 }
 
-async function findDocument(documentId: string, contractId: string, orgId: string): Promise<ContractDocumentRecord | null> {
+async function findDocument(
+  documentId: string,
+  contractId: string,
+  orgId: string,
+): Promise<ContractDocumentRecord | null> {
   return prisma.document.findFirst({
     where: { id: documentId, contract_id: contractId, organization_id: orgId },
   });
@@ -120,11 +145,23 @@ async function createDocument(data: {
   return prisma.document.create({ data });
 }
 
-async function softDeleteDocument(documentId: string): Promise<ContractDocumentRecord> {
+async function softDeleteDocument(
+  documentId: string,
+): Promise<ContractDocumentRecord> {
   return prisma.document.update({
     where: { id: documentId },
     data: { deleted_at: new Date() },
   });
 }
 
-export { findByRental, findById, findRentalWithRelations, create, softDelete, listDocuments, findDocument, createDocument, softDeleteDocument };
+export {
+  findByRental,
+  findById,
+  findRentalWithRelations,
+  create,
+  softDelete,
+  listDocuments,
+  findDocument,
+  createDocument,
+  softDeleteDocument,
+};

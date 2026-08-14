@@ -1,5 +1,9 @@
 import { prisma } from "../../database";
-import type { UserRecord, CreateUserInput, UpdateUserInput } from "./user.types";
+import type {
+  UserRecord,
+  CreateUserInput,
+  UpdateUserInput,
+} from "./user.types";
 
 async function findByOrg(orgId: string): Promise<UserRecord[]> {
   return prisma.user.findMany({
@@ -8,7 +12,10 @@ async function findByOrg(orgId: string): Promise<UserRecord[]> {
   });
 }
 
-async function findById(userId: string, orgId: string): Promise<UserRecord | null> {
+async function findById(
+  userId: string,
+  orgId: string,
+): Promise<UserRecord | null> {
   return prisma.user.findFirst({
     where: { id: userId, organization_id: orgId },
   });
@@ -20,7 +27,11 @@ async function findByEmail(email: string): Promise<UserRecord | null> {
   });
 }
 
-async function create(data: CreateUserInput, passwordHash: string, orgId: string): Promise<UserRecord> {
+async function create(
+  data: CreateUserInput,
+  passwordHash: string,
+  orgId: string,
+): Promise<UserRecord> {
   return prisma.user.create({
     data: {
       email: data.email,
@@ -31,7 +42,10 @@ async function create(data: CreateUserInput, passwordHash: string, orgId: string
   });
 }
 
-async function update(userId: string, data: UpdateUserInput): Promise<UserRecord> {
+async function update(
+  userId: string,
+  data: UpdateUserInput,
+): Promise<UserRecord> {
   return prisma.user.update({
     where: { id: userId },
     data: { role: data.role },

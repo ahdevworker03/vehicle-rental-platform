@@ -2,7 +2,8 @@ import { prisma } from "./prisma";
 import type { TransactionClient } from "@workspace/db";
 
 interface TransactionOptions {
-  isolationLevel?: "ReadUncommitted" | "ReadCommitted" | "RepeatableRead" | "Serializable";
+  isolationLevel?:
+    "ReadUncommitted" | "ReadCommitted" | "RepeatableRead" | "Serializable";
 }
 
 async function transaction<T>(

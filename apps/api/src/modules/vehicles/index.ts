@@ -6,4 +6,8 @@ export {
   deleteVehicle,
   listAvailableVehicles,
 } from "./vehicle.service";
-export type { VehicleResponse, CreateVehicleInput, UpdateVehicleInput } from "./vehicle.types";
+export type {
+  VehicleResponse,
+  CreateVehicleInput,
+  UpdateVehicleInput,
+} from "./vehicle.types";

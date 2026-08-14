@@ -10,4 +10,8 @@ export {
   deleteRental,
   checkAvailability,
 } from "./rental.service";
-export type { RentalResponse, CreateRentalInput, UpdateRentalInput } from "./rental.types";
+export type {
+  RentalResponse,
+  CreateRentalInput,
+  UpdateRentalInput,
+} from "./rental.types";

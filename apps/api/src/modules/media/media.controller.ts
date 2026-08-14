@@ -13,7 +13,13 @@ function handleUpload(req: Request, res: Response, next: NextFunction): void {
   upload.single("file")(req, res, (err: unknown) => {
     if (err instanceof multer.MulterError) {
       if (err.code === "LIMIT_FILE_SIZE") {
-        next(new AppError(422, "FILE_TOO_LARGE", "File exceeds the 10 MB size limit."));
+        next(
+          new AppError(
+            422,
+            "FILE_TOO_LARGE",
+            "File exceeds the 10 MB size limit.",
+          ),
+        );
         return;
       }
       next(new AppError(422, "UPLOAD_ERROR", err.message));
@@ -41,57 +47,93 @@ function parseCaption(value: unknown): string | undefined {
 
 function parseCategory(value: unknown): CreateDocumentInput["category"] {
   const raw = typeof value === "string" ? value : "OTHER";
-  return (["REGISTRATION", "INSURANCE", "OTHER"] as const).includes(raw as never)
+  return (["REGISTRATION", "INSURANCE", "OTHER"] as const).includes(
+    raw as never,
+  )
     ? (raw as CreateDocumentInput["category"])
     : "OTHER";
 }
 
-async function listPhotos(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function listPhotos(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const vehicleId = req.params.vehicleId as string;
-    const photos = await mediaService.listVehiclePhotos(vehicleId, req.user!.org);
+    const photos = await mediaService.listVehiclePhotos(
+      vehicleId,
+      req.user!.org,
+    );
     ok(res, photos);
   } catch (err) {
     next(err);
   }
 }
 
-async function getPhoto(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function getPhoto(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const vehicleId = req.params.vehicleId as string;
     const id = req.params.id as string;
-    const photo = await mediaService.getVehiclePhoto(id, vehicleId, req.user!.org);
+    const photo = await mediaService.getVehiclePhoto(
+      id,
+      vehicleId,
+      req.user!.org,
+    );
     ok(res, photo);
   } catch (err) {
     next(err);
   }
 }
 
-function sendImage(res: Response, result: Awaited<ReturnType<typeof mediaService.serveVehiclePhoto>>): void {
+function sendImage(
+  res: Response,
+  result: Awaited<ReturnType<typeof mediaService.serveVehiclePhoto>>,
+): void {
   res.setHeader("Content-Type", result.mimeType);
   res.setHeader("Content-Length", String(result.size));
   res.setHeader("Cache-Control", "private, max-age=3600");
   res.status(200).send(result.buffer);
 }
 
-async function servePhoto(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function servePhoto(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const vehicleId = req.params.vehicleId as string;
     const id = req.params.id as string;
-    const result = await mediaService.serveVehiclePhoto(id, vehicleId, req.user!.org);
+    const result = await mediaService.serveVehiclePhoto(
+      id,
+      vehicleId,
+      req.user!.org,
+    );
     sendImage(res, result);
   } catch (err) {
     next(err);
   }
 }
 
-async function uploadPhoto(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function uploadPhoto(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const vehicleId = req.params.vehicleId as string;
     const file = req.file;
 
     if (!file) {
-      res.status(422).json({ error: { code: "FILE_REQUIRED", message: "A file is required." } });
+      res
+        .status(422)
+        .json({
+          error: { code: "FILE_REQUIRED", message: "A file is required." },
+        });
       return;
     }
 
@@ -100,14 +142,23 @@ async function uploadPhoto(req: Request, res: Response, next: NextFunction): Pro
       sortOrder: parseSortOrder(req.body.sort_order),
     };
 
-    const photo = await mediaService.uploadVehiclePhoto(vehicleId, req.user!.org, file, input);
+    const photo = await mediaService.uploadVehiclePhoto(
+      vehicleId,
+      req.user!.org,
+      file,
+      input,
+    );
     created(res, photo);
   } catch (err) {
     next(err);
   }
 }
 
-async function deletePhoto(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function deletePhoto(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const vehicleId = req.params.vehicleId as string;
     const id = req.params.id as string;
@@ -118,34 +169,57 @@ async function deletePhoto(req: Request, res: Response, next: NextFunction): Pro
   }
 }
 
-async function listDocuments(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function listDocuments(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const vehicleId = req.params.vehicleId as string;
-    const documents = await mediaService.listVehicleDocuments(vehicleId, req.user!.org);
+    const documents = await mediaService.listVehicleDocuments(
+      vehicleId,
+      req.user!.org,
+    );
     ok(res, documents);
   } catch (err) {
     next(err);
   }
 }
 
-async function getDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function getDocument(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const vehicleId = req.params.vehicleId as string;
     const id = req.params.id as string;
-    const document = await mediaService.getVehicleDocument(id, vehicleId, req.user!.org);
+    const document = await mediaService.getVehicleDocument(
+      id,
+      vehicleId,
+      req.user!.org,
+    );
     ok(res, document);
   } catch (err) {
     next(err);
   }
 }
 
-async function uploadDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function uploadDocument(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const vehicleId = req.params.vehicleId as string;
     const file = req.file;
 
     if (!file) {
-      res.status(422).json({ error: { code: "FILE_REQUIRED", message: "A file is required." } });
+      res
+        .status(422)
+        .json({
+          error: { code: "FILE_REQUIRED", message: "A file is required." },
+        });
       return;
     }
 
@@ -153,14 +227,23 @@ async function uploadDocument(req: Request, res: Response, next: NextFunction): 
       category: parseCategory(req.body.category),
     };
 
-    const document = await mediaService.uploadVehicleDocument(vehicleId, req.user!.org, file, input);
+    const document = await mediaService.uploadVehicleDocument(
+      vehicleId,
+      req.user!.org,
+      file,
+      input,
+    );
     created(res, document);
   } catch (err) {
     next(err);
   }
 }
 
-async function deleteDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function deleteDocument(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const vehicleId = req.params.vehicleId as string;
     const id = req.params.id as string;
@@ -171,34 +254,57 @@ async function deleteDocument(req: Request, res: Response, next: NextFunction): 
   }
 }
 
-async function listCustomerDocuments(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function listCustomerDocuments(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const customerId = req.params.customerId as string;
-    const documents = await mediaService.listCustomerDocuments(customerId, req.user!.org);
+    const documents = await mediaService.listCustomerDocuments(
+      customerId,
+      req.user!.org,
+    );
     ok(res, documents);
   } catch (err) {
     next(err);
   }
 }
 
-async function getCustomerDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function getCustomerDocument(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const customerId = req.params.customerId as string;
     const id = req.params.id as string;
-    const document = await mediaService.getCustomerDocument(id, customerId, req.user!.org);
+    const document = await mediaService.getCustomerDocument(
+      id,
+      customerId,
+      req.user!.org,
+    );
     ok(res, document);
   } catch (err) {
     next(err);
   }
 }
 
-async function uploadCustomerDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function uploadCustomerDocument(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const customerId = req.params.customerId as string;
     const file = req.file;
 
     if (!file) {
-      res.status(422).json({ error: { code: "FILE_REQUIRED", message: "A file is required." } });
+      res
+        .status(422)
+        .json({
+          error: { code: "FILE_REQUIRED", message: "A file is required." },
+        });
       return;
     }
 
@@ -206,14 +312,23 @@ async function uploadCustomerDocument(req: Request, res: Response, next: NextFun
       category: parseCategory(req.body.category),
     };
 
-    const document = await mediaService.uploadCustomerDocument(customerId, req.user!.org, file, input);
+    const document = await mediaService.uploadCustomerDocument(
+      customerId,
+      req.user!.org,
+      file,
+      input,
+    );
     created(res, document);
   } catch (err) {
     next(err);
   }
 }
 
-async function deleteCustomerDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function deleteCustomerDocument(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const customerId = req.params.customerId as string;
     const id = req.params.id as string;
@@ -224,7 +339,10 @@ async function deleteCustomerDocument(req: Request, res: Response, next: NextFun
   }
 }
 
-function sendFile(res: Response, result: Awaited<ReturnType<typeof mediaService.downloadVehicleDocument>>): void {
+function sendFile(
+  res: Response,
+  result: Awaited<ReturnType<typeof mediaService.downloadVehicleDocument>>,
+): void {
   res.setHeader("Content-Type", result.mimeType);
   res.setHeader("Content-Length", String(result.size));
   res.setHeader(
@@ -234,22 +352,38 @@ function sendFile(res: Response, result: Awaited<ReturnType<typeof mediaService.
   res.status(200).send(result.buffer);
 }
 
-async function downloadVehicleDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function downloadVehicleDocument(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const vehicleId = req.params.vehicleId as string;
     const id = req.params.id as string;
-    const result = await mediaService.downloadVehicleDocument(id, vehicleId, req.user!.org);
+    const result = await mediaService.downloadVehicleDocument(
+      id,
+      vehicleId,
+      req.user!.org,
+    );
     sendFile(res, result);
   } catch (err) {
     next(err);
   }
 }
 
-async function downloadCustomerDocument(req: Request, res: Response, next: NextFunction): Promise<void> {
+async function downloadCustomerDocument(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   try {
     const customerId = req.params.customerId as string;
     const id = req.params.id as string;
-    const result = await mediaService.downloadCustomerDocument(id, customerId, req.user!.org);
+    const result = await mediaService.downloadCustomerDocument(
+      id,
+      customerId,
+      req.user!.org,
+    );
     sendFile(res, result);
   } catch (err) {
     next(err);

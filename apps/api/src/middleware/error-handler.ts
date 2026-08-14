@@ -2,7 +2,11 @@ import type { Request, Response, NextFunction } from "express";
 import { logger } from "../config";
 import { AppError } from "../shared";
 
-export function notFoundHandler(_req: Request, _res: Response, next: NextFunction): void {
+export function notFoundHandler(
+  _req: Request,
+  _res: Response,
+  next: NextFunction,
+): void {
   next(new AppError(404, "NOT_FOUND", "The requested resource was not found."));
 }
 
@@ -29,9 +33,7 @@ export function errorHandler(
   res.status(500).json({
     error: {
       code: "INTERNAL_ERROR",
-      message: isProduction
-        ? "An unexpected error occurred."
-        : err.message,
+      message: isProduction ? "An unexpected error occurred." : err.message,
     },
   });
 }

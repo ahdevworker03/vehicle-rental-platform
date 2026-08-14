@@ -8,7 +8,10 @@ async function findByOrg(orgId: string): Promise<CustomerRecord[]> {
   });
 }
 
-async function searchByOrg(orgId: string, term: string): Promise<CustomerRecord[]> {
+async function searchByOrg(
+  orgId: string,
+  term: string,
+): Promise<CustomerRecord[]> {
   return prisma.customer.findMany({
     where: {
       organization_id: orgId,
@@ -25,21 +28,27 @@ async function searchByOrg(orgId: string, term: string): Promise<CustomerRecord[
   });
 }
 
-async function findById(customerId: string, orgId: string): Promise<CustomerRecord | null> {
+async function findById(
+  customerId: string,
+  orgId: string,
+): Promise<CustomerRecord | null> {
   return prisma.customer.findFirst({
     where: { id: customerId, organization_id: orgId },
   });
 }
 
-async function create(data: {
-  first_name: string;
-  last_name: string;
-  phone: string;
-  address: string;
-  national_id: string;
-  license_number: string;
-  license_expiry_date: Date;
-}, orgId: string): Promise<CustomerRecord> {
+async function create(
+  data: {
+    first_name: string;
+    last_name: string;
+    phone: string;
+    address: string;
+    national_id: string;
+    license_number: string;
+    license_expiry_date: Date;
+  },
+  orgId: string,
+): Promise<CustomerRecord> {
   return prisma.customer.create({
     data: {
       ...data,
@@ -48,15 +57,18 @@ async function create(data: {
   });
 }
 
-async function update(customerId: string, data: {
-  first_name: string;
-  last_name: string;
-  phone: string;
-  address: string;
-  national_id: string;
-  license_number: string;
-  license_expiry_date: Date;
-}): Promise<CustomerRecord> {
+async function update(
+  customerId: string,
+  data: {
+    first_name: string;
+    last_name: string;
+    phone: string;
+    address: string;
+    national_id: string;
+    license_number: string;
+    license_expiry_date: Date;
+  },
+): Promise<CustomerRecord> {
   return prisma.customer.update({
     where: { id: customerId },
     data,
