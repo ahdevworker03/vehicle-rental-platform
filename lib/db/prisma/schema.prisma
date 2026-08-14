@@ -17,6 +17,7 @@ model Organization {
   customers  Customer[]
   vehicles   Vehicle[]
   rentals    Rental[]
+  contracts  Contract[]
   documents  Document[]
   photos     Photo[]
 
@@ -218,11 +219,40 @@ model Rental {
   updated_at           DateTime      @updatedAt
   deleted_at           DateTime?
 
+  contract  Contract?
+
   @@index([organization_id])
   @@index([customer_id])
   @@index([vehicle_id])
   @@index([status])
   @@index([pickup_date])
   @@index([expected_return_date])
+  @@index([deleted_at])
+}
+
+model Contract {
+  id                   String        @id @default(uuid()) @db.Uuid
+  organization_id      String        @db.Uuid
+  organization         Organization  @relation(fields: [organization_id], references: [id])
+  rental_id            String        @db.Uuid
+  rental               Rental        @relation(fields: [rental_id], references: [id])
+  pickup_date          DateTime
+  expected_return_date DateTime
+  daily_rate           Decimal       @db.Decimal(10, 2)
+  total_amount         Decimal       @db.Decimal(10, 2)
+  deposit_amount       Decimal       @db.Decimal(10, 2)
+  customer_first_name  String
+  customer_last_name   String
+  customer_national_id String
+  vehicle_make         String
+  vehicle_model        String
+  vehicle_plate_number String
+  created_at           DateTime      @default(now())
+  updated_at           DateTime      @updatedAt
+  deleted_at           DateTime?
+
+  @@unique([rental_id])
+  @@index([organization_id])
+  @@index([rental_id])
   @@index([deleted_at])
 }
