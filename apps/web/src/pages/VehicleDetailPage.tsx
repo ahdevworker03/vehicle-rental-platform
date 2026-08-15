@@ -155,41 +155,42 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
           </div>
         </div>
 
-        {/* Vehicle info */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
-          <h3 className="text-sm font-bold text-foreground mb-2">معلومات السيارة</h3>
-          <InfoRow label="الماركة" value={vehicle.make} />
-          <InfoRow label="الموديل" value={vehicle.model} />
-          <InfoRow label="رقم اللوحة" value={vehicle.plateNumber} />
-          <InfoRow label="السنة" value={vehicle.year} />
-          <InfoRow label="اللون" value={vehicle.color} />
-          {vehicle.vin && <InfoRow label="رقم الشاصي (VIN)" value={vehicle.vin} />}
-          {vehicle.engineNumber && <InfoRow label="رقم المحرك" value={vehicle.engineNumber} />}
-          <InfoRow label="ناقل الحركة" value={TRANSMISSION_LABELS[vehicle.transmission] ?? vehicle.transmission} />
-          <InfoRow label="نوع الوقود" value={FUEL_TYPE_LABELS[vehicle.fuelType] ?? vehicle.fuelType} />
-          <InfoRow label="عدد المقاعد" value={vehicle.seats} />
-          <InfoRow label="المسافة المقطوعة" value={`${vehicle.currentMileage.toLocaleString("ar-LB")} كم`} />
-          <InfoRow label="الحالة" value={<VehicleStatusBadge status={vehicle.status} />} />
-        </div>
+        {/* Vehicle info + Photos */}
+        <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+          <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
+            <h3 className="text-sm font-bold text-foreground mb-2">معلومات السيارة</h3>
+            <InfoRow label="الماركة" value={vehicle.make} />
+            <InfoRow label="الموديل" value={vehicle.model} />
+            <InfoRow label="رقم اللوحة" value={vehicle.plateNumber} />
+            <InfoRow label="السنة" value={vehicle.year} />
+            <InfoRow label="اللون" value={vehicle.color} />
+            {vehicle.vin && <InfoRow label="رقم الشاصي (VIN)" value={vehicle.vin} />}
+            {vehicle.engineNumber && <InfoRow label="رقم المحرك" value={vehicle.engineNumber} />}
+            <InfoRow label="ناقل الحركة" value={TRANSMISSION_LABELS[vehicle.transmission] ?? vehicle.transmission} />
+            <InfoRow label="نوع الوقود" value={FUEL_TYPE_LABELS[vehicle.fuelType] ?? vehicle.fuelType} />
+            <InfoRow label="عدد المقاعد" value={vehicle.seats} />
+            <InfoRow label="المسافة المقطوعة" value={`${vehicle.currentMileage.toLocaleString("ar-LB")} كم`} />
+            <InfoRow label="الحالة" value={<VehicleStatusBadge status={vehicle.status} />} />
+          </div>
 
-        {/* Photos */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
-          <MediaGallery
-            photos={photos.query.data?.data ?? []}
-            isLoading={photos.query.isLoading}
-            isError={photos.query.isError}
-            error={photos.query.error}
-            isOwner={isOwner}
-            uploading={photos.upload.isPending}
-            deleting={photos.remove.isPending}
-            onUpload={handleUploadPhoto}
-            onDelete={handleDeletePhoto}
-            onLoadContent={handleLoadPhotoContent}
-          />
+          <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
+            <MediaGallery
+              photos={photos.query.data?.data ?? []}
+              isLoading={photos.query.isLoading}
+              isError={photos.query.isError}
+              error={photos.query.error}
+              isOwner={isOwner}
+              uploading={photos.upload.isPending}
+              deleting={photos.remove.isPending}
+              onUpload={handleUploadPhoto}
+              onDelete={handleDeletePhoto}
+              onLoadContent={handleLoadPhotoContent}
+            />
+          </div>
         </div>
 
         {/* Documents */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
+        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 max-w-2xl">
           <DocumentList
             documents={documents.query.data?.data ?? []}
             isLoading={documents.query.isLoading}

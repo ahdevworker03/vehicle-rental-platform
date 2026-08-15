@@ -127,6 +127,8 @@ export default function CustomerDetailPage({ params }: DetailPageParams) {
       />
 
       <div className="px-4 pt-4 space-y-4">
+        {/* ── Contact + Identity ─────────────────────────────────── */}
+        <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
         {/* ── Contact Card ─────────────────────────────────────────── */}
         <div className="bg-card rounded-2xl border border-card-border shadow-sm overflow-hidden">
           <div className="flex items-center gap-4 px-4 py-5 border-b border-border">
@@ -167,9 +169,10 @@ export default function CustomerDetailPage({ params }: DetailPageParams) {
           <InfoRow label="رقم الرخصة" value={customer.licenseNumber} />
           <InfoRow label="انتهاء الرخصة" value={formatDateAr(customer.licenseExpiryDate)} />
         </div>
+        </div>
 
         {/* ── Documents ────────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
+        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 max-w-2xl">
           <DocumentList
             documents={documents.query.data?.data ?? []}
             isLoading={documents.query.isLoading}

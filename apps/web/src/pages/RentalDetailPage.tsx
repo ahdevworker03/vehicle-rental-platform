@@ -207,6 +207,53 @@ export default function RentalDetailPage({ params }: Props) {
           </span>
         </div>
 
+        {/* ── Main content + side panel ─────────────────────────────── */}
+        <div className="grid gap-4 lg:grid-cols-5 lg:items-start">
+          {/* Main column: dates/pricing + contract */}
+          <div className="space-y-4 lg:col-span-3">
+
+        {/* Rental info */}
+        <div className="bg-card rounded-2xl border border-card-border shadow-sm px-4 py-2">
+          <InfoRow
+            label="تاريخ الاستلام المخطط"
+            value={
+              <span className="flex items-center gap-1.5">
+                {formatDateAr(rental.pickupDate)}
+                <Calendar className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
+              </span>
+            }
+          />
+          <InfoRow
+            label="تاريخ الإرجاع المتوقع"
+            value={
+              <span className="flex items-center gap-1.5">
+                {formatDateAr(rental.expectedReturnDate)}
+                <Calendar className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
+              </span>
+            }
+          />
+          {rental.actualPickupDate && (
+            <InfoRow label="الاستلام الفعلي" value={formatDateAr(rental.actualPickupDate)} />
+          )}
+          {rental.actualReturnDate && (
+            <InfoRow label="الإعادة الفعلية" value={formatDateAr(rental.actualReturnDate)} />
+          )}
+          <InfoRow label="الأجرة اليومية" value={formatCurrency(rental.dailyRate)} />
+          <InfoRow
+            label="الإجمالي"
+            value={<span className="font-bold text-foreground">{formatCurrency(rental.totalAmount)}</span>}
+          />
+          <InfoRow label="التأمين" value={formatCurrency(rental.depositAmount)} />
+        </div>
+
+        {/* Contract */}
+        <ContractSection rentalId={rental.id} />
+
+          </div>
+
+          {/* Side column: customer + vehicle + actions */}
+          <div className="space-y-4 lg:col-span-2">
+
         {/* Customer */}
         <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
           <div className="text-xs font-semibold text-muted-foreground mb-3 text-right">العميل</div>
@@ -256,43 +303,6 @@ export default function RentalDetailPage({ params }: Props) {
             </div>
           </div>
         </div>
-
-        {/* Rental info */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm px-4 py-2">
-          <InfoRow
-            label="تاريخ الاستلام المخطط"
-            value={
-              <span className="flex items-center gap-1.5">
-                {formatDateAr(rental.pickupDate)}
-                <Calendar className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
-              </span>
-            }
-          />
-          <InfoRow
-            label="تاريخ الإرجاع المتوقع"
-            value={
-              <span className="flex items-center gap-1.5">
-                {formatDateAr(rental.expectedReturnDate)}
-                <Calendar className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
-              </span>
-            }
-          />
-          {rental.actualPickupDate && (
-            <InfoRow label="الاستلام الفعلي" value={formatDateAr(rental.actualPickupDate)} />
-          )}
-          {rental.actualReturnDate && (
-            <InfoRow label="الإعادة الفعلية" value={formatDateAr(rental.actualReturnDate)} />
-          )}
-          <InfoRow label="الأجرة اليومية" value={formatCurrency(rental.dailyRate)} />
-          <InfoRow
-            label="الإجمالي"
-            value={<span className="font-bold text-foreground">{formatCurrency(rental.totalAmount)}</span>}
-          />
-          <InfoRow label="التأمين" value={formatCurrency(rental.depositAmount)} />
-        </div>
-
-        {/* Contract */}
-        <ContractSection rentalId={rental.id} />
 
         {/* Action buttons — status-based */}
         {isOwner && activeAction === null && (
@@ -402,6 +412,9 @@ export default function RentalDetailPage({ params }: Props) {
             </div>
           </div>
         )}
+
+          </div>
+        </div>
       </div>
     </div>
   );
