@@ -17,7 +17,7 @@ import { getApiErrorMessage } from "@/lib/api-error";
 import { formatCurrency, formatDateAr } from "@/lib/format";
 import { formatFileSize, formatDate } from "@/lib/media-labels";
 import { useRentalContract, useRentalContractSignedDocuments } from "@/features/contracts/hooks";
-import type { DocumentResponse } from "@workspace/api-client-react";
+import { ApiError, type DocumentResponse } from "@workspace/api-client-react";
 
 interface ContractSectionProps {
   rentalId: string;
@@ -175,7 +175,7 @@ export function ContractSection({ rentalId }: ContractSectionProps) {
         <div className="flex items-center justify-center py-8">
           <Spinner />
         </div>
-      ) : contract.query.isError ? (
+      ) : contract.query.isError && !(contract.query.error instanceof ApiError && contract.query.error.status === 404) ? (
         <div className="text-sm text-muted-foreground text-center py-4">
           {contract.query.error
             ? getApiErrorMessage(contract.query.error).title
@@ -271,7 +271,7 @@ export function ContractSection({ rentalId }: ContractSectionProps) {
               <div className="flex items-center justify-center py-4">
                 <Loader2 className="size-4 animate-spin text-muted-foreground" />
               </div>
-            ) : signed.query.isError ? (
+            ) : signed.query.isError && !(signed.query.error instanceof ApiError && signed.query.error.status === 404) ? (
               <p className="text-xs text-muted-foreground text-center py-3">
                 {signed.query.error
                   ? getApiErrorMessage(signed.query.error).title
