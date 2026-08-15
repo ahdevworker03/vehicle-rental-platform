@@ -168,7 +168,7 @@ export default function EditVehiclePage({ params }: DetailPageParams) {
     <div className="min-h-full pb-8">
       <PageHeader title="تعديل السيارة" showBack />
 
-      <div className="px-4 pt-5 space-y-5">
+      <div className="px-4 pt-5 pb-8 mx-auto w-full max-w-3xl space-y-5">
         {formError && (
           <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3 text-sm text-destructive">
             {formError}
@@ -179,7 +179,7 @@ export default function EditVehiclePage({ params }: DetailPageParams) {
         <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">
           <h3 className="text-sm font-bold text-foreground">معلومات السيارة</h3>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="الماركة" required error={errors.make}>
               <input
                 className={errors.make ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
@@ -196,7 +196,7 @@ export default function EditVehiclePage({ params }: DetailPageParams) {
             </FormField>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="السنة" required error={errors.year}>
               <input
                 className={errors.year ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
@@ -222,7 +222,7 @@ export default function EditVehiclePage({ params }: DetailPageParams) {
             />
           </FormField>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="رقم الشاصي (VIN)">
               <input
                 className={inputClass}
@@ -246,7 +246,7 @@ export default function EditVehiclePage({ params }: DetailPageParams) {
         <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">
           <h3 className="text-sm font-bold text-foreground">المواصفات الفنية</h3>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="ناقل الحركة" required>
               <select
                 className={inputClass}
@@ -271,7 +271,7 @@ export default function EditVehiclePage({ params }: DetailPageParams) {
             </FormField>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="عدد المقاعد" required error={errors.seats}>
               <input
                 className={errors.seats ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}

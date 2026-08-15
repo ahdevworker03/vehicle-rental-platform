@@ -263,26 +263,28 @@ export default function AddMaintenancePage() {
         </div>
 
         {/* ── 3. Date + Cost ────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">
-          <FormField label="تاريخ الاستحقاق" required error={errors.dueDate}>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => { setDueDate(e.target.value); clearError("dueDate"); }}
-              className={errors.dueDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-            />
-          </FormField>
+        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField label="تاريخ الاستحقاق" required error={errors.dueDate}>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => { setDueDate(e.target.value); clearError("dueDate"); }}
+                className={errors.dueDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
+              />
+            </FormField>
 
-          <FormField label="التكلفة المتوقعة" hint="اختياري · بالدولار">
-            <input
-              type="number"
-              inputMode="numeric"
-              placeholder="مثال: 500000"
-              value={cost}
-              onChange={(e) => setCost(e.target.value)}
-              className={inputClass}
-            />
-          </FormField>
+            <FormField label="التكلفة المتوقعة" hint="اختياري · بالدولار">
+              <input
+                type="number"
+                inputMode="numeric"
+                placeholder="مثال: 500000"
+                value={cost}
+                onChange={(e) => setCost(e.target.value)}
+                className={inputClass}
+              />
+            </FormField>
+          </div>
         </div>
 
         {/* ── 4. Notes ──────────────────────────────────────────────── */}

@@ -103,7 +103,7 @@ export default function AddCustomerPage() {
     <div className="min-h-full pb-8">
       <PageHeader title="إضافة عميل" showBack />
 
-      <div className="px-4 pt-5 space-y-5">
+      <div className="px-4 pt-5 pb-8 mx-auto w-full max-w-3xl space-y-5">
         {formError && (
           <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3 text-sm text-destructive">
             {formError}
@@ -114,7 +114,7 @@ export default function AddCustomerPage() {
         <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">
           <h3 className="text-sm font-bold text-foreground">معلومات العميل</h3>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="الاسم الأول" required error={errors.first_name}>
               <input
                 className={errors.first_name ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
@@ -172,7 +172,7 @@ export default function AddCustomerPage() {
             />
           </FormField>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="رقم الرخصة" required error={errors.license_number}>
               <input
                 className={errors.license_number ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}

@@ -528,7 +528,7 @@ export default function NewRentalPage() {
 
         {/* 3. Rental details */}
         <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="تاريخ الاستلام" required error={errors.pickupDate}>
               <input
                 type="date"
@@ -549,7 +549,7 @@ export default function NewRentalPage() {
             </FormField>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <FormField label="الأجرة اليومية" required hint="بالدولار" error={errors.dailyRate}>
               <input
                 type="number"
