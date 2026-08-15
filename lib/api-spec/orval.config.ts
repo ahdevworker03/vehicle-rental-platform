@@ -48,7 +48,7 @@ export default defineConfig({
       workspace: apiClientReactSrc,
       target: "generated",
       client: "react-query",
-      mode: "split",
+      mode: "tags-split",
       baseUrl: "/api",
       clean: true,
       prettier: true,
@@ -75,7 +75,7 @@ export default defineConfig({
       client: "zod",
       target: "generated",
       schemas: { path: "generated/types", type: "typescript" },
-      mode: "split",
+      mode: "tags-split",
       clean: true,
       prettier: true,
       override: {

@@ -1,6 +1,11 @@
-export * from "./generated/api";
-export * from "./generated/api.schemas";
 export { setBaseUrl, setAuthTokenGetter, customFetch, ApiError } from "./custom-fetch";
 export type { AuthTokenGetter } from "./custom-fetch";
-export * from './generated/api';
+export * from './generated/auth/auth';
 export * from './generated/api.schemas';
+export * from './generated/contracts/contracts';
+export * from './generated/customers/customers';
+export * from './generated/health/health';
+export * from './generated/organizations/organizations';
+export * from './generated/rentals/rentals';
+export * from './generated/users/users';
+export * from './generated/vehicles/vehicles';
