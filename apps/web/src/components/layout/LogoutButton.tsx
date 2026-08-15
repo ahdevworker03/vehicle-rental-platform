@@ -4,13 +4,13 @@ import { LogOut } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 
 /**
- * Temporary logout button used to verify the authentication infrastructure
- * before the full application UI is implemented. Rendered in an always-visible
- * location (top-right of the AppShell).
+ * Logout button rendered in the AppShell top-right on small viewports and
+ * inside the desktop sidebar. Kept in an always-accessible location.
  */
-export function LogoutButton() {
+export function LogoutButton({ className }: { className?: string }) {
   const { logout } = useAuth();
   const [, setLocation] = useLocation();
   const [submitting, setSubmitting] = useState(false);
@@ -33,7 +33,7 @@ export function LogoutButton() {
       size="sm"
       onClick={handleLogout}
       disabled={submitting}
-      className="gap-1.5 text-muted-foreground"
+      className={cn("gap-1.5 text-muted-foreground", className)}
       aria-label="تسجيل الخروج"
     >
       {submitting ? <Spinner /> : <LogOut className="size-4" />}

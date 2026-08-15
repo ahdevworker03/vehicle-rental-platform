@@ -68,15 +68,19 @@ function App() {
               {/* Full-screen flows render outside AppShell (no bottom navigation) */}
               <Route path="/rentals/new">
                 <ProtectedRoute>
-                  <div className="max-w-[480px] mx-auto h-[100dvh] flex flex-col bg-background relative overflow-hidden shadow-2xl">
-                    <NewRentalPage />
+                  <div className="h-[100dvh] flex flex-col bg-background relative overflow-hidden">
+                    <div className="flex-1 flex flex-col min-h-0 mx-auto w-full max-w-3xl">
+                      <NewRentalPage />
+                    </div>
                   </div>
                 </ProtectedRoute>
               </Route>
               <Route path="/maintenance/add">
                 <ProtectedRoute>
-                  <div className="max-w-[480px] mx-auto h-[100dvh] flex flex-col bg-background relative overflow-hidden shadow-2xl">
-                    <AddMaintenancePage />
+                  <div className="h-[100dvh] flex flex-col bg-background relative overflow-hidden">
+                    <div className="flex-1 flex flex-col min-h-0 mx-auto w-full max-w-3xl">
+                      <AddMaintenancePage />
+                    </div>
                   </div>
                 </ProtectedRoute>
               </Route>

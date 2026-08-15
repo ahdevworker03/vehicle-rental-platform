@@ -47,7 +47,7 @@ export function BottomNavigation() {
   return (
     <nav
       aria-label="التنقل الرئيسي"
-      className="fixed bottom-0 left-0 right-0 w-full bg-background border-t border-border z-50"
+      className="fixed bottom-0 left-0 right-0 w-full bg-background border-t border-border z-50 lg:hidden"
     >
       <div className="max-w-[480px] mx-auto flex justify-between items-center px-2">
         {TABS.map((tab) => (
