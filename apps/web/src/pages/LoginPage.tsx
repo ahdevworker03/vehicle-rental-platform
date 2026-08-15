@@ -55,7 +55,7 @@ export default function LoginPage() {
   const isFormFilled = form.email.trim().length > 0 && form.password.length > 0;
 
   return (
-    <div className="min-h-full flex items-center justify-center px-4">
+    <div className="min-h-dvh flex items-center justify-center px-4 py-8 bg-background">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold text-foreground">تسجيل الدخول</h1>
