@@ -146,9 +146,9 @@ export default function MaintenancePage() {
         </div>
       )}
 
-      <div className="px-4 pb-6 mt-3 space-y-3">
+      <div className="px-4 pb-6 mt-3">
         {(search || filter !== "all") && filtered.length > 0 && (
-          <p className="text-xs text-muted-foreground text-right px-1">
+          <p className="text-xs text-muted-foreground text-right px-1 mb-3">
             عرض {filtered.length} من أصل {records.length} سجل
           </p>
         )}
@@ -189,20 +189,22 @@ export default function MaintenancePage() {
             />
           )
         ) : (
-          filtered.map((record) => {
-            const vehicle = getVehicleById(record.vehicleId);
-            return (
-              <MaintenanceCard
-                key={record.id}
-                record={record}
-                vehicleName={vehicle ? `${vehicle.make} ${vehicle.model}` : "—"}
-                vehiclePlate={vehicle?.plate ?? ""}
-                isExpanded={expandedId === record.id}
-                onToggle={() => handleToggle(record.id)}
-                onMarkComplete={() => handleMarkComplete(record.id)}
-              />
-            );
-          })
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:items-start">
+            {filtered.map((record) => {
+              const vehicle = getVehicleById(record.vehicleId);
+              return (
+                <MaintenanceCard
+                  key={record.id}
+                  record={record}
+                  vehicleName={vehicle ? `${vehicle.make} ${vehicle.model}` : "—"}
+                  vehiclePlate={vehicle?.plate ?? ""}
+                  isExpanded={expandedId === record.id}
+                  onToggle={() => handleToggle(record.id)}
+                  onMarkComplete={() => handleMarkComplete(record.id)}
+                />
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

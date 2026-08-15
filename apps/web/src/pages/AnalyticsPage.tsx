@@ -127,6 +127,9 @@ export default function AnalyticsPage() {
 
       <div className="px-4 pt-4 pb-8 space-y-6">
 
+        {/* ── Top row: Revenue + Revenue by vehicle ─────────────────────── */}
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+
         {/* ── Section 1: Revenue ─────────────────────────────────────────── */}
         <section>
           <SectionHeader title="الإيرادات" />
@@ -207,6 +210,11 @@ export default function AnalyticsPage() {
             </div>
           )}
         </section>
+
+        </div>
+
+        {/* ── Bottom row: Fleet + Summary + Top debtor ─────────────────── */}
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
 
         {/* ── Section 3: Fleet status ────────────────────────────────────── */}
         <section>
@@ -338,6 +346,8 @@ export default function AnalyticsPage() {
             </button>
           </section>
         )}
+
+        </div>
 
       </div>
     </div>

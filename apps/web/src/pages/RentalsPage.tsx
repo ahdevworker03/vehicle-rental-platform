@@ -75,7 +75,7 @@ export default function RentalsPage() {
         )}
       </div>
 
-      <div className="px-4 pb-6 space-y-3">
+      <div className="px-4 pb-6">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <Spinner className="size-6" />
@@ -112,22 +112,24 @@ export default function RentalsPage() {
             />
           )
         ) : (
-          rentals.map((rental) => {
-            const customer = customerById.get(rental.customerId);
-            const vehicle = vehicleById.get(rental.vehicleId);
-            return (
-              <RentalCard
-                key={rental.id}
-                rental={rental}
-                customerName={
-                  customer ? `${customer.firstName} ${customer.lastName}` : "—"
-                }
-                vehicleName={vehicle ? `${vehicle.make} ${vehicle.model}` : "—"}
-                vehiclePlate={vehicle?.plateNumber ?? ""}
-                onClick={() => setLocation(`/rentals/${rental.id}`)}
-              />
-            );
-          })
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {rentals.map((rental) => {
+              const customer = customerById.get(rental.customerId);
+              const vehicle = vehicleById.get(rental.vehicleId);
+              return (
+                <RentalCard
+                  key={rental.id}
+                  rental={rental}
+                  customerName={
+                    customer ? `${customer.firstName} ${customer.lastName}` : "—"
+                  }
+                  vehicleName={vehicle ? `${vehicle.make} ${vehicle.model}` : "—"}
+                  vehiclePlate={vehicle?.plateNumber ?? ""}
+                  onClick={() => setLocation(`/rentals/${rental.id}`)}
+                />
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

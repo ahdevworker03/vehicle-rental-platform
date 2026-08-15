@@ -156,7 +156,7 @@ function RevenueCard({
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-right bg-primary rounded-2xl p-5 cursor-pointer active:scale-[0.99] transition-transform shadow-sm"
+      className="w-full h-full flex flex-col text-right bg-primary rounded-2xl p-5 cursor-pointer active:scale-[0.99] transition-transform shadow-sm"
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 text-primary-foreground/80">
@@ -260,9 +260,10 @@ export default function DashboardPage() {
     <div className="min-h-full">
       <PageHeader title="الرئيسية" />
 
-      <div className="px-4 py-5 space-y-6">
+      <div className="px-4 space-y-5 lg:space-y-6">
 
-        {/* ── Fleet Status ──────────────────────────────────────────────── */}
+        {/* ── Fleet Status + Revenue ────────────────────────────────────── */}
+        <div className="grid gap-3 md:grid-cols-2 md:gap-4">
         <section>
           <SectionHeader
             title="حالة السيارات"
@@ -303,11 +304,12 @@ export default function DashboardPage() {
             pendingBalance={pendingBalance}
           />
         </section>
+        </div>
 
         {/* ── Quick Actions ─────────────────────────────────────────────── */}
         <section>
           <SectionHeader title="الإجراءات الأساسية" />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <QuickActionButton
               icon={Car}
               label="تأجير سيارة"
@@ -331,6 +333,9 @@ export default function DashboardPage() {
             />
           </div>
         </section>
+
+        {/* ── Today's Tasks + Upcoming Maintenance ─────────────────────── */}
+        <div className="grid gap-5 lg:gap-6 lg:grid-cols-2 lg:items-start">
 
         {/* ── Today's Tasks ─────────────────────────────────────────────── */}
         <section>
@@ -489,6 +494,8 @@ export default function DashboardPage() {
             </div>
           </section>
         )}
+
+        </div>
 
         {/* ── Recent Activity ───────────────────────────────────────────── */}
         <section>

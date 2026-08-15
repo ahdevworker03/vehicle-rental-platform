@@ -55,7 +55,7 @@ export default function VehiclesPage() {
         }
       />
 
-      <div className="px-4 pt-4 pb-4 space-y-3">
+      <div className="px-4 pt-4 pb-3 space-y-3">
         <SearchBar
           placeholder="ابحث بالماركة أو الموديل أو رقم اللوحة أو السنة..."
           value={search}
@@ -81,11 +81,11 @@ export default function VehiclesPage() {
         )}
       </div>
 
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 max-w-2xl">
         <VehicleAvailabilitySection />
       </div>
 
-      <div className="px-4 pb-6 space-y-3">
+      <div className="px-4 pb-6">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <Spinner className="size-6" />
@@ -122,13 +122,15 @@ export default function VehiclesPage() {
             />
           )
         ) : (
-          filtered.map((vehicle) => (
-            <VehicleCard
-              key={vehicle.id}
-              vehicle={vehicle}
-              onClick={() => setLocation(`/vehicles/${vehicle.id}`)}
-            />
-          ))
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {filtered.map((vehicle) => (
+              <VehicleCard
+                key={vehicle.id}
+                vehicle={vehicle}
+                onClick={() => setLocation(`/vehicles/${vehicle.id}`)}
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>

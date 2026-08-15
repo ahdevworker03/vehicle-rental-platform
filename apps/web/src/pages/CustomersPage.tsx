@@ -55,7 +55,7 @@ export default function CustomersPage() {
         )}
       </div>
 
-      <div className="px-4 pb-6 space-y-3">
+      <div className="px-4 pb-6">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <Spinner className="size-6" />
@@ -92,13 +92,15 @@ export default function CustomersPage() {
             />
           )
         ) : (
-          customers.map((customer) => (
-            <CustomerCard
-              key={customer.id}
-              customer={customer}
-              onClick={() => setLocation(`/customers/${customer.id}`)}
-            />
-          ))
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {customers.map((customer) => (
+              <CustomerCard
+                key={customer.id}
+                customer={customer}
+                onClick={() => setLocation(`/customers/${customer.id}`)}
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>
