@@ -22,6 +22,7 @@ model Organization {
   photos     Photo[]
   maintenance Maintenance[]
   expenses   Expense[]
+  payments   Payment[]
 
   @@index([deleted_at])
 }
@@ -84,6 +85,13 @@ enum ExpenseCategory {
   INSURANCE
   REGISTRATION
   CLEANING
+  OTHER
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
   OTHER
 }
 
@@ -295,6 +303,7 @@ model Rental {
   deleted_at           DateTime?
 
   contract  Contract?
+  payments  Payment[]
 
   @@index([organization_id])
   @@index([customer_id])
@@ -304,6 +313,25 @@ model Rental {
   @@index([expected_return_date])
   @@index([vehicle_id, pickup_date, expected_return_date])
   @@index([deleted_at])
+}
+
+model Payment {
+  id              String        @id @default(uuid()) @db.Uuid
+  organization_id String        @db.Uuid
+  organization    Organization  @relation(fields: [organization_id], references: [id])
+  rental_id       String        @db.Uuid
+  rental          Rental        @relation(fields: [rental_id], references: [id])
+  amount          Decimal       @db.Decimal(10, 2)
+  payment_date    DateTime
+  method          PaymentMethod
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  deleted_at      DateTime?
+
+  @@index([organization_id])
+  @@index([rental_id])
+  @@index([deleted_at])
+  @@index([payment_date])
 }
 
 model Contract {

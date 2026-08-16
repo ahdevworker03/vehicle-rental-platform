@@ -179,19 +179,23 @@ Represents the legal agreement for a rental.
 
 # Payment
 
-Represents money received from customers.
+Represents money received for a rental.
 
 ### Responsibilities
 
 - Payment amount
 - Payment date
 - Payment method
-- Outstanding balance tracking
 
 ### Relationships
 
 - Belongs to one Rental
 - Belongs to one Organization
+
+### Notes
+
+- A rental can have multiple payments (partial payments).
+- The outstanding balance is **derived**, not stored. It is calculated as the rental `total_amount` minus the valid recorded payments.
 
 ---
 

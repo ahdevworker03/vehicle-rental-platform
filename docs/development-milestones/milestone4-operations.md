@@ -400,9 +400,9 @@ Including:
 
 - organization relationship
 - rental relationship
-- payment amount
+- payment amount (approved — `Decimal(10,2)`, strictly greater than zero)
 - payment date
-- payment method enum (per approved decision — see Ambiguities)
+- payment method enum (approved — see `11-domain-model-specification.md` PaymentMethod)
 - timestamps
 - soft delete strategy
 - constraints
@@ -848,14 +848,12 @@ The following decisions are **not settled by existing documentation** and materi
 6. **Task recurring schedule.**
    `02-business-requirements.md` requires "create recurring tasks" and the domain model lists "recurring schedule" as a responsibility, but `11-domain-model-specification.md` marks the recurrence representation as "Requires Architectural Approval". Proposal for approval: defer recurring tasks (no recurrence field) and implement single-occurrence tasks in Milestone 4, since recurrence generation logic would otherwise expand the milestone scope.
 
-7. **Payment method enum and balance tracking.**
-   `11-domain-model-specification.md` marks `PaymentMethod` as "Requires Architectural Approval" and asks whether outstanding balance is stored or derived. Proposal: `PaymentMethod` = `CASH`, `CARD`, `TRANSFER` (approval of the exact values required); outstanding balance is **derived** from `Rental.total_amount` minus recorded payments (consistent with the existing frontend selectors `getTotalPaid` / `getTotalRemaining` in `apps/web/src/data/index.ts`), not stored.
+7. ~~**Payment method enum and balance tracking.**~~ **RESOLVED** — approved in `11-domain-model-specification.md`. `PaymentMethod` = `CASH`, `CARD`, `TRANSFER`, `OTHER`; outstanding balance is **derived** from `Rental.total_amount` minus recorded payments, never stored.
 
 8. **Role permission matrix for operations.**
    `11-domain-model-specification.md` states the per-module role permission matrix for OWNER/MANAGER/EMPLOYEE is partially inferred and "Requires Architectural Approval". Milestone 2 and 3 followed the pattern: list/get for any authenticated user; create/update/delete restricted to `OWNER`. Proposal: apply the same pattern to all Milestone 4 modules (Maintenance, Expense, Payment, Task) unless a different matrix is approved.
 
-9. **Currency for expenses and payments.**
-   The MVP frontend formats currency in USD (`formatCurrency` in `apps/web/src/lib/format.ts`). The domain model and business requirements do not specify a currency field. Proposal: amounts are stored as numeric values consistent with the existing `Rental.daily_rate` / `total_amount` (`Decimal(10,2)`) convention; no currency field is added.
+9. ~~**Currency for expenses and payments.**~~ **RESOLVED** — approved in `11-domain-model-specification.md`. No currency field; amounts use the existing `Decimal(10,2)` monetary convention.
 
 ---
 

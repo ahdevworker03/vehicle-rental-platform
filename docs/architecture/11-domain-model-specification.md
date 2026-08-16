@@ -160,19 +160,20 @@ Notes: Rental status values (e.g., active, returned, extended, cancelled) are no
 
 ## PaymentStatus
 
-**Source:** not documented.
+**Source:** not applicable.
 
-| Value          | Status                              |
-| -------------- | ----------------------------------- |
-| (undetermined) | **Requires Architectural Approval** |
+No `PaymentStatus` enum exists. A recorded payment is a completed payment; there is no status field on the Payment model (approved architecture decision, Milestone 4, Phase 16, Step 16.1). Reversals are handled by soft deletion.
 
 ## PaymentMethod
 
-**Source:** not documented.
+**Source:** approved architecture decision (Milestone 4, Phase 16, Step 16.1).
 
-| Value          | Status                              |
-| -------------- | ----------------------------------- |
-| (undetermined) | **Requires Architectural Approval** |
+| Value      | Purpose                                 | Status   |
+| ---------- | --------------------------------------- | -------- |
+| `CASH`     | Cash payment                           | Approved |
+| `CARD`     | Card payment                           | Approved |
+| `TRANSFER` | Bank transfer                          | Approved |
+| `OTHER`    | Unlisted payment methods               | Approved |
 
 ## ExpenseCategory
 
@@ -775,40 +776,48 @@ The legal agreement for a rental.
 
 ### Purpose
 
-Money received from customers for rentals.
+Money received by the rental business for a rental.
+
+Payment records money received from a customer against a specific Rental. It is not an online payment-processing system: no payment gateways, webhooks, checkout flows, or payment-processing concepts are represented. Payment amounts are recorded individually; the outstanding rental balance is derived from the rental total and recorded payments and is never stored on Payment.
 
 ### Relationships
 
 - Belongs to one `Rental`
 - Belongs to one `Organization`
+- An `Organization` can have many `Payment` records (`payments Payment[]`)
+- A `Rental` can have many `Payment` records (`payments Payment[]`)
 
 ### Fields
 
-| Field           | Column          | Type          | Required | Default    | Notes                                           |
-| --------------- | --------------- | ------------- | -------- | ---------- | ----------------------------------------------- |
-| id              | id              | UUID          | ✅       | uuid()     | PK                                              |
-| organization_id | organization_id | UUID          | ✅       | —          | FK → Organization.id                            |
-| rental_id       | rental_id       | UUID          | ✅       | —          | FK → Rental.id                                  |
-| amount          | amount          | Decimal       | ✅       | —          | **Requires Architectural Approval** (precision) |
-| payment date    | (undetermined)  | DateTime      | ✅       | —          | Documented as "payment date"                    |
-| method          | method          | PaymentMethod | ✅       | —          | **Requires Architectural Approval**             |
-| created_at      | created_at      | DateTime      | ✅       | now()      | Audit                                           |
-| updated_at      | updated_at      | DateTime      | ✅       | @updatedAt | Audit                                           |
-| deleted_at      | deleted_at      | DateTime?     | ❌       | null       | Soft delete                                     |
+| Field           | Column           | Type             | Required | Default    | Notes                                         |
+| --------------- | ---------------- | ---------------- | -------- | ---------- | --------------------------------------------- |
+| id              | id               | UUID             | ✅       | uuid()     | PK                                            |
+| organization_id | organization_id  | UUID             | ✅       | —          | FK → Organization.id                          |
+| rental_id       | rental_id        | UUID             | ✅       | —          | FK → Rental.id                                |
+| amount          | amount           | Decimal          | ✅       | —          | `@db.Decimal(10, 2)`, strictly greater than zero |
+| payment_date    | payment_date     | DateTime         | ✅       | —          | Date/time the payment was received            |
+| method          | method           | PaymentMethod    | ✅       | —          | CASH / CARD / TRANSFER / OTHER                |
+| created_at      | created_at       | DateTime         | ✅       | now()      | Audit                                         |
+| updated_at      | updated_at       | DateTime         | ✅       | @updatedAt | Audit                                         |
+| deleted_at      | deleted_at       | DateTime?        | ❌       | null       | Soft delete                                   |
 
 ### Constraints
 
 - FKs: `organization_id`, `rental_id`.
+- `method` must be a valid `PaymentMethod`.
 
 ### Unique Constraints
 
-- None documented.
+- None. A Rental may have multiple Payments (partial payments), so there is no unique constraint on `rental_id`.
 
 ### Indexes
 
 - `@@index([organization_id])`
 - `@@index([rental_id])`
 - `@@index([deleted_at])`
+- `@@index([payment_date])`
+
+The `payment_date` index supports organization-scoped period-based revenue reporting, following the same standalone-date-index convention used by `Rental` and `Expense`.
 
 ### Foreign Keys
 
@@ -817,24 +826,30 @@ Money received from customers for rentals.
 
 ### onDelete Behavior
 
-- RESTRICT.
+- RESTRICT (business record).
 
 ### Soft Delete Strategy
 
-- `deleted_at`.
+- `deleted_at`. Deleted payments remain in the database and are excluded from normal queries and balance/revenue derivations in the service layer.
 
 ### Business Rules
 
-- Every payment belongs to one rental.
-- Outstanding balance tracking (stored vs derived) **Requires Architectural Approval**.
+- Every payment belongs to exactly one rental.
+- A Rental can have multiple payments (partial payments supported).
+- Outstanding balance is **derived** from `Rental.total_amount` minus recorded payments; it is never stored on Payment.
+- `payment_date` is the date the payment was actually received.
+- Payment represents money received by the business for a rental — it is not an online payment-processing system. No gateways, webhooks, or payment-processing concepts apply.
 
 ### Validation Rules
 
-- **Requires Architectural Approval**.
+- `amount` is required, must be `Decimal(10, 2)`, and must be strictly greater than zero.
+- `payment_date` is required and must be a valid date.
+- `method` is required and must be a valid `PaymentMethod`.
+- `rental_id` is required and must reference a Rental in the same organization (enforced by the service layer).
 
 ### API Notes
 
-- Planned: record payments, partial payments, outstanding balances.
+- Planned: record payments, list payments for a rental, partial payments, derived outstanding balances.
 
 ---
 
@@ -1442,10 +1457,9 @@ Those belong to later steps.
 
 1. **Rental field set and status enum** — period structure, pricing, status values.
 2. **Contract representation** — content vs file reference vs template.
-3. **Payment field set** — method enum, amount precision, balance stored vs derived.
-4. **Task field set** — recurrence representation, completion status enum.
-5. **Notification field set** — type enum, read state, stored vs generated.
-6. **Role permission matrix** — exact per-module permissions for OWNER/MANAGER/EMPLOYEE.
+3. **Task field set** — recurrence representation, completion status enum.
+4. **Notification field set** — type enum, read state, stored vs generated.
+5. **Role permission matrix** — exact per-module permissions for OWNER/MANAGER/EMPLOYEE.
 
 Each open decision must be resolved and approved before the corresponding model is implemented.
 
