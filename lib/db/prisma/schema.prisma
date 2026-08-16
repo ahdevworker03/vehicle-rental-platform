@@ -20,6 +20,7 @@ model Organization {
   contracts  Contract[]
   documents  Document[]
   photos     Photo[]
+  maintenance Maintenance[]
 
   @@index([deleted_at])
 }
@@ -62,6 +63,19 @@ enum RentalStatus {
   ACTIVE
   RETURNED
   CANCELLED
+}
+
+enum MaintenanceType {
+  PREVENTIVE_SERVICE
+  INSPECTION
+  REPAIR
+  OTHER
+}
+
+enum MaintenanceStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
 }
 
 model User {
@@ -144,6 +158,7 @@ model Vehicle {
   documents Document[]
   photos    Photo[]
   rentals   Rental[]
+  maintenance Maintenance[]
 
   @@unique([organization_id, plate_number])
   @@index([organization_id])
@@ -152,6 +167,31 @@ model Vehicle {
   @@index([make])
   @@index([model])
   @@index([plate_number])
+}
+
+model Maintenance {
+  id               String            @id @default(uuid()) @db.Uuid
+  organization_id  String            @db.Uuid
+  organization     Organization      @relation(fields: [organization_id], references: [id])
+  vehicle_id       String            @db.Uuid
+  vehicle          Vehicle           @relation(fields: [vehicle_id], references: [id])
+  type             MaintenanceType
+  status           MaintenanceStatus @default(SCHEDULED)
+  maintenance_date DateTime
+  completed_at     DateTime?
+  cost             Decimal?          @db.Decimal(10, 2)
+  vendor           String?
+  notes            String?
+  replaced_parts   Json?
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
+  deleted_at       DateTime?
+
+  @@index([organization_id])
+  @@index([vehicle_id])
+  @@index([deleted_at])
+  @@index([status])
+  @@index([maintenance_date])
 }
 
 model Document {
