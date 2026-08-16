@@ -440,6 +440,122 @@ export interface ContractResponseWrapper {
   data: ContractResponse;
 }
 
+export type MaintenanceResponseType = typeof MaintenanceResponseType[keyof typeof MaintenanceResponseType];
+
+
+export const MaintenanceResponseType = {
+  PREVENTIVE_SERVICE: 'PREVENTIVE_SERVICE',
+  INSPECTION: 'INSPECTION',
+  REPAIR: 'REPAIR',
+  OTHER: 'OTHER',
+} as const;
+
+export type MaintenanceResponseStatus = typeof MaintenanceResponseStatus[keyof typeof MaintenanceResponseStatus];
+
+
+export const MaintenanceResponseStatus = {
+  SCHEDULED: 'SCHEDULED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+} as const;
+
+export type MaintenanceResponseReplacedPartsItem = {
+  name: string;
+  brand?: string;
+  quantity?: number;
+  unitCost?: number;
+};
+
+export interface MaintenanceResponse {
+  id: string;
+  vehicleId: string;
+  type: MaintenanceResponseType;
+  status: MaintenanceResponseStatus;
+  maintenanceDate: string;
+  completedAt?: string | null;
+  cost?: number | null;
+  vendor?: string | null;
+  notes?: string | null;
+  replacedParts?: MaintenanceResponseReplacedPartsItem[] | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MaintenanceResponseWrapper {
+  data: MaintenanceResponse;
+}
+
+export interface MaintenanceListResponse {
+  data: MaintenanceResponse[];
+}
+
+export interface MaintenanceReplacedPart {
+  /** @minLength 1 */
+  name: string;
+  brand?: string;
+  /** @minimum 1 */
+  quantity?: number;
+  /** @minimum 0 */
+  unitCost?: number;
+}
+
+export type CreateMaintenanceRequestType = typeof CreateMaintenanceRequestType[keyof typeof CreateMaintenanceRequestType];
+
+
+export const CreateMaintenanceRequestType = {
+  PREVENTIVE_SERVICE: 'PREVENTIVE_SERVICE',
+  INSPECTION: 'INSPECTION',
+  REPAIR: 'REPAIR',
+  OTHER: 'OTHER',
+} as const;
+
+export interface CreateMaintenanceRequest {
+  /** @minLength 1 */
+  vehicle_id: string;
+  type: CreateMaintenanceRequestType;
+  maintenance_date: string;
+  /** @minimum 0 */
+  cost?: number;
+  vendor?: string;
+  notes?: string;
+  replaced_parts?: MaintenanceReplacedPart[];
+}
+
+export type UpdateMaintenanceRequestType = typeof UpdateMaintenanceRequestType[keyof typeof UpdateMaintenanceRequestType];
+
+
+export const UpdateMaintenanceRequestType = {
+  PREVENTIVE_SERVICE: 'PREVENTIVE_SERVICE',
+  INSPECTION: 'INSPECTION',
+  REPAIR: 'REPAIR',
+  OTHER: 'OTHER',
+} as const;
+
+export type UpdateMaintenanceRequestStatus = typeof UpdateMaintenanceRequestStatus[keyof typeof UpdateMaintenanceRequestStatus];
+
+
+export const UpdateMaintenanceRequestStatus = {
+  SCHEDULED: 'SCHEDULED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+} as const;
+
+export interface UpdateMaintenanceRequest {
+  type?: UpdateMaintenanceRequestType;
+  status?: UpdateMaintenanceRequestStatus;
+  maintenance_date?: string;
+  /** @minimum 0 */
+  cost?: number | null;
+  vendor?: string | null;
+  notes?: string | null;
+  replaced_parts?: MaintenanceReplacedPart[] | null;
+}
+
+export interface CompleteMaintenanceRequest {
+  /** @minimum 0 */
+  cost: number;
+}
+
 export interface CreateRentalRequest {
   /** @minLength 1 */
   customer_id: string;
@@ -591,5 +707,12 @@ excludeRentalId?: string;
 
 export type UploadRentalContractSignedDocumentBody = {
   file?: Blob;
+};
+
+export type ListMaintenanceParams = {
+/**
+ * Filter by vehicle ID
+ */
+vehicleId?: string;
 };
 

@@ -9,3 +9,4 @@ export * from './generated/organizations/organizations';
 export * from './generated/rentals/rentals';
 export * from './generated/users/users';
 export * from './generated/vehicles/vehicles';
+export * from './generated/maintenance/maintenance';

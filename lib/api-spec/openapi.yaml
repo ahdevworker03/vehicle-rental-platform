@@ -24,6 +24,8 @@ tags:
     description: Rental operations
   - name: contracts
     description: Contract operations
+  - name: maintenance
+    description: Maintenance operations
 paths:
   /healthz:
     get:
@@ -2436,6 +2438,287 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /maintenance:
+    get:
+      operationId: listMaintenance
+      tags: [maintenance]
+      summary: List maintenance records in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: vehicleId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vehicle ID
+      responses:
+        "200":
+          description: List of maintenance records
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createMaintenance
+      tags: [maintenance]
+      summary: Create a maintenance record in the current organization
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMaintenanceRequest"
+      responses:
+        "201":
+          description: Maintenance record created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Vehicle not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /maintenance/{id}:
+    get:
+      operationId: getMaintenance
+      tags: [maintenance]
+      summary: Get a maintenance record in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Maintenance ID
+      responses:
+        "200":
+          description: Maintenance record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Maintenance record not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateMaintenance
+      tags: [maintenance]
+      summary: Update a maintenance record in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Maintenance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMaintenanceRequest"
+      responses:
+        "200":
+          description: Maintenance record updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Maintenance record not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteMaintenance
+      tags: [maintenance]
+      summary: Soft delete a maintenance record in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Maintenance ID
+      responses:
+        "204":
+          description: Maintenance record deleted
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Maintenance record not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /maintenance/{id}/complete:
+    post:
+      operationId: completeMaintenance
+      tags: [maintenance]
+      summary: Complete a maintenance record in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Maintenance ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteMaintenanceRequest"
+      responses:
+        "200":
+          description: Maintenance record completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Maintenance record not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Invalid lifecycle transition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /vehicles/{vehicleId}/maintenance:
+    get:
+      operationId: listVehicleMaintenance
+      tags: [maintenance]
+      summary: List maintenance history for a vehicle in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: vehicleId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Vehicle ID
+      responses:
+        "200":
+          description: Vehicle maintenance history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Vehicle not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -3193,6 +3476,167 @@ components:
           $ref: "#/components/schemas/ContractResponse"
       required:
         - data
+
+    MaintenanceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        vehicleId:
+          type: string
+        type:
+          type: string
+          enum: [PREVENTIVE_SERVICE, INSPECTION, REPAIR, OTHER]
+        status:
+          type: string
+          enum: [SCHEDULED, IN_PROGRESS, COMPLETED]
+        maintenanceDate:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        cost:
+          type: number
+          nullable: true
+        vendor:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        replacedParts:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              brand:
+                type: string
+              quantity:
+                type: integer
+              unitCost:
+                type: number
+            required:
+              - name
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - vehicleId
+        - type
+        - status
+        - maintenanceDate
+        - createdAt
+        - updatedAt
+
+    MaintenanceResponseWrapper:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MaintenanceResponse"
+      required:
+        - data
+
+    MaintenanceListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/MaintenanceResponse"
+      required:
+        - data
+
+    MaintenanceReplacedPart:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        brand:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        unitCost:
+          type: number
+          minimum: 0
+      required:
+        - name
+
+    CreateMaintenanceRequest:
+      type: object
+      properties:
+        vehicle_id:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum: [PREVENTIVE_SERVICE, INSPECTION, REPAIR, OTHER]
+        maintenance_date:
+          type: string
+          format: date-time
+        cost:
+          type: number
+          minimum: 0
+        vendor:
+          type: string
+        notes:
+          type: string
+        replaced_parts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MaintenanceReplacedPart"
+      required:
+        - vehicle_id
+        - type
+        - maintenance_date
+
+    UpdateMaintenanceRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [PREVENTIVE_SERVICE, INSPECTION, REPAIR, OTHER]
+        status:
+          type: string
+          enum: [SCHEDULED, IN_PROGRESS, COMPLETED]
+        maintenance_date:
+          type: string
+          format: date-time
+        cost:
+          type: number
+          minimum: 0
+          nullable: true
+        vendor:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        replaced_parts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MaintenanceReplacedPart"
+          nullable: true
+      required: []
+
+    CompleteMaintenanceRequest:
+      type: object
+      properties:
+        cost:
+          type: number
+          minimum: 0
+      required:
+        - cost
 
     CreateRentalRequest:
       type: object
