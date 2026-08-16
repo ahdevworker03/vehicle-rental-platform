@@ -22,6 +22,9 @@ import RentalDetailPage from '@/pages/RentalDetailPage';
 import MaintenancePage from '@/pages/MaintenancePage';
 import AddMaintenancePage from '@/pages/AddMaintenancePage';
 import MaintenanceDetailPage from '@/pages/MaintenanceDetailPage';
+import ExpensesPage from '@/pages/ExpensesPage';
+import AddExpensePage from '@/pages/AddExpensePage';
+import ExpenseDetailPage from '@/pages/ExpenseDetailPage';
 import AnalyticsPage from '@/pages/AnalyticsPage';
 import NotFound from '@/pages/not-found';
 
@@ -41,6 +44,8 @@ function Router() {
       <Route path="/rentals/:id" component={RentalDetailPage} />
       <Route path="/maintenance" component={MaintenancePage} />
       <Route path="/maintenance/:id" component={MaintenanceDetailPage} />
+      <Route path="/expenses" component={ExpensesPage} />
+      <Route path="/expenses/:id" component={ExpenseDetailPage} />
       <Route path="/analytics" component={AnalyticsPage} />
       <Route component={NotFound} />
     </Switch>
@@ -82,6 +87,15 @@ function App() {
                   <div className="h-[100dvh] flex flex-col bg-background relative overflow-hidden">
                     <div className="flex-1 flex flex-col min-h-0 mx-auto w-full max-w-3xl">
                       <AddMaintenancePage />
+                    </div>
+                  </div>
+                </ProtectedRoute>
+              </Route>
+              <Route path="/expenses/add">
+                <ProtectedRoute>
+                  <div className="h-[100dvh] flex flex-col bg-background relative overflow-hidden">
+                    <div className="flex-1 flex flex-col min-h-0 mx-auto w-full max-w-3xl">
+                      <AddExpensePage />
                     </div>
                   </div>
                 </ProtectedRoute>
