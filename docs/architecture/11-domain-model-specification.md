@@ -189,13 +189,38 @@ Notes: Rental status values (e.g., active, returned, extended, cancelled) are no
 
 Notes: Exact enum representation and whether additional categories exist **Requires Architectural Approval**.
 
+## MaintenanceType
+
+**Source:** approved architecture decision (Milestone 4, Phase 14, Step 14.1).
+
+| Value              | Purpose                                                            | Status     |
+| ------------------ | ------------------------------------------------------------------ | ---------- |
+| `PREVENTIVE_SERVICE` | Scheduled servicing, including oil changes and general preventive work | Approved |
+| `INSPECTION`         | Mechanical inspection                                              | Approved |
+| `REPAIR`             | Corrective repair of a fault                                       | Approved |
+| `OTHER`              | Fallback for unlisted maintenance work                             | Approved |
+
+Notes:
+
+- `OIL_CHANGE` is **not** a top-level `MaintenanceType`. Oil changes are represented by `PREVENTIVE_SERVICE`.
+- `INSURANCE` and `REGISTRATION` are **not** `MaintenanceType` values. They belong to the Documents / Tasks semantics:
+  - insurance and registration documents remain represented by the existing `Document` model;
+  - insurance/registration renewals and reminders belong to operational `Task` records.
+
 ## MaintenanceStatus
 
-**Source:** not documented.
+**Source:** approved architecture decision (Milestone 4, Phase 14, Step 14.1).
 
-| Value          | Status                              |
-| -------------- | ----------------------------------- |
-| (undetermined) | **Requires Architectural Approval** |
+| Value        | Purpose                                    | Status   | Default    |
+| ------------ | ------------------------------------------ | -------- | ---------- |
+| `SCHEDULED`  | Maintenance is planned for a due date      | Approved | ✅ `SCHEDULED` |
+| `IN_PROGRESS`| Work has started                           | Approved |            |
+| `COMPLETED`  | Work has finished                          | Approved |            |
+
+Notes:
+
+- `UPCOMING` and `OVERDUE` are **not** persisted statuses. They are derived presentation/query states computed from `maintenance_date` and the current date for non-completed records.
+- `CANCELLED` is **not** a status. A maintenance record that is no longer needed uses the established soft-delete mechanism (`deleted_at`).
 
 ## TaskStatus
 
@@ -231,6 +256,7 @@ Represents a business using the platform. Each organization owns its own data an
 - Has many `Rental`
 - Has many `Payment`
 - Has many `Expense`
+- Has many `Maintenance` (`maintenance Maintenance[]`)
 - Has many `Task`
 
 ### Fields
@@ -886,40 +912,65 @@ Business costs.
 
 Work performed on a vehicle.
 
+Maintenance represents maintenance work and the vehicle's maintenance history. It is distinct from operational reminders (Tasks), documents (Documents), and business costs (Expenses, Phase 15).
+
 ### Relationships
 
 - Belongs to one `Vehicle`
 - Belongs to one `Organization`
+- An `Organization` can have many `Maintenance` records (`maintenance Maintenance[]`)
+- A `Vehicle` can have many `Maintenance` records (`maintenance Maintenance[]`)
 
 ### Fields
 
-| Field            | Column          | Type      | Required | Default    | Notes                               |
-| ---------------- | --------------- | --------- | -------- | ---------- | ----------------------------------- |
-| id               | id              | UUID      | ✅       | uuid()     | PK                                  |
-| organization_id  | organization_id | UUID      | ✅       | —          | FK → Organization.id                |
-| vehicle_id       | vehicle_id      | UUID      | ✅       | —          | FK → Vehicle.id                     |
-| maintenance date | (undetermined)  | DateTime  | ✅       | —          | Documented as "maintenance date"    |
-| notes            | notes           | String?   | ❌       | —          | Documented as "notes"               |
-| replaced parts   | (undetermined)  | —         | —        | —          | **Requires Architectural Approval** |
-| vendor           | (undetermined)  | —         | —        | —          | **Requires Architectural Approval** |
-| cost             | cost            | Decimal   | ✅       | —          | **Requires Architectural Approval** |
-| created_at       | created_at      | DateTime  | ✅       | now()      | Audit                               |
-| updated_at       | updated_at      | DateTime  | ✅       | @updatedAt | Audit                               |
-| deleted_at       | deleted_at      | DateTime? | ❌       | null       | Soft delete                         |
+| Field            | Column           | Type             | Required | Default    | Notes                                         |
+| ---------------- | ---------------- | ---------------- | -------- | ---------- | --------------------------------------------- |
+| id               | id               | UUID             | ✅       | uuid()     | PK                                            |
+| organization_id  | organization_id  | UUID             | ✅       | —          | FK → Organization.id                          |
+| vehicle_id       | vehicle_id       | UUID             | ✅       | —          | FK → Vehicle.id                               |
+| type             | type             | MaintenanceType  | ✅       | —          | PREVENTIVE_SERVICE / INSPECTION / REPAIR / OTHER |
+| status           | status           | MaintenanceStatus| ✅       | SCHEDULED  | SCHEDULED / IN_PROGRESS / COMPLETED           |
+| maintenance_date | maintenance_date | DateTime         | ✅       | —          | Scheduled/due business date                   |
+| completed_at     | completed_at     | DateTime?        | ❌       | null       | Actual completion moment                      |
+| cost             | cost             | Decimal?         | ❌       | null       | `@db.Decimal(10, 2)`; nullable until completed |
+| vendor           | vendor           | String?          | ❌       | null       | Free-text repair shop / vendor                |
+| notes            | notes            | String?          | ❌       | null       | Free-text notes                               |
+| replaced_parts   | replaced_parts   | Json?            | ❌       | null       | Structured parts breakdown; null when empty   |
+| created_at       | created_at       | DateTime         | ✅       | now()      | Audit                                         |
+| updated_at       | updated_at       | DateTime         | ✅       | @updatedAt | Audit                                         |
+| deleted_at       | deleted_at       | DateTime?        | ❌       | null       | Soft delete                                   |
+
+#### Field Semantics
+
+- `maintenance_date` is the **scheduled/due business date**. It is fixed at scheduling time and is the date used for history ordering and for deriving `UPCOMING`/`OVERDUE`. For backdated maintenance records created after the work has already occurred, `maintenance_date` may be set to the actual work date.
+- `completed_at` is the nullable timestamp representing the **actual completion moment**. It is set when the status transitions to `COMPLETED`. There is no separate actual-start-date field; the current product requirements do not justify one.
+- `cost` is the **authoritative financial amount** for the maintenance event. It is nullable while maintenance is not completed and is required once the record is `COMPLETED`.
+- `vendor` is nullable free text representing the repair shop or vendor. There is no Vendor entity.
+- `replaced_parts` is a nullable structured JSON value; an empty parts collection is represented as `null`.
+
+#### Example
+
+- Scheduled for August 20, actually completed August 23 → `maintenance_date = 2026-08-20`, `completed_at = 2026-08-23`, `status = COMPLETED`.
 
 ### Constraints
 
 - FKs: `organization_id`, `vehicle_id`.
+- `status` must be a valid `MaintenanceStatus`.
+- `type` must be a valid `MaintenanceType`.
 
 ### Unique Constraints
 
-- None documented.
+- None.
 
 ### Indexes
 
 - `@@index([organization_id])`
 - `@@index([vehicle_id])`
 - `@@index([deleted_at])`
+- `@@index([status])`
+- `@@index([maintenance_date])`
+
+The `status` and `maintenance_date` indexes directly support operational maintenance queries such as tracking upcoming/overdue maintenance.
 
 ### Foreign Keys
 
@@ -928,23 +979,43 @@ Work performed on a vehicle.
 
 ### onDelete Behavior
 
-- RESTRICT.
+- RESTRICT (business record). A vehicle referenced by a maintenance record cannot be deleted while the record exists.
 
 ### Soft Delete Strategy
 
-- `deleted_at`.
+- `deleted_at`. A maintenance record that is no longer needed is soft-deleted rather than assigned a `CANCELLED` status.
 
 ### Business Rules
 
-- Every maintenance record belongs to one vehicle.
+- Every maintenance record belongs to exactly one vehicle.
+- `UPCOMING` and `OVERDUE` are derived presentation/query states computed from `maintenance_date` and the current date for non-completed records. They are not persisted.
+- **Cost invariant:** a completed maintenance record must have a non-null `cost` and a non-null `completed_at`. A `SCHEDULED` or `IN_PROGRESS` record may have a null cost.
+- `0.00` represents a real zero-cost maintenance event and must not be used as a placeholder for an unknown cost.
+- `unitCost` within `replaced_parts` is informational breakdown data only and must not be independently aggregated into financial totals. `cost` is the single authoritative financial amount.
+- Insurance and registration are not Maintenance types. Insurance/registration documents are represented by the `Document` model; insurance/registration renewals and reminders belong to `Task` records.
+- The relationship between Maintenance and the future Expenses module is intentionally deferred to Phase 15 to prevent financial double-counting.
+- Vehicle status transitions resulting from maintenance completion belong to the Maintenance service/workflow implementation, not the database model.
 
 ### Validation Rules
 
-- **Requires Architectural Approval**.
+- `type` is required and must be a valid `MaintenanceType`.
+- `status` is required and must be a valid `MaintenanceStatus` (default `SCHEDULED`).
+- `maintenance_date` is required and must be a valid date.
+- `cost`, when present, must be a non-negative `Decimal(10, 2)`. It is required when `status = COMPLETED`.
+- `vendor` is optional; when present, must be a non-empty string.
+- `notes` is optional; when present, must be a non-empty string.
+- `replaced_parts`, when present, must be a JSON array where each entry has:
+  - `name`: required, non-empty string
+  - `brand`: optional string
+  - `quantity`: optional positive integer, default `1`
+  - `unitCost`: optional non-negative decimal
+  - An empty collection is represented as `null`, not an empty array.
+
+Note: the cost invariant and parts validation are business rules. Database enforcement may rely on application/service validation rather than a database constraint unless the database schema explicitly adds one.
 
 ### API Notes
 
-- Planned: maintenance history, records, parts, vendors, costs.
+- Planned: maintenance history for a vehicle, CRUD for maintenance records, completion workflow.
 
 ---
 
@@ -1357,10 +1428,9 @@ Those belong to later steps.
 2. **Contract representation** — content vs file reference vs template.
 3. **Payment field set** — method enum, amount precision, balance stored vs derived.
 4. **Expense field set** — amount precision, currency, category enum representation.
-5. **Maintenance field set** — parts representation, vendor representation, cost format.
-6. **Task field set** — recurrence representation, completion status enum.
-7. **Notification field set** — type enum, read state, stored vs generated.
-8. **Role permission matrix** — exact per-module permissions for OWNER/MANAGER/EMPLOYEE.
+5. **Task field set** — recurrence representation, completion status enum.
+6. **Notification field set** — type enum, read state, stored vs generated.
+7. **Role permission matrix** — exact per-module permissions for OWNER/MANAGER/EMPLOYEE.
 
 Each open decision must be resolved and approved before the corresponding model is implemented.
 

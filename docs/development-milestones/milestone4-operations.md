@@ -39,12 +39,12 @@ Including:
 - organization relationship
 - vehicle relationship
 - maintenance date
-- maintenance type enum (per approved decision — see Ambiguities)
-- maintenance status enum (per approved decision — see Ambiguities)
-- cost
-- vendor
+- maintenance type enum (approved — see `11-domain-model-specification.md` MaintenanceType)
+- maintenance status enum (approved — see `11-domain-model-specification.md` MaintenanceStatus)
+- cost (approved — nullable `Decimal(10,2)`, required at completion)
+- vendor (approved — nullable free text)
 - notes
-- replaced parts (representation per approved decision — see Ambiguities)
+- replaced parts (approved — nullable structured JSON)
 - timestamps
 - soft delete strategy
 - constraints
@@ -834,8 +834,7 @@ Including:
 
 The following decisions are **not settled by existing documentation** and materially affect the Milestone 4 architecture. They must be approved before the corresponding step is implemented. They are listed here so they can be resolved rather than silently invented.
 
-1. **Maintenance type and status enums.**
-   `11-domain-model-specification.md` marks `MaintenanceStatus` as "Requires Architectural Approval". The maintenance *type* is not documented in the domain model (the MVP frontend used `oil`, `inspection`, `insurance`, `registration`, `repair`). Proposal: introduce a `MaintenanceType` enum based on the MVP types, and a `MaintenanceStatus` enum (`PLANNED`, `IN_PROGRESS`, `COMPLETED`). The MVP's derived "upcoming/overdue" states should be computed from the due date rather than stored.
+1. ~~**Maintenance type and status enums.**~~ **RESOLVED** — approved in `11-domain-model-specification.md`. `MaintenanceType` = `PREVENTIVE_SERVICE`, `INSPECTION`, `REPAIR`, `OTHER`; `MaintenanceStatus` = `SCHEDULED`, `IN_PROGRESS`, `COMPLETED`; `UPCOMING`/`OVERDUE` are derived.
 
 2. **Expense category enum representation.**
    `04-domain-model.md` lists examples (Fuel, Maintenance, Insurance, Registration, Cleaning, Other) and `11-domain-model-specification.md` marks the exact enum representation as "Requires Architectural Approval". Proposal: `ExpenseCategory` = `FUEL`, `MAINTENANCE`, `INSURANCE`, `REGISTRATION`, `CLEANING`, `OTHER`. Approval of whether `MAINTENANCE` expenses should be automatically linked to maintenance records (instead of existing as a separate category) is required — see item 3.
@@ -843,8 +842,7 @@ The following decisions are **not settled by existing documentation** and materi
 3. **Expense associations.**
    The domain model states Expenses "belong to one Organization" and "may belong to one Vehicle". It does **not** document expenses belonging to a Rental or to a Maintenance record. Adding a `rental_id` or `maintenance_id` to Expense would be an architectural change requiring approval. The roadmap implements only the documented `vehicle_id` association.
 
-4. **Maintenance replaced-parts representation.**
-   `11-domain-model-specification.md` marks "replaced parts" as "Requires Architectural Approval". The MVP prototype does not store parts. Proposal for approval: store parts as free-text in the maintenance `notes` field rather than introducing a separate `ReplacedPart` model, keeping the milestone focused on recording maintenance rather than parts inventory management.
+4. ~~**Maintenance replaced-parts representation.**~~ **RESOLVED** — approved in `11-domain-model-specification.md`. `replaced_parts` is a nullable structured JSON value; no `ReplacedPart` / Parts / Inventory entity.
 
 5. **Task entity associations.**
    The domain model documents Task as belonging to one Organization with due date, recurring schedule, and completion status. It does **not** document associations with Vehicles, Rentals, Maintenance records, or Users. The business requirements say tasks should "support maintenance reminders" and "administrative reminders" but do not specify how they are linked. Proposal for approval: implement the base Task (organization, due date, status, notes) with no entity associations in Milestone 4; add associations only if a decision is made to support them. The roadmap implements the base Task.
