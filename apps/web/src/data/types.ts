@@ -41,16 +41,3 @@ export interface Rental {
   status: "active" | "ended";
   returnDate?: string;
 }
-
-export type MaintenanceType = "oil" | "inspection" | "insurance" | "registration" | "repair";
-
-export interface MaintenanceRecord {
-  id: string;
-  vehicleId: string;
-  type: MaintenanceType;
-  dueDate: string;
-  completedDate?: string;
-  cost?: number;
-  notes?: string;
-  status: "upcoming" | "completed" | "overdue";
-}

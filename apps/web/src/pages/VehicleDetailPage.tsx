@@ -9,6 +9,7 @@ import { VehicleStatusBadge } from "@/components/ui/VehicleStatusBadge";
 import { MediaGallery } from "@/components/ui/MediaGallery";
 import { DocumentList } from "@/components/ui/DocumentList";
 import { RentalHistorySection } from "@/components/ui/RentalHistorySection";
+import { MaintenanceHistorySection } from "@/components/ui/MaintenanceHistorySection";
 import { useGetVehicle, useDeleteVehicle, getListVehiclesQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/providers/AuthProvider";
@@ -214,6 +215,9 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
           title="سجل الإيجارات"
           emptyMessage="لا توجد إيجارات لهذه السيارة"
         />
+
+        {/* Maintenance History */}
+        <MaintenanceHistorySection vehicleId={vehicle.id} />
 
         {/* Delete (OWNER only) */}
         {isOwner && (

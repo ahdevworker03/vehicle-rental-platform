@@ -33,7 +33,7 @@ import {
   getOverdueMaintenance,
   getUpcomingMaintenance,
 } from "@/features/maintenance/selectors";
-import type { MaintenanceType } from "@/data/types";
+import type { MaintenanceResponse } from "@workspace/api-client-react";
 
 // ─── Mock date anchor ──────────────────────────────────────────────────────────
 const MOCK_MONTH = 0; // January
@@ -58,7 +58,7 @@ function relativeTimeLabel(pastDays: number): string {
 function deriveDashboard(
   vehicles: ReturnType<typeof useVehicles>,
   rentals: ReturnType<typeof useRentals>,
-  maintenance: ReturnType<typeof useMaintenance>
+  maintenance: MaintenanceResponse[]
 ) {
   const {
     available: availableCount,
@@ -239,7 +239,8 @@ export default function DashboardPage() {
   const [, setLocation] = useLocation();
   const vehicles = useVehicles();
   const rentals = useRentals();
-  const maintenance = useMaintenance();
+  const maintenanceQuery = useMaintenance();
+  const maintenance = maintenanceQuery.data?.data ?? [];
   const getVehicleById = useVehicleById();
   const getCustomerById = useCustomerById();
 
@@ -400,9 +401,9 @@ export default function DashboardPage() {
               {overdueItems.map((item) => {
                 const vehicle = getVehicleById(item.vehicleId);
                 if (!vehicle) return null;
-                const days = daysFromToday(item.dueDate);
+                const days = daysFromToday(item.maintenanceDate);
                 const due = dueLabelFor(days);
-                const typeLabel = MAINTENANCE_TYPES[item.type as MaintenanceType]?.label ?? item.type;
+                const typeLabel = MAINTENANCE_TYPES[item.type]?.label ?? item.type;
 
                 return (
                   <TaskCard
@@ -418,9 +419,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-foreground">
-                        {item.type === "registration"
-                          ? `تسجيل السيارة ينتهي (${due.text})`
-                          : `موعد ${typeLabel} (${due.text})`}
+                        {`موعد ${typeLabel} (${due.text})`}
                       </div>
                       <div className="text-sm text-muted-foreground mt-0.5">
                         {vehicle.make} {vehicle.model}
@@ -449,9 +448,9 @@ export default function DashboardPage() {
               {upcomingMaintenance.map((item) => {
                 const vehicle = getVehicleById(item.vehicleId);
                 if (!vehicle) return null;
-                const days = daysFromToday(item.dueDate);
+                const days = daysFromToday(item.maintenanceDate);
                 const due = dueLabelFor(days);
-                const typeLabel = MAINTENANCE_TYPES[item.type as MaintenanceType]?.label ?? item.type;
+                const typeLabel = MAINTENANCE_TYPES[item.type]?.label ?? item.type;
 
                 return (
                   <TaskCard
@@ -477,15 +476,13 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-foreground">
-                        {item.type === "registration"
-                          ? `تسجيل السيارة ينتهي ${due.text}`
-                          : `موعد ${typeLabel} ${due.text}`}
+                        {`موعد ${typeLabel} ${due.text}`}
                       </div>
                       <div className="text-sm text-muted-foreground mt-0.5">
                         {vehicle.make} {vehicle.model}
                       </div>
                       <div className="text-xs text-muted-foreground mt-0.5">
-                        {formatDateShort(item.dueDate)}
+                        {formatDateShort(item.maintenanceDate)}
                       </div>
                     </div>
                   </TaskCard>

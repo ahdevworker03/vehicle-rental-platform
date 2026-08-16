@@ -1,10 +1,9 @@
 import { vehicles } from "./vehicles";
 import { customers } from "./customers";
 import { rentals } from "./rentals";
-import { maintenance } from "./maintenance";
 
 export * from "./types";
-export { vehicles, customers, rentals, maintenance };
+export { vehicles, customers, rentals };
 
 export const getVehicleById = (id: string) => vehicles.find(v => v.id === id);
 export const getCustomerById = (id: string) => customers.find(c => c.id === id);
@@ -13,8 +12,6 @@ export const getActiveRentals = () => rentals.filter(r => r.status === "active")
 
 export const getRentalsForVehicle = (vehicleId: string) => rentals.filter(r => r.vehicleIds.includes(vehicleId));
 export const getRentalsForCustomer = (customerId: string) => rentals.filter(r => r.customerId === customerId);
-
-export const getMaintenanceForVehicle = (vehicleId: string) => maintenance.filter(m => m.vehicleId === vehicleId);
 
 const getRentalById = (id: string) => rentals.find(r => r.id === id);
 

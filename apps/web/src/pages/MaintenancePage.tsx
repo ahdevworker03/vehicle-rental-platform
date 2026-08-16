@@ -1,86 +1,80 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocation, useSearchParams } from "wouter";
-import { Plus, Wrench, CheckCircle } from "lucide-react";
+import { Plus, Wrench } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { FilterChips } from "@/components/ui/FilterChips";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { MaintenanceCard } from "@/components/ui/MaintenanceCard";
+import { Spinner } from "@/components/ui/spinner";
+import { MaintenanceCard, type MaintenanceCardStatus } from "@/components/ui/MaintenanceCard";
 import { MAINTENANCE_TYPES } from "@/lib/labels";
-
-import { MOCK_TODAY } from "@/lib/mock-date";
-import { useTimeout } from "@/hooks/useTimeout";
+import { getApiErrorMessage } from "@/lib/api-error";
+import { useAuth } from "@/providers/AuthProvider";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useListVehicles } from "@workspace/api-client-react";
+import type { MaintenanceResponse } from "@workspace/api-client-react";
 import { useMaintenance } from "@/features/maintenance/hooks";
-import { useVehicle } from "@/features/vehicles/hooks";
-import { getOverdueCount } from "@/features/maintenance/selectors";
-import type { MaintenanceRecord } from "@/data/types";
+import { getDisplayStatus, getOverdueCount } from "@/features/maintenance/selectors";
 
-type FilterValue = "all" | "overdue" | "upcoming" | "completed";
+type FilterValue = "all" | "scheduled" | "in_progress" | "completed" | "overdue" | "upcoming";
 
-const FILTER_OPTIONS = [
-  { label: "الكل",    value: "all"       },
-  { label: "متأخرة", value: "overdue"   },
-  { label: "قادمة",  value: "upcoming"  },
-  { label: "مكتملة", value: "completed" },
+const FILTER_OPTIONS: { label: string; value: string }[] = [
+  { label: "الكل",        value: "all"         },
+  { label: "مجدولة",      value: "scheduled"   },
+  { label: "قيد التنفيذ", value: "in_progress" },
+  { label: "مكتملة",      value: "completed"   },
+  { label: "متأخرة",      value: "overdue"     },
+  { label: "قادمة",       value: "upcoming"    },
 ];
 
-function sortRecords(records: MaintenanceRecord[]): MaintenanceRecord[] {
-  const ORDER: Record<string, number> = { overdue: 0, upcoming: 1, completed: 2 };
-  return [...records].sort((a, b) => {
-    const statusDiff = (ORDER[a.status] ?? 3) - (ORDER[b.status] ?? 3);
-    if (statusDiff !== 0) return statusDiff;
-    if (a.status === "completed") {
-      return new Date(b.completedDate ?? b.dueDate).getTime() -
-             new Date(a.completedDate ?? a.dueDate).getTime();
-    }
-    return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-  });
+function matchesFilter(record: MaintenanceResponse, filter: FilterValue): boolean {
+  if (filter === "all") return true;
+  if (filter === "overdue") return getDisplayStatus(record) === "overdue";
+  if (filter === "upcoming") return getDisplayStatus(record) === "upcoming";
+  return record.status === filter.toUpperCase();
 }
 
 export default function MaintenancePage() {
   const [, setLocation] = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-
-  const maintenance = useMaintenance();
-  const getVehicleById = useVehicle;
-  const [records, setRecords] = useState<MaintenanceRecord[]>(() => [...maintenance]);
-  const filter = (searchParams.get("filter") as FilterValue) || "all";
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState("");
+  const { user } = useAuth();
+  const debouncedSearch = useDebouncedValue(search.trim(), 300);
 
-  // Auto-clear the success banner, cleaned up on unmount
-  useTimeout(() => setSuccessMsg(""), successMsg ? 2500 : null);
+  const isOwner = user?.role === "OWNER";
+  const filter = (searchParams.get("filter") as FilterValue) || "all";
 
-  // ── Derived list ──────────────────────────────────────────────────────────
-  const filtered = sortRecords(
-    records.filter((r) => {
-      if (filter !== "all" && r.status !== filter) return false;
-      if (!search.trim()) return true;
-      const q = search.trim().toLowerCase();
-      const v = getVehicleById(r.vehicleId);
-      const vehicleStr = v ? `${v.make} ${v.model} ${v.plate}`.toLowerCase() : "";
-      return vehicleStr.includes(q) || MAINTENANCE_TYPES[r.type]?.label.includes(q);
-    })
-  );
+  const { data, isLoading, isError, error } = useMaintenance();
+  const { data: vehiclesData } = useListVehicles();
 
-  const overdueCount  = getOverdueCount(records);
+  const records = useMemo(() => data?.data ?? [], [data]);
 
-  // ── Mark complete ─────────────────────────────────────────────────────────
-  function handleMarkComplete(id: string) {
-    const updated: MaintenanceRecord = {
-      ...records.find((r) => r.id === id)!,
-      status: "completed",
-      completedDate: MOCK_TODAY.toISOString(),
-    };
-    setRecords((prev) => prev.map((r) => (r.id === id ? updated : r)));
-    const idx = maintenance.findIndex((r) => r.id === id);
-    if (idx !== -1) maintenance[idx] = updated;
+  const vehicleById = useMemo(() => {
+    const map = new Map<string, { make: string; model: string; plateNumber: string }>();
+    (vehiclesData?.data ?? []).forEach((v) => map.set(v.id, v));
+    return map;
+  }, [vehiclesData]);
 
-    setExpandedId(null);
-    setSuccessMsg("تم تسجيل الإنجاز");
-  }
+  const filtered = useMemo(() => {
+    const q = debouncedSearch.toLowerCase();
+    return records
+      .filter((r) => matchesFilter(r, filter))
+      .filter((r) => {
+        if (!q) return true;
+        const vehicle = vehicleById.get(r.vehicleId);
+        const vehicleStr = vehicle
+          ? `${vehicle.make} ${vehicle.model} ${vehicle.plateNumber}`.toLowerCase()
+          : "";
+        return (
+          vehicleStr.includes(q) ||
+          MAINTENANCE_TYPES[r.type]?.label.toLowerCase().includes(q)
+        );
+      });
+  }, [records, filter, debouncedSearch, vehicleById]);
+
+  const overdueCount = getOverdueCount(records);
 
   function handleToggle(id: string) {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -91,18 +85,19 @@ export default function MaintenancePage() {
       <PageHeader
         title="الصيانة"
         action={
-          <button
-            onClick={() => setLocation("/maintenance/add")}
-            aria-label="تسجيل صيانة جديدة"
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm active:scale-95 transition-transform"
-          >
-            <Plus className="w-5 h-5" strokeWidth={2.5} />
-          </button>
+          isOwner ? (
+            <button
+              onClick={() => setLocation("/maintenance/add")}
+              aria-label="تسجيل صيانة جديدة"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm active:scale-95 transition-transform"
+            >
+              <Plus className="w-5 h-5" strokeWidth={2.5} />
+            </button>
+          ) : undefined
         }
       />
 
       <div className="px-4 pt-4 pb-2 space-y-3">
-        {/* Alert strip — overdue items */}
         {overdueCount > 0 && (
           <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-[hsl(var(--status-danger-bg))] border border-[hsl(var(--status-danger))]/20">
             <button
@@ -138,23 +133,20 @@ export default function MaintenancePage() {
         />
       </div>
 
-      {/* Success toast — consistent with RentalDetailPage */}
-      {successMsg && (
-        <div className="mx-4 mt-1 px-4 py-3 rounded-xl bg-[hsl(var(--status-available-bg))] text-[hsl(var(--status-available))] text-sm font-semibold flex items-center gap-2 justify-end">
-          <span>{successMsg}</span>
-          <CheckCircle className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
-        </div>
-      )}
-
       <div className="px-4 pb-6 mt-3">
-        {(search || filter !== "all") && filtered.length > 0 && (
-          <p className="text-xs text-muted-foreground text-right px-1 mb-3">
-            عرض {filtered.length} من أصل {records.length} سجل
-          </p>
-        )}
-
-        {filtered.length === 0 ? (
-          search ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Spinner className="size-6" />
+          </div>
+        ) : isError ? (
+          <EmptyState
+            icon={Wrench}
+            title="حدث خطأ"
+            description={error ? getApiErrorMessage(error).title : "تعذر تحميل سجلات الصيانة"}
+            className="py-16"
+          />
+        ) : filtered.length === 0 ? (
+          search || filter !== "all" ? (
             <EmptyState
               icon={Wrench}
               title="لا توجد نتائج"
@@ -164,22 +156,10 @@ export default function MaintenancePage() {
           ) : (
             <EmptyState
               icon={Wrench}
-              title={
-                filter === "overdue"
-                  ? "لا توجد صيانة متأخرة"
-                  : filter === "upcoming"
-                  ? "لا توجد صيانة قادمة"
-                  : filter === "completed"
-                  ? "لم يتم تسجيل أي صيانة مكتملة بعد"
-                  : "لا توجد سجلات صيانة"
-              }
-              description={
-                filter === "all" || filter === "upcoming"
-                  ? "اضغط + لتسجيل صيانة جديدة"
-                  : undefined
-              }
+              title="لا توجد سجلات صيانة"
+              description={isOwner ? "اضغط + لتسجيل صيانة جديدة" : "لا توجد سجلات صيانة في هذه المنظمة حالياً"}
               action={
-                filter === "all" || filter === "upcoming"
+                isOwner
                   ? {
                       label: "تسجيل صيانة",
                       onClick: () => setLocation("/maintenance/add"),
@@ -191,16 +171,23 @@ export default function MaintenancePage() {
         ) : (
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:items-start">
             {filtered.map((record) => {
-              const vehicle = getVehicleById(record.vehicleId);
+              const vehicle = vehicleById.get(record.vehicleId);
+              const displayStatus: MaintenanceCardStatus = getDisplayStatus(record);
               return (
                 <MaintenanceCard
                   key={record.id}
                   record={record}
+                  displayStatus={displayStatus}
                   vehicleName={vehicle ? `${vehicle.make} ${vehicle.model}` : "—"}
-                  vehiclePlate={vehicle?.plate ?? ""}
+                  vehiclePlate={vehicle?.plateNumber ?? ""}
                   isExpanded={expandedId === record.id}
                   onToggle={() => handleToggle(record.id)}
-                  onMarkComplete={() => handleMarkComplete(record.id)}
+                  onMarkComplete={
+                    isOwner && record.status !== "COMPLETED"
+                      ? () => setLocation(`/maintenance/${record.id}`)
+                      : undefined
+                  }
+                  onOpen={() => setLocation(`/maintenance/${record.id}`)}
                 />
               );
             })}

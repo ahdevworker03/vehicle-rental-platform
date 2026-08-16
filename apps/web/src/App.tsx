@@ -21,6 +21,7 @@ import NewRentalPage from '@/pages/NewRentalPage';
 import RentalDetailPage from '@/pages/RentalDetailPage';
 import MaintenancePage from '@/pages/MaintenancePage';
 import AddMaintenancePage from '@/pages/AddMaintenancePage';
+import MaintenanceDetailPage from '@/pages/MaintenanceDetailPage';
 import AnalyticsPage from '@/pages/AnalyticsPage';
 import NotFound from '@/pages/not-found';
 
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/rentals" component={RentalsPage} />
       <Route path="/rentals/:id" component={RentalDetailPage} />
       <Route path="/maintenance" component={MaintenancePage} />
+      <Route path="/maintenance/:id" component={MaintenanceDetailPage} />
       <Route path="/analytics" component={AnalyticsPage} />
       <Route component={NotFound} />
     </Switch>

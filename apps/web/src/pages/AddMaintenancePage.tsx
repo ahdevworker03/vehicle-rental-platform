@@ -1,46 +1,68 @@
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
-import { ChevronRight, Car, Search, Check } from "lucide-react";
+import { ChevronRight, Car, Search, Check, Plus, X } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { FormField, inputClass } from "@/components/ui/FormField";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { MAINTENANCE_TYPE_OPTIONS } from "@/lib/labels";
-import { MOCK_TODAY, MOCK_TODAY_STR, toISO } from "@/lib/mock-date";
-import { useTimeout } from "@/hooks/useTimeout";
-import { useMaintenance } from "@/features/maintenance/hooks";
-import { useVehicles } from "@/features/vehicles/hooks";
-import type { MaintenanceRecord, MaintenanceType } from "@/data/types";
+import { getApiErrorMessage } from "@/lib/api-error";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useListVehicles } from "@workspace/api-client-react";
+import type { CreateMaintenanceRequestType, MaintenanceReplacedPart } from "@workspace/api-client-react";
+import { useMaintenanceMutations } from "@/features/maintenance/hooks";
+
+interface PartDraft {
+  name: string;
+  brand: string;
+  quantity: string;
+  unitCost: string;
+}
+
+const EMPTY_PART: PartDraft = { name: "", brand: "", quantity: "", unitCost: "" };
+
+function toISO(dateStr: string): string {
+  return new Date(dateStr + "T12:00:00Z").toISOString();
+}
 
 export default function AddMaintenancePage() {
   const [, setLocation] = useLocation();
+  const mutations = useMaintenanceMutations();
 
   // Pre-select vehicle from query param (?vehicle=v1)
   const preVehicle = new URLSearchParams(window.location.search).get("vehicle") ?? "";
 
-  // ── Form state ────────────────────────────────────────────────────────────
   const [selectedVehicleId, setSelectedVehicleId] = useState(preVehicle);
   const [showVehiclePicker, setShowVehiclePicker] = useState(!preVehicle);
   const [vehicleSearch, setVehicleSearch] = useState("");
+  const debouncedVehicleSearch = useDebouncedValue(vehicleSearch.trim(), 300);
 
-  const [type, setType] = useState<MaintenanceType | "">("");
-  const [dueDate, setDueDate] = useState(MOCK_TODAY_STR);
+  const [type, setType] = useState<CreateMaintenanceRequestType | "">("");
+  const [maintenanceDate, setMaintenanceDate] = useState("");
+  const [vendor, setVendor] = useState("");
   const [cost, setCost] = useState("");
   const [notes, setNotes] = useState("");
+  const [parts, setParts] = useState<PartDraft[]>([]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
-  // Redirect after save, cleaned up if the user navigates away first
-  useTimeout(() => setLocation("/maintenance"), saved ? 1200 : null);
+  const { data: vehiclesData, isLoading: vehiclesLoading } = useListVehicles();
+  const vehicles = useMemo(() => vehiclesData?.data ?? [], [vehiclesData]);
 
-  const maintenance = useMaintenance();
-  const vehicles = useVehicles();
-
-  // ── Derived ───────────────────────────────────────────────────────────────
   const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
 
-  const canSave = !!selectedVehicleId && !!type;
+  const filteredVehicles = useMemo(() => {
+    const q = debouncedVehicleSearch.toLowerCase();
+    if (!q) return vehicles;
+    return vehicles.filter(
+      (v) =>
+        `${v.make} ${v.model}`.toLowerCase().includes(q) ||
+        v.plateNumber.toLowerCase().includes(q),
+    );
+  }, [debouncedVehicleSearch, vehicles]);
 
   function clearError(key: string) {
     if (errors[key]) {
@@ -52,52 +74,79 @@ export default function AddMaintenancePage() {
     }
   }
 
-  const filteredVehicles = useMemo(() => {
-    const q = vehicleSearch.trim().toLowerCase();
-    if (!q) return vehicles;
-    return vehicles.filter(
-      (v) =>
-        `${v.make} ${v.model}`.toLowerCase().includes(q) ||
-        v.plate.toLowerCase().includes(q)
-    );
-  }, [vehicleSearch]);
-
-  // ── Validation ────────────────────────────────────────────────────────────
-  function validate() {
+  function validate(): boolean {
     const errs: Record<string, string> = {};
     if (!selectedVehicleId) errs.vehicle = "اختر سيارة";
     if (!type) errs.type = "اختر نوع الصيانة";
-    if (!dueDate) errs.dueDate = "أدخل التاريخ";
+    if (!maintenanceDate) errs.maintenanceDate = "أدخل تاريخ الصيانة";
+    if (cost && (Number(cost) < 0 || isNaN(Number(cost)))) {
+      errs.cost = "أدخل تكلفة غير سالبة";
+    }
+    parts.forEach((part, i) => {
+      if (!part.name.trim()) {
+        errs[`part-${i}`] = "اسم القطعة مطلوب";
+      }
+    });
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
 
-  // ── Save ──────────────────────────────────────────────────────────────────
-  function handleSave() {
-    if (!validate()) return;
-
-    const dueISO = toISO(dueDate);
-    const dueMoment = new Date(dueISO);
-
-    // Determine status: if due date is in the past → overdue, else upcoming
-    const status: MaintenanceRecord["status"] =
-      dueMoment < MOCK_TODAY ? "overdue" : "upcoming";
-
-    const newRecord: MaintenanceRecord = {
-      id: `m-${Date.now()}`,
-      vehicleId: selectedVehicleId,
-      type: type as MaintenanceType,
-      dueDate: dueISO,
-      cost: cost ? parseInt(cost.replace(/,/g, ""), 10) : undefined,
-      notes: notes.trim() || undefined,
-      status,
-    };
-
-    maintenance.push(newRecord);
-    setSaved(true);
+  function setPart(index: number, patch: Partial<PartDraft>) {
+    setParts((prev) =>
+      prev.map((p, i) => (i === index ? { ...p, ...patch } : p)),
+    );
   }
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  function addPart() {
+    setParts((prev) => [...prev, { ...EMPTY_PART }]);
+  }
+
+  function removePart(index: number) {
+    setParts((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function handleSubmit() {
+    if (mutations.create.isPending) return;
+    if (!validate()) return;
+
+    setFormError(null);
+
+    const replacedParts: MaintenanceReplacedPart[] | undefined = parts
+      .filter((p) => p.name.trim())
+      .map((p) => ({
+        name: p.name.trim(),
+        ...(p.brand.trim() ? { brand: p.brand.trim() } : {}),
+        ...(p.quantity.trim()
+          ? { quantity: Math.max(1, parseInt(p.quantity, 10)) }
+          : {}),
+        ...(p.unitCost.trim()
+          ? { unitCost: Math.max(0, Number(p.unitCost)) }
+          : {}),
+      }));
+
+    try {
+      await mutations.create.mutateAsync({
+        data: {
+          vehicle_id: selectedVehicleId,
+          type: type as CreateMaintenanceRequestType,
+          maintenance_date: toISO(maintenanceDate),
+          ...(vendor.trim() ? { vendor: vendor.trim() } : {}),
+          ...(cost ? { cost: Number(cost) } : {}),
+          ...(notes.trim() ? { notes: notes.trim() } : {}),
+          ...(replacedParts && replacedParts.length > 0
+            ? { replaced_parts: replacedParts }
+            : {}),
+        },
+      });
+      setSaved(true);
+      setTimeout(() => setLocation("/maintenance"), 1200);
+    } catch (err) {
+      setFormError(getApiErrorMessage(err).title);
+    }
+  }
+
+  const isSubmitting = mutations.create.isPending;
+
   if (saved) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-background px-6 gap-3">
@@ -108,7 +157,7 @@ export default function AddMaintenancePage() {
         {selectedVehicle && (
           <div className="text-center text-sm text-muted-foreground space-y-1">
             <p>{selectedVehicle.make} {selectedVehicle.model}</p>
-            <p>{selectedVehicle.plate}</p>
+            <p>{selectedVehicle.plateNumber}</p>
           </div>
         )}
         <p className="text-xs text-muted-foreground pt-2">
@@ -127,6 +176,11 @@ export default function AddMaintenancePage() {
       />
 
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-8 space-y-4">
+        {formError && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3 text-sm text-destructive">
+            {formError}
+          </div>
+        )}
 
         {/* ── 1. Vehicle picker ─────────────────────────────────────── */}
         <div className="bg-card rounded-2xl border border-card-border shadow-sm overflow-hidden">
@@ -149,7 +203,7 @@ export default function AddMaintenancePage() {
                     {selectedVehicle.make} {selectedVehicle.model}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {selectedVehicle.plate}
+                    {selectedVehicle.plateNumber}
                   </div>
                 </div>
               ) : (
@@ -183,7 +237,11 @@ export default function AddMaintenancePage() {
                 />
               </div>
 
-              {filteredVehicles.length === 0 ? (
+              {vehiclesLoading ? (
+                <div className="flex justify-center py-4">
+                  <Spinner className="size-5" />
+                </div>
+              ) : filteredVehicles.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-3">لا توجد نتائج</p>
               ) : (
                 filteredVehicles.map((v) => (
@@ -204,20 +262,7 @@ export default function AddMaintenancePage() {
                       <div className="text-sm font-bold text-foreground">
                         {v.make} {v.model}
                       </div>
-                      <div className="text-xs text-muted-foreground">{v.plate}</div>
-                    </div>
-                    <div className="w-12 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                      {v.photos.length > 0 ? (
-                        <img
-                          src={v.photos[0]}
-                          alt={`${v.make} ${v.model}`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Car className="w-5 h-5 text-muted-foreground" strokeWidth={1.5} />
-                        </div>
-                      )}
+                      <div className="text-xs text-muted-foreground">{v.plateNumber}</div>
                     </div>
                     {selectedVehicleId === v.id && (
                       <Check className="w-4 h-4 text-primary flex-shrink-0" strokeWidth={2.5} />
@@ -262,32 +307,115 @@ export default function AddMaintenancePage() {
           )}
         </div>
 
-        {/* ── 3. Date + Cost ────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
+        {/* ── 3. Date + Cost + Vendor ──────────────────────────────── */}
+        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField label="تاريخ الاستحقاق" required error={errors.dueDate}>
+            <FormField label="تاريخ الصيانة" required error={errors.maintenanceDate}>
               <input
                 type="date"
-                value={dueDate}
-                onChange={(e) => { setDueDate(e.target.value); clearError("dueDate"); }}
-                className={errors.dueDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
+                value={maintenanceDate}
+                onChange={(e) => { setMaintenanceDate(e.target.value); clearError("maintenanceDate"); }}
+                className={errors.maintenanceDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
               />
             </FormField>
 
-            <FormField label="التكلفة المتوقعة" hint="اختياري · بالدولار">
+            <FormField label="التكلفة المتوقعة" hint="اختياري · تُحسم عند الإنجاز" error={errors.cost}>
               <input
                 type="number"
                 inputMode="numeric"
-                placeholder="مثال: 500000"
+                min={0}
+                placeholder="مثال: 150"
                 value={cost}
                 onChange={(e) => setCost(e.target.value)}
-                className={inputClass}
+                className={errors.cost ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
               />
             </FormField>
           </div>
+
+          <FormField label="الورشة / المزوّد" hint="اختياري">
+            <input
+              className={inputClass}
+              placeholder="اسم ورشة الصيانة"
+              value={vendor}
+              onChange={(e) => setVendor(e.target.value)}
+            />
+          </FormField>
         </div>
 
-        {/* ── 4. Notes ──────────────────────────────────────────────── */}
+        {/* ── 4. Replaced parts ─────────────────────────────────────── */}
+        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-foreground">القطع المبدلة</h3>
+            <button
+              type="button"
+              onClick={addPart}
+              className="flex items-center gap-1 text-xs font-semibold text-primary"
+            >
+              <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
+              إضافة قطعة
+            </button>
+          </div>
+
+          {parts.length === 0 && (
+            <p className="text-xs text-muted-foreground">لا توجد قطع مبدلة — اختياري</p>
+          )}
+
+          {parts.map((part, i) => (
+            <div key={i} className="space-y-2 rounded-xl border border-border p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground">قطعة {i + 1}</span>
+                <button
+                  type="button"
+                  onClick={() => removePart(i)}
+                  aria-label="حذف القطعة"
+                  className="text-destructive"
+                >
+                  <X className="w-4 h-4" strokeWidth={2} />
+                </button>
+              </div>
+              <FormField label="الاسم" required error={errors[`part-${i}`]}>
+                <input
+                  className={errors[`part-${i}`] ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
+                  placeholder="مثال: بواجي"
+                  value={part.name}
+                  onChange={(e) => { setPart(i, { name: e.target.value }); clearError(`part-${i}`); }}
+                />
+              </FormField>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <FormField label="الماركة" hint="اختياري">
+                  <input
+                    className={inputClass}
+                    placeholder="مثال: Bosch"
+                    value={part.brand}
+                    onChange={(e) => setPart(i, { brand: e.target.value })}
+                  />
+                </FormField>
+                <FormField label="الكمية" hint="اختياري">
+                  <input
+                    className={inputClass}
+                    inputMode="numeric"
+                    min={1}
+                    placeholder="1"
+                    value={part.quantity}
+                    onChange={(e) => setPart(i, { quantity: e.target.value })}
+                  />
+                </FormField>
+                <FormField label="سعر الوحدة" hint="اختياري">
+                  <input
+                    className={inputClass}
+                    inputMode="numeric"
+                    min={0}
+                    placeholder="0"
+                    value={part.unitCost}
+                    onChange={(e) => setPart(i, { unitCost: e.target.value })}
+                  />
+                </FormField>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── 5. Notes ──────────────────────────────────────────────── */}
         <FormField label="ملاحظات" hint="اختياري">
           <textarea
             placeholder="أي تفاصيل إضافية..."
@@ -300,16 +428,16 @@ export default function AddMaintenancePage() {
 
         {/* ── Save ──────────────────────────────────────────────────── */}
         <button
-          onClick={handleSave}
-          disabled={!canSave}
+          onClick={handleSubmit}
+          disabled={!selectedVehicleId || !type || !maintenanceDate || isSubmitting}
           className={cn(
-            "w-full rounded-2xl py-4 text-base font-bold transition-all shadow-sm",
-            canSave
+            "w-full rounded-2xl py-4 text-base font-bold transition-all shadow-sm flex items-center justify-center gap-2",
+            selectedVehicleId && type && maintenanceDate && !isSubmitting
               ? "bg-primary text-primary-foreground active:scale-[0.98]"
               : "bg-muted text-muted-foreground cursor-not-allowed"
           )}
         >
-          حفظ السجل
+          {isSubmitting ? <Spinner /> : "حفظ السجل"}
         </button>
       </div>
     </>
