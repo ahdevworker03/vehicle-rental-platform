@@ -176,18 +176,19 @@ Notes: Rental status values (e.g., active, returned, extended, cancelled) are no
 
 ## ExpenseCategory
 
-**Source:** `04-domain-model.md` lists examples: Fuel, Maintenance, Insurance, Registration, Cleaning, Other.
+**Source:** approved architecture decision (Milestone 4, Phase 15, Step 15.1).
 
-| Value          | Status                            |
-| -------------- | --------------------------------- |
-| `FUEL`         | Documented (domain model example) |
-| `MAINTENANCE`  | Documented (domain model example) |
-| `INSURANCE`    | Documented (domain model example) |
-| `REGISTRATION` | Documented (domain model example) |
-| `CLEANING`     | Documented (domain model example) |
-| `OTHER`        | Documented (domain model example) |
+| Value         | Purpose                                                  | Status   |
+| ------------- | -------------------------------------------------------- | -------- |
+| `FUEL`        | Fuel for a vehicle or fleet                              | Approved |
+| `INSURANCE`   | Insurance premiums                                       | Approved |
+| `REGISTRATION`| Registration fees                                        | Approved |
+| `CLEANING`    | Vehicle / facility cleaning costs                        | Approved |
+| `OTHER`       | Unclassified operational costs                           | Approved |
 
-Notes: Exact enum representation and whether additional categories exist **Requires Architectural Approval**.
+Notes:
+
+- `MAINTENANCE` is **not** an `ExpenseCategory`. Maintenance costs are represented by `Maintenance.cost`, the single authoritative maintenance cost, to prevent financial double-counting with the Expenses module (Phase 15 boundary).
 
 ## MaintenanceType
 
@@ -843,33 +844,38 @@ Money received from customers for rentals.
 
 Business costs.
 
+Expense represents business costs paid by the organization. It is financially distinct from Maintenance: `Maintenance.cost` is the authoritative cost of maintenance work, while `Expense` records other business costs. A `MAINTENANCE` expense category is intentionally **not** used, and there is no `maintenance_id` relationship, to prevent financial double-counting (see the Maintenance section and Phase 15 boundary).
+
 ### Relationships
 
 - Belongs to one `Organization`
 - May belong to one `Vehicle` (optional)
+- An `Organization` can have many `Expense` records (`expenses Expense[]`)
+- A `Vehicle` can have many `Expense` records (`expenses Expense[]`)
 
 ### Fields
 
-| Field           | Column          | Type            | Required | Default    | Notes                               |
-| --------------- | --------------- | --------------- | -------- | ---------- | ----------------------------------- |
-| id              | id              | UUID            | ✅       | uuid()     | PK                                  |
-| organization_id | organization_id | UUID            | ✅       | —          | FK → Organization.id                |
-| vehicle_id      | vehicle_id      | UUID?           | ❌       | null       | FK → Vehicle.id (optional)          |
-| amount          | amount          | Decimal         | ✅       | —          | **Requires Architectural Approval** |
-| category        | category        | ExpenseCategory | ✅       | —          | Documented examples                 |
-| expense date    | (undetermined)  | DateTime        | ✅       | —          | Documented as "expense date"        |
-| description     | description     | String?         | ❌       | —          | Documented as "expense description" |
-| created_at      | created_at      | DateTime        | ✅       | now()      | Audit                               |
-| updated_at      | updated_at      | DateTime        | ✅       | @updatedAt | Audit                               |
-| deleted_at      | deleted_at      | DateTime?       | ❌       | null       | Soft delete                         |
+| Field            | Column           | Type             | Required | Default    | Notes                                         |
+| ---------------- | ---------------- | ---------------- | -------- | ---------- | --------------------------------------------- |
+| id               | id               | UUID             | ✅       | uuid()     | PK                                            |
+| organization_id  | organization_id  | UUID             | ✅       | —          | FK → Organization.id                          |
+| vehicle_id       | vehicle_id       | UUID?            | ❌       | null       | FK → Vehicle.id (optional)                    |
+| expense_date     | expense_date     | DateTime         | ✅       | —          | Date the expense was incurred                 |
+| amount           | amount           | Decimal          | ✅       | —          | `@db.Decimal(10, 2)`, non-negative            |
+| category         | category         | ExpenseCategory  | ✅       | —          | FUEL / INSURANCE / REGISTRATION / CLEANING / OTHER |
+| description      | description      | String?          | ❌       | null       | Optional description                          |
+| created_at       | created_at       | DateTime         | ✅       | now()      | Audit                                         |
+| updated_at       | updated_at       | DateTime         | ✅       | @updatedAt | Audit                                         |
+| deleted_at       | deleted_at       | DateTime?        | ❌       | null       | Soft delete                                   |
 
 ### Constraints
 
 - FKs: `organization_id`, optional `vehicle_id`.
+- `category` must be a valid `ExpenseCategory`.
 
 ### Unique Constraints
 
-- None documented.
+- None.
 
 ### Indexes
 
@@ -877,6 +883,9 @@ Business costs.
 - `@@index([vehicle_id])`
 - `@@index([category])`
 - `@@index([deleted_at])`
+- `@@index([expense_date])`
+
+The `expense_date` index supports organization-scoped date-range expense queries (total expenses and net profit reporting).
 
 ### Foreign Keys
 
@@ -885,7 +894,7 @@ Business costs.
 
 ### onDelete Behavior
 
-- RESTRICT.
+- RESTRICT (business record).
 
 ### Soft Delete Strategy
 
@@ -894,11 +903,18 @@ Business costs.
 ### Business Rules
 
 - Expenses may optionally be associated with a vehicle.
-- Examples: Fuel, Maintenance, Insurance, Registration, Cleaning, Other.
+- An expense is vehicle-specific when the cost is attributable to one vehicle; otherwise it is organization-level.
+- When `vehicle_id` is supplied, the vehicle must belong to the same organization (enforced by the service layer; no additional schema constraint is encoded).
+- There is no currency field; amounts follow the existing monetary convention (`Decimal(10,2)`), consistent with all other financial records.
+- `MAINTENANCE` is **not** an `ExpenseCategory`. Maintenance costs are represented by `Maintenance.cost`, the single authoritative maintenance cost. For reporting, total cost is the sum of `Expense.amount` plus the sum of `Maintenance.cost` for completed maintenance; the model avoids double-counting by construction.
 
 ### Validation Rules
 
-- **Requires Architectural Approval**.
+- `amount` is required, must be `Decimal(10, 2)`, and must be non-negative.
+- `category` is required and must be a valid `ExpenseCategory`.
+- `expense_date` is required and must be a valid date.
+- `description` is optional; when present, must be a non-empty string.
+- `vehicle_id` is optional; when present, the referenced vehicle must belong to the same organization.
 
 ### API Notes
 
@@ -1427,10 +1443,9 @@ Those belong to later steps.
 1. **Rental field set and status enum** — period structure, pricing, status values.
 2. **Contract representation** — content vs file reference vs template.
 3. **Payment field set** — method enum, amount precision, balance stored vs derived.
-4. **Expense field set** — amount precision, currency, category enum representation.
-5. **Task field set** — recurrence representation, completion status enum.
-6. **Notification field set** — type enum, read state, stored vs generated.
-7. **Role permission matrix** — exact per-module permissions for OWNER/MANAGER/EMPLOYEE.
+4. **Task field set** — recurrence representation, completion status enum.
+5. **Notification field set** — type enum, read state, stored vs generated.
+6. **Role permission matrix** — exact per-module permissions for OWNER/MANAGER/EMPLOYEE.
 
 Each open decision must be resolved and approved before the corresponding model is implemented.
 

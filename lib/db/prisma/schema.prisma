@@ -21,6 +21,7 @@ model Organization {
   documents  Document[]
   photos     Photo[]
   maintenance Maintenance[]
+  expenses   Expense[]
 
   @@index([deleted_at])
 }
@@ -76,6 +77,14 @@ enum MaintenanceStatus {
   SCHEDULED
   IN_PROGRESS
   COMPLETED
+}
+
+enum ExpenseCategory {
+  FUEL
+  INSURANCE
+  REGISTRATION
+  CLEANING
+  OTHER
 }
 
 model User {
@@ -159,6 +168,7 @@ model Vehicle {
   photos    Photo[]
   rentals   Rental[]
   maintenance Maintenance[]
+  expenses  Expense[]
 
   @@unique([organization_id, plate_number])
   @@index([organization_id])
@@ -192,6 +202,27 @@ model Maintenance {
   @@index([deleted_at])
   @@index([status])
   @@index([maintenance_date])
+}
+
+model Expense {
+  id               String           @id @default(uuid()) @db.Uuid
+  organization_id  String           @db.Uuid
+  organization     Organization     @relation(fields: [organization_id], references: [id])
+  vehicle_id       String?          @db.Uuid
+  vehicle          Vehicle?         @relation(fields: [vehicle_id], references: [id], onDelete: Restrict)
+  expense_date     DateTime
+  amount           Decimal          @db.Decimal(10, 2)
+  category         ExpenseCategory
+  description      String?
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+  deleted_at       DateTime?
+
+  @@index([organization_id])
+  @@index([vehicle_id])
+  @@index([category])
+  @@index([deleted_at])
+  @@index([expense_date])
 }
 
 model Document {

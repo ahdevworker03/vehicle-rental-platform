@@ -224,8 +224,8 @@ Including:
 - organization relationship
 - optional vehicle relationship
 - expense date
-- amount
-- category enum (per approved decision — see Ambiguities)
+- amount (approved — `Decimal(10,2)`, non-negative)
+- category enum (approved — see `11-domain-model-specification.md` ExpenseCategory)
 - description
 - timestamps
 - soft delete strategy
@@ -836,11 +836,9 @@ The following decisions are **not settled by existing documentation** and materi
 
 1. ~~**Maintenance type and status enums.**~~ **RESOLVED** — approved in `11-domain-model-specification.md`. `MaintenanceType` = `PREVENTIVE_SERVICE`, `INSPECTION`, `REPAIR`, `OTHER`; `MaintenanceStatus` = `SCHEDULED`, `IN_PROGRESS`, `COMPLETED`; `UPCOMING`/`OVERDUE` are derived.
 
-2. **Expense category enum representation.**
-   `04-domain-model.md` lists examples (Fuel, Maintenance, Insurance, Registration, Cleaning, Other) and `11-domain-model-specification.md` marks the exact enum representation as "Requires Architectural Approval". Proposal: `ExpenseCategory` = `FUEL`, `MAINTENANCE`, `INSURANCE`, `REGISTRATION`, `CLEANING`, `OTHER`. Approval of whether `MAINTENANCE` expenses should be automatically linked to maintenance records (instead of existing as a separate category) is required — see item 3.
+2. ~~**Expense category enum representation.**~~ **RESOLVED** — approved in `11-domain-model-specification.md`. `ExpenseCategory` = `FUEL`, `INSURANCE`, `REGISTRATION`, `CLEANING`, `OTHER`. `MAINTENANCE` is excluded; maintenance costs are represented by `Maintenance.cost`.
 
-3. **Expense associations.**
-   The domain model states Expenses "belong to one Organization" and "may belong to one Vehicle". It does **not** document expenses belonging to a Rental or to a Maintenance record. Adding a `rental_id` or `maintenance_id` to Expense would be an architectural change requiring approval. The roadmap implements only the documented `vehicle_id` association.
+3. ~~**Expense associations.**~~ **RESOLVED** — approved in `11-domain-model-specification.md`. Expenses belong to one Organization and may belong to one Vehicle (optional). No `rental_id` or `maintenance_id` association.
 
 4. ~~**Maintenance replaced-parts representation.**~~ **RESOLVED** — approved in `11-domain-model-specification.md`. `replaced_parts` is a nullable structured JSON value; no `ReplacedPart` / Parts / Inventory entity.
 
