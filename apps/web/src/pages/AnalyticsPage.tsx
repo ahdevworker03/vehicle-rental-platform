@@ -25,8 +25,15 @@ import {
 } from "@/features/rentals/selectors";
 import { useMaintenance } from "@/features/maintenance/hooks";
 import { getMaintenanceCostPerVehicle } from "@/features/maintenance/selectors";
+import { useExpenses } from "@/features/expenses/hooks";
+import {
+  getExpenseTotal,
+  getExpenseTotalForPeriod,
+  getExpenseTotalPerVehicle,
+  getNetProfit,
+} from "@/features/expenses/selectors";
 import { useListVehicles } from "@workspace/api-client-react";
-import type { MaintenanceResponse } from "@workspace/api-client-react";
+import type { MaintenanceResponse, ExpenseResponse } from "@workspace/api-client-react";
 
 // ─── Mock date anchor ─────────────────────────────────────────────────────────
 const MOCK_MONTH = 0;   // January
@@ -43,6 +50,7 @@ function deriveAnalytics(
   getCustomerById: (id: string) => import("@/data/types").Customer | undefined,
   maintenance: MaintenanceResponse[],
   realVehicles: Array<{ id: string; make: string; model: string }>,
+  expenses: ExpenseResponse[],
 ) {
   const thisMonthRevenue = getMonthlyRevenue(rentals, MOCK_MONTH, MOCK_YEAR);
   const prevMonthRevenue = getMonthlyRevenue(rentals, PREV_MONTH, PREV_YEAR);
@@ -90,6 +98,23 @@ function deriveAnalytics(
     .filter((x) => x.vehicle && x.cost > 0)
     .sort((a, b) => b.cost - a.cost);
 
+  const totalExpenses = getExpenseTotal(expenses);
+  const expenseTotalForPeriod = getExpenseTotalForPeriod(expenses, MOCK_MONTH, MOCK_YEAR);
+  const expensePerVehicle = getExpenseTotalPerVehicle(expenses);
+  const expensePerVehicleList = Object.entries(expensePerVehicle)
+    .map(([vid, amount]) => ({
+      vehicle: realVehicles.find((v) => v.id === vid),
+      amount,
+    }))
+    .filter((x) => x.vehicle && x.amount > 0)
+    .sort((a, b) => b.amount - a.amount);
+
+  // Net profit = payments - expenses. `thisMonthRevenue` is the existing
+  // revenue/payments figure used by the analytics (mock rental payments until
+  // the real Payments module lands in Phase 16); `expenseTotalForPeriod` is the
+  // sum of `Expense.amount` for the same period.
+  const netProfit = getNetProfit(thisMonthRevenue, expenseTotalForPeriod);
+
   return {
     thisMonthRevenue,
     prevMonthRevenue,
@@ -105,6 +130,9 @@ function deriveAnalytics(
     rentedVehicles,
     maintenanceVehicles,
     maintenanceCostList,
+    totalExpenses,
+    expensePerVehicleList,
+    netProfit,
     endedCount,
     topDebtor,
   };
@@ -122,6 +150,8 @@ export default function AnalyticsPage() {
   const maintenance = maintenanceQuery.data?.data ?? [];
   const { data: realVehiclesData } = useListVehicles();
   const realVehicles = realVehiclesData?.data ?? [];
+  const expensesQuery = useExpenses();
+  const expenses = expensesQuery.data?.data ?? [];
 
   const {
     thisMonthRevenue,
@@ -138,6 +168,9 @@ export default function AnalyticsPage() {
     rentedVehicles,
     maintenanceVehicles,
     maintenanceCostList,
+    totalExpenses,
+    expensePerVehicleList,
+    netProfit,
     endedCount,
     topDebtor,
   } = deriveAnalytics(
@@ -148,6 +181,7 @@ export default function AnalyticsPage() {
     getCustomerById,
     maintenance,
     realVehicles,
+    expenses,
   );
 
   return (
@@ -271,6 +305,61 @@ export default function AnalyticsPage() {
                   </span>
                   <span className="text-sm font-bold text-foreground tabular-nums">
                     {formatCurrency(item.cost)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── Expenses ──────────────────────────────────────────────────── */}
+        <section>
+          <SectionHeader
+            title="المصروفات"
+            action={
+              <button onClick={() => navigate("/expenses")} className="flex items-center gap-1">
+                عرض الكل
+                <TrendingUp className="w-3.5 h-3.5" strokeWidth={2.5} />
+              </button>
+            }
+          />
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 mb-3">
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <p className="text-xs text-muted-foreground">إجمالي المصروفات</p>
+              <p className="text-2xl font-bold text-foreground leading-tight mt-1 tabular-nums">
+                {formatCurrency(totalExpenses)}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <p className="text-xs text-muted-foreground">صافي الربح</p>
+              <p
+                className={`text-2xl font-bold leading-tight mt-1 tabular-nums ${
+                  netProfit < 0 ? "text-[hsl(var(--status-danger))]" : "text-[hsl(var(--status-available))]"
+                }`}
+              >
+                {formatCurrency(netProfit)}
+              </p>
+            </div>
+          </div>
+
+          {expensePerVehicleList.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              لا توجد مصروفات مرتبطة بالسيارات
+            </p>
+          ) : (
+            <div className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden">
+              {expensePerVehicleList.map((item) => (
+                <button
+                  key={item.vehicle!.id}
+                  onClick={() => navigate(`/vehicles/${item.vehicle!.id}`)}
+                  className="w-full text-right px-4 py-3 flex items-center justify-between hover:bg-muted/40 active:bg-muted transition-colors"
+                >
+                  <span className="text-sm font-semibold text-foreground">
+                    {item.vehicle!.make} {item.vehicle!.model}
+                  </span>
+                  <span className="text-sm font-bold text-foreground tabular-nums">
+                    {formatCurrency(item.amount)}
                   </span>
                 </button>
               ))}

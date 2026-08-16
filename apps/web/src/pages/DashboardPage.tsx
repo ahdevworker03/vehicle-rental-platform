@@ -22,6 +22,8 @@ import { cn } from "@/lib/utils";
 import { useVehicles, useVehicleById } from "@/features/vehicles/hooks";
 import { useRentals } from "@/features/rentals/hooks";
 import { useMaintenance } from "@/features/maintenance/hooks";
+import { useExpenses } from "@/features/expenses/hooks";
+import { getExpenseTotal } from "@/features/expenses/selectors";
 import { useCustomerById } from "@/features/customers/hooks";
 import { getVehicleStatusCounts } from "@/features/vehicles/selectors";
 import {
@@ -36,7 +38,7 @@ import {
   getMaintenanceCount,
 } from "@/features/maintenance/selectors";
 import { useListVehicles } from "@workspace/api-client-react";
-import type { MaintenanceResponse } from "@workspace/api-client-react";
+import type { MaintenanceResponse, ExpenseResponse } from "@workspace/api-client-react";
 
 // ─── Mock date anchor ──────────────────────────────────────────────────────────
 const MOCK_MONTH = 0; // January
@@ -63,6 +65,7 @@ function deriveDashboard(
   rentals: ReturnType<typeof useRentals>,
   maintenance: MaintenanceResponse[],
   realVehicles: Array<{ id: string; status: string }>,
+  expenses: ExpenseResponse[],
 ) {
   const {
     available: availableCount,
@@ -74,6 +77,7 @@ function deriveDashboard(
     (v) => v.status === "MAINTENANCE",
   ).length;
 
+  const totalExpenses = getExpenseTotal(expenses);
   const endingSoonRentals = getRentalsEndingSoon(rentals, daysFromToday);
   const overdueItems = getOverdueMaintenance(maintenance);
   const upcomingMaintenance = getUpcomingMaintenance(maintenance, daysFromToday, 7);
@@ -87,6 +91,7 @@ function deriveDashboard(
     rentedCount,
     maintenanceCount,
     vehiclesUnderMaintenance,
+    totalExpenses,
     endingSoonRentals,
     overdueItems,
     upcomingMaintenance,
@@ -252,6 +257,8 @@ export default function DashboardPage() {
   const maintenance = maintenanceQuery.data?.data ?? [];
   const { data: realVehiclesData } = useListVehicles();
   const realVehicles = realVehiclesData?.data ?? [];
+  const expensesQuery = useExpenses();
+  const expenses = expensesQuery.data?.data ?? [];
   const getVehicleById = useVehicleById();
   const getCustomerById = useCustomerById();
 
@@ -266,6 +273,7 @@ export default function DashboardPage() {
     rentedCount,
     maintenanceCount,
     vehiclesUnderMaintenance,
+    totalExpenses,
     endingSoonRentals,
     overdueItems,
     upcomingMaintenance,
@@ -273,7 +281,7 @@ export default function DashboardPage() {
     pendingBalance,
     recentActivity,
     hasTasks,
-  } = deriveDashboard(vehicles, rentals, maintenance, realVehicles);
+  } = deriveDashboard(vehicles, rentals, maintenance, realVehicles, expenses);
 
   return (
     <div className="min-h-full">
@@ -325,6 +333,22 @@ export default function DashboardPage() {
             <span className="flex items-center gap-2">
               <span className="text-sm font-bold text-[hsl(var(--status-maintenance))] tabular-nums">
                 {maintenanceCount}
+              </span>
+              <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2.5} />
+            </span>
+          </button>
+
+          {/* Expense overview → Expenses view */}
+          <button
+            onClick={() => setLocation("/expenses")}
+            className="w-full mt-3 flex items-center justify-between rounded-xl border border-card-border bg-card px-4 py-2.5 text-right active:scale-[0.99] transition-transform"
+          >
+            <span className="text-sm font-semibold text-foreground">
+              إجمالي المصروفات
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="text-sm font-bold text-[hsl(var(--status-danger))] tabular-nums">
+                {formatCurrency(totalExpenses)}
               </span>
               <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2.5} />
             </span>
