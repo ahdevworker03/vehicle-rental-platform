@@ -26,6 +26,8 @@ tags:
     description: Contract operations
   - name: maintenance
     description: Maintenance operations
+  - name: expenses
+    description: Expense operations
 paths:
   /healthz:
     get:
@@ -2719,6 +2721,195 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /expenses:
+    get:
+      operationId: listExpenses
+      tags: [expenses]
+      summary: List expenses in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: vehicleId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vehicle ID
+      responses:
+        "200":
+          description: List of expenses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createExpense
+      tags: [expenses]
+      summary: Create an expense in the current organization
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateExpenseRequest"
+      responses:
+        "201":
+          description: Expense created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Vehicle not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /expenses/{id}:
+    get:
+      operationId: getExpense
+      tags: [expenses]
+      summary: Get an expense in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Expense ID
+      responses:
+        "200":
+          description: Expense
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Expense not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateExpense
+      tags: [expenses]
+      summary: Update an expense in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Expense ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateExpenseRequest"
+      responses:
+        "200":
+          description: Expense updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Expense or vehicle not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteExpense
+      tags: [expenses]
+      summary: Soft delete an expense in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Expense ID
+      responses:
+        "204":
+          description: Expense deleted
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Expense not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -3637,6 +3828,98 @@ components:
           minimum: 0
       required:
         - cost
+
+    ExpenseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        vehicleId:
+          type: string
+          nullable: true
+        expenseDate:
+          type: string
+          format: date-time
+        amount:
+          type: number
+        category:
+          type: string
+          enum: [FUEL, INSURANCE, REGISTRATION, CLEANING, OTHER]
+        description:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - expenseDate
+        - amount
+        - category
+        - createdAt
+        - updatedAt
+
+    ExpenseResponseWrapper:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/ExpenseResponse"
+      required:
+        - data
+
+    ExpenseListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExpenseResponse"
+      required:
+        - data
+
+    CreateExpenseRequest:
+      type: object
+      properties:
+        vehicle_id:
+          type: string
+        expense_date:
+          type: string
+          format: date-time
+        amount:
+          type: number
+          minimum: 0
+        category:
+          type: string
+          enum: [FUEL, INSURANCE, REGISTRATION, CLEANING, OTHER]
+        description:
+          type: string
+      required:
+        - expense_date
+        - amount
+        - category
+
+    UpdateExpenseRequest:
+      type: object
+      properties:
+        vehicle_id:
+          type: string
+          nullable: true
+        expense_date:
+          type: string
+          format: date-time
+        amount:
+          type: number
+          minimum: 0
+        category:
+          type: string
+          enum: [FUEL, INSURANCE, REGISTRATION, CLEANING, OTHER]
+        description:
+          type: string
+          nullable: true
+      required: []
 
     CreateRentalRequest:
       type: object

@@ -8,3 +8,4 @@ export * from './generated/users/users';
 export * from './generated/vehicles/vehicles';
 export * from './generated/types';
 export * from './generated/maintenance/maintenance';
+export * from './generated/expenses/expenses';

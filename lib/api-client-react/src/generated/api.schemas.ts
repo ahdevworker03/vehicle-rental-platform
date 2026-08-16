@@ -556,6 +556,76 @@ export interface CompleteMaintenanceRequest {
   cost: number;
 }
 
+export type ExpenseResponseCategory = typeof ExpenseResponseCategory[keyof typeof ExpenseResponseCategory];
+
+
+export const ExpenseResponseCategory = {
+  FUEL: 'FUEL',
+  INSURANCE: 'INSURANCE',
+  REGISTRATION: 'REGISTRATION',
+  CLEANING: 'CLEANING',
+  OTHER: 'OTHER',
+} as const;
+
+export interface ExpenseResponse {
+  id: string;
+  vehicleId?: string | null;
+  expenseDate: string;
+  amount: number;
+  category: ExpenseResponseCategory;
+  description?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExpenseResponseWrapper {
+  data: ExpenseResponse;
+}
+
+export interface ExpenseListResponse {
+  data: ExpenseResponse[];
+}
+
+export type CreateExpenseRequestCategory = typeof CreateExpenseRequestCategory[keyof typeof CreateExpenseRequestCategory];
+
+
+export const CreateExpenseRequestCategory = {
+  FUEL: 'FUEL',
+  INSURANCE: 'INSURANCE',
+  REGISTRATION: 'REGISTRATION',
+  CLEANING: 'CLEANING',
+  OTHER: 'OTHER',
+} as const;
+
+export interface CreateExpenseRequest {
+  vehicle_id?: string;
+  expense_date: string;
+  /** @minimum 0 */
+  amount: number;
+  category: CreateExpenseRequestCategory;
+  description?: string;
+}
+
+export type UpdateExpenseRequestCategory = typeof UpdateExpenseRequestCategory[keyof typeof UpdateExpenseRequestCategory];
+
+
+export const UpdateExpenseRequestCategory = {
+  FUEL: 'FUEL',
+  INSURANCE: 'INSURANCE',
+  REGISTRATION: 'REGISTRATION',
+  CLEANING: 'CLEANING',
+  OTHER: 'OTHER',
+} as const;
+
+export interface UpdateExpenseRequest {
+  vehicle_id?: string | null;
+  expense_date?: string;
+  /** @minimum 0 */
+  amount?: number;
+  category?: UpdateExpenseRequestCategory;
+  description?: string | null;
+}
+
 export interface CreateRentalRequest {
   /** @minLength 1 */
   customer_id: string;
@@ -710,6 +780,13 @@ export type UploadRentalContractSignedDocumentBody = {
 };
 
 export type ListMaintenanceParams = {
+/**
+ * Filter by vehicle ID
+ */
+vehicleId?: string;
+};
+
+export type ListExpensesParams = {
 /**
  * Filter by vehicle ID
  */

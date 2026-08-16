@@ -6,6 +6,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.ts"],
+    fileParallelism: false,
     env: {
       NODE_ENV: "test",
       PORT: "4001",
