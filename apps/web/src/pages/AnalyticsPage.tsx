@@ -23,6 +23,10 @@ import {
   getVehicleRevenueForMonth,
   getCustomerBalances,
 } from "@/features/rentals/selectors";
+import { useMaintenance } from "@/features/maintenance/hooks";
+import { getMaintenanceCostPerVehicle } from "@/features/maintenance/selectors";
+import { useListVehicles } from "@workspace/api-client-react";
+import type { MaintenanceResponse } from "@workspace/api-client-react";
 
 // ─── Mock date anchor ─────────────────────────────────────────────────────────
 const MOCK_MONTH = 0;   // January
@@ -36,7 +40,9 @@ function deriveAnalytics(
   rentals: ReturnType<typeof useRentals>,
   customers: ReturnType<typeof useCustomers>,
   getVehicleById: (id: string) => import("@/data/types").Vehicle | undefined,
-  getCustomerById: (id: string) => import("@/data/types").Customer | undefined
+  getCustomerById: (id: string) => import("@/data/types").Customer | undefined,
+  maintenance: MaintenanceResponse[],
+  realVehicles: Array<{ id: string; make: string; model: string }>,
 ) {
   const thisMonthRevenue = getMonthlyRevenue(rentals, MOCK_MONTH, MOCK_YEAR);
   const prevMonthRevenue = getMonthlyRevenue(rentals, PREV_MONTH, PREV_YEAR);
@@ -75,6 +81,15 @@ function deriveAnalytics(
     ? { customer: getCustomerById(topDebtorEntry[0])!, balance: topDebtorEntry[1] }
     : null;
 
+  const maintenanceCostPerVehicle = getMaintenanceCostPerVehicle(maintenance);
+  const maintenanceCostList = Object.entries(maintenanceCostPerVehicle)
+    .map(([vid, cost]) => ({
+      vehicle: realVehicles.find((v) => v.id === vid),
+      cost,
+    }))
+    .filter((x) => x.vehicle && x.cost > 0)
+    .sort((a, b) => b.cost - a.cost);
+
   return {
     thisMonthRevenue,
     prevMonthRevenue,
@@ -89,6 +104,7 @@ function deriveAnalytics(
     maintenanceCount,
     rentedVehicles,
     maintenanceVehicles,
+    maintenanceCostList,
     endedCount,
     topDebtor,
   };
@@ -102,6 +118,10 @@ export default function AnalyticsPage() {
   const customers = useCustomers();
   const getVehicleById = useVehicleById();
   const getCustomerById = useCustomerById();
+  const maintenanceQuery = useMaintenance();
+  const maintenance = maintenanceQuery.data?.data ?? [];
+  const { data: realVehiclesData } = useListVehicles();
+  const realVehicles = realVehiclesData?.data ?? [];
 
   const {
     thisMonthRevenue,
@@ -117,9 +137,18 @@ export default function AnalyticsPage() {
     maintenanceCount,
     rentedVehicles,
     maintenanceVehicles,
+    maintenanceCostList,
     endedCount,
     topDebtor,
-  } = deriveAnalytics(vehicles, rentals, customers, getVehicleById, getCustomerById);
+  } = deriveAnalytics(
+    vehicles,
+    rentals,
+    customers,
+    getVehicleById,
+    getCustomerById,
+    maintenance,
+    realVehicles,
+  );
 
   return (
     <div className="min-h-full">
@@ -212,6 +241,42 @@ export default function AnalyticsPage() {
         </section>
 
         </div>
+
+        {/* ── Maintenance cost per vehicle ──────────────────────────────── */}
+        <section>
+          <SectionHeader
+            title="تكلفة الصيانة لكل سيارة"
+            action={
+              <button onClick={() => navigate("/maintenance")} className="flex items-center gap-1">
+                عرض الكل
+                <TrendingUp className="w-3.5 h-3.5" strokeWidth={2.5} />
+              </button>
+            }
+          />
+
+          {maintenanceCostList.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              لا توجد تكاليف صيانة مسجّلة
+            </p>
+          ) : (
+            <div className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden">
+              {maintenanceCostList.map((item) => (
+                <button
+                  key={item.vehicle!.id}
+                  onClick={() => navigate(`/vehicles/${item.vehicle!.id}`)}
+                  className="w-full text-right px-4 py-3 flex items-center justify-between hover:bg-muted/40 active:bg-muted transition-colors"
+                >
+                  <span className="text-sm font-semibold text-foreground">
+                    {item.vehicle!.make} {item.vehicle!.model}
+                  </span>
+                  <span className="text-sm font-bold text-foreground tabular-nums">
+                    {formatCurrency(item.cost)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* ── Bottom row: Fleet + Summary + Top debtor ─────────────────── */}
         <div className="grid gap-6 lg:grid-cols-2 lg:items-start">

@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import type { MaintenanceResponse } from "@workspace/api-client-react";
-import { getOverdueCount, getUpcomingMaintenance, getDisplayStatus } from "./selectors";
+import {
+  getOverdueCount,
+  getUpcomingMaintenance,
+  getDisplayStatus,
+  getMaintenanceCount,
+  getMaintenanceCostPerVehicle,
+} from "./selectors";
 
 function makeRecord(overrides: Partial<MaintenanceResponse>): MaintenanceResponse {
   return {
@@ -77,5 +83,58 @@ describe("getUpcomingMaintenance", () => {
       makeRecord({ maintenanceDate: "2025-01-30T12:00:00.000Z" }),
     ];
     expect(getUpcomingMaintenance(records, daysFromToday, 7, now)).toEqual([]);
+  });
+});
+
+describe("getMaintenanceCount", () => {
+  it("returns the number of maintenance records", () => {
+    const records = [
+      makeRecord({ status: "COMPLETED" }),
+      makeRecord({ status: "SCHEDULED" }),
+      makeRecord({ status: "IN_PROGRESS" }),
+    ];
+    expect(getMaintenanceCount(records)).toBe(3);
+  });
+
+  it("returns zero for an empty list", () => {
+    expect(getMaintenanceCount([])).toBe(0);
+  });
+});
+
+describe("getMaintenanceCostPerVehicle", () => {
+  it("sums the authoritative cost per vehicle", () => {
+    const records = [
+      makeRecord({ vehicleId: "v1", cost: 100 }),
+      makeRecord({ vehicleId: "v1", cost: 50 }),
+      makeRecord({ vehicleId: "v2", cost: 75 }),
+    ];
+    expect(getMaintenanceCostPerVehicle(records)).toEqual({
+      v1: 150,
+      v2: 75,
+    });
+  });
+
+  it("ignores records without a finalized cost", () => {
+    const records = [
+      makeRecord({ vehicleId: "v1", cost: 100 }),
+      makeRecord({ vehicleId: "v1" }), // cost undefined
+      makeRecord({ vehicleId: "v2", cost: null }), // cost null
+    ];
+    expect(getMaintenanceCostPerVehicle(records)).toEqual({ v1: 100 });
+  });
+
+  it("does not use replaced part unit costs", () => {
+    const records = [
+      makeRecord({
+        vehicleId: "v1",
+        cost: 200,
+        replacedParts: [{ name: "part", unitCost: 999 }],
+      }),
+    ];
+    expect(getMaintenanceCostPerVehicle(records)).toEqual({ v1: 200 });
+  });
+
+  it("returns an empty map for an empty list", () => {
+    expect(getMaintenanceCostPerVehicle([])).toEqual({});
   });
 });

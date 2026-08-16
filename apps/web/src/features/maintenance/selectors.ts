@@ -47,3 +47,24 @@ export function getOverdueCount(
 ): number {
   return getOverdueMaintenance(records, now).length;
 }
+
+/** Total maintenance records returned by the API (already excludes soft-deleted). */
+export function getMaintenanceCount(records: MaintenanceResponse[]): number {
+  return records.length;
+}
+
+/**
+ * Total maintenance cost per vehicle, keyed by vehicle id.
+ * Uses `Maintenance.cost` only (the authoritative amount); records without a
+ * finalized cost (null) do not contribute.
+ */
+export function getMaintenanceCostPerVehicle(
+  records: MaintenanceResponse[],
+): Record<string, number> {
+  const costs: Record<string, number> = {};
+  for (const record of records) {
+    if (record.cost == null) continue;
+    costs[record.vehicleId] = (costs[record.vehicleId] ?? 0) + record.cost;
+  }
+  return costs;
+}

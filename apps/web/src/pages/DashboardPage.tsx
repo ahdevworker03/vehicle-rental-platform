@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useLocation } from "wouter";
 import {
   Car,
@@ -32,7 +33,9 @@ import {
 import {
   getOverdueMaintenance,
   getUpcomingMaintenance,
+  getMaintenanceCount,
 } from "@/features/maintenance/selectors";
+import { useListVehicles } from "@workspace/api-client-react";
 import type { MaintenanceResponse } from "@workspace/api-client-react";
 
 // ─── Mock date anchor ──────────────────────────────────────────────────────────
@@ -58,13 +61,18 @@ function relativeTimeLabel(pastDays: number): string {
 function deriveDashboard(
   vehicles: ReturnType<typeof useVehicles>,
   rentals: ReturnType<typeof useRentals>,
-  maintenance: MaintenanceResponse[]
+  maintenance: MaintenanceResponse[],
+  realVehicles: Array<{ id: string; status: string }>,
 ) {
   const {
     available: availableCount,
     rented: rentedCount,
-    maintenance: maintenanceCount,
   } = getVehicleStatusCounts(vehicles);
+
+  const maintenanceCount = getMaintenanceCount(maintenance);
+  const vehiclesUnderMaintenance = realVehicles.filter(
+    (v) => v.status === "MAINTENANCE",
+  ).length;
 
   const endingSoonRentals = getRentalsEndingSoon(rentals, daysFromToday);
   const overdueItems = getOverdueMaintenance(maintenance);
@@ -78,6 +86,7 @@ function deriveDashboard(
     availableCount,
     rentedCount,
     maintenanceCount,
+    vehiclesUnderMaintenance,
     endingSoonRentals,
     overdueItems,
     upcomingMaintenance,
@@ -241,13 +250,22 @@ export default function DashboardPage() {
   const rentals = useRentals();
   const maintenanceQuery = useMaintenance();
   const maintenance = maintenanceQuery.data?.data ?? [];
+  const { data: realVehiclesData } = useListVehicles();
+  const realVehicles = realVehiclesData?.data ?? [];
   const getVehicleById = useVehicleById();
   const getCustomerById = useCustomerById();
+
+  const realVehicleById = useMemo(() => {
+    const map = new Map<string, { make: string; model: string; plateNumber: string }>();
+    realVehicles.forEach((v) => map.set(v.id, v));
+    return map;
+  }, [realVehicles]);
 
   const {
     availableCount,
     rentedCount,
     maintenanceCount,
+    vehiclesUnderMaintenance,
     endingSoonRentals,
     overdueItems,
     upcomingMaintenance,
@@ -255,7 +273,7 @@ export default function DashboardPage() {
     pendingBalance,
     recentActivity,
     hasTasks,
-  } = deriveDashboard(vehicles, rentals, maintenance);
+  } = deriveDashboard(vehicles, rentals, maintenance, realVehicles);
 
   return (
     <div className="min-h-full">
@@ -290,11 +308,27 @@ export default function DashboardPage() {
             />
             <StatCard
               label={VEHICLE_STATUS_LABELS.maintenance}
-              value={maintenanceCount}
+              value={vehiclesUnderMaintenance}
               variant="maintenance"
               onClick={() => setLocation("/vehicles?filter=maintenance")}
             />
           </div>
+
+          {/* Maintenance records count → Maintenance view */}
+          <button
+            onClick={() => setLocation("/maintenance")}
+            className="w-full mt-3 flex items-center justify-between rounded-xl border border-card-border bg-card px-4 py-2.5 text-right active:scale-[0.99] transition-transform"
+          >
+            <span className="text-sm font-semibold text-foreground">
+              سجلات الصيانة
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="text-sm font-bold text-[hsl(var(--status-maintenance))] tabular-nums">
+                {maintenanceCount}
+              </span>
+              <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2.5} />
+            </span>
+          </button>
         </section>
 
         {/* ── Revenue ───────────────────────────────────────────────────── */}
@@ -399,7 +433,7 @@ export default function DashboardPage() {
 
               {/* Overdue maintenance */}
               {overdueItems.map((item) => {
-                const vehicle = getVehicleById(item.vehicleId);
+                const vehicle = realVehicleById.get(item.vehicleId);
                 if (!vehicle) return null;
                 const days = daysFromToday(item.maintenanceDate);
                 const due = dueLabelFor(days);
@@ -446,7 +480,7 @@ export default function DashboardPage() {
             />
             <div className="space-y-2">
               {upcomingMaintenance.map((item) => {
-                const vehicle = getVehicleById(item.vehicleId);
+                const vehicle = realVehicleById.get(item.vehicleId);
                 if (!vehicle) return null;
                 const days = daysFromToday(item.maintenanceDate);
                 const due = dueLabelFor(days);
