@@ -1,0 +1,15 @@
+- generic [ref=f23e2]:
+  - generic [ref=f23e4]:
+    - generic [ref=f23e5]:
+      - heading "تسجيل الدخول" [level=1] [ref=f23e6]
+      - paragraph [ref=f23e7]: أدخل بياناتك للوصول إلى النظام
+    - generic [ref=f23e8]:
+      - generic [ref=f23e9]:
+        - generic [ref=f23e10]: البريد الإلكتروني*
+        - textbox "example@company.com" [ref=f23e11]
+      - generic [ref=f23e12]:
+        - generic [ref=f23e13]: كلمة المرور*
+        - textbox "••••••••" [ref=f23e14]
+    - button "دخول" [disabled] [ref=f23e15]
+  - region "Notifications (F8)":
+    - list

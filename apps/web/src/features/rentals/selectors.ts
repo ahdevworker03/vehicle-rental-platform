@@ -16,53 +16,6 @@ export function getEndedRentals(rentals: Rental[]): Rental[] {
   return rentals.filter((r) => r.status === "ended");
 }
 
-export function getMonthlyRevenue(rentals: Rental[], month: number, year: number): number {
-  return rentals.reduce(
-    (sum, r) =>
-      sum +
-      r.payments.reduce((s, p) => {
-        const d = new Date(p.date);
-        return d.getMonth() === month && d.getFullYear() === year ? s + p.amount : s;
-      }, 0),
-    0
-  );
-}
-
-export function getPendingBalance(rentals: Rental[]): number {
-  return getActiveRentals(rentals).reduce((sum, r) => sum + getRemaining(r), 0);
-}
-
-export function getVehicleRevenueForMonth(
-  rentals: Rental[],
-  month: number,
-  year: number
-): Record<string, number> {
-  const byVehicle: Record<string, number> = {};
-  rentals.forEach((r) => {
-    r.payments.forEach((p) => {
-      const d = new Date(p.date);
-      if (d.getMonth() === month && d.getFullYear() === year) {
-        const share = p.amount / r.vehicleIds.length;
-        r.vehicleIds.forEach((vid) => {
-          byVehicle[vid] = (byVehicle[vid] ?? 0) + share;
-        });
-      }
-    });
-  });
-  return byVehicle;
-}
-
-export function getCustomerBalances(rentals: Rental[]): Record<string, number> {
-  const balances: Record<string, number> = {};
-  getActiveRentals(rentals).forEach((r) => {
-    const remaining = getRemaining(r);
-    if (remaining > 0) {
-      balances[r.customerId] = (balances[r.customerId] ?? 0) + remaining;
-    }
-  });
-  return balances;
-}
-
 export function getRentalsEndingSoon(rentals: Rental[], daysFromToday: (dateStr: string) => number): Rental[] {
   return rentals
     .filter((r) => r.status === "active")

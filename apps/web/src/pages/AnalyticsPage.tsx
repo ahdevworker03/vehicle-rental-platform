@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useLocation } from "wouter";
 import { TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Users } from "lucide-react";
 
@@ -8,7 +9,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatCurrency } from "@/lib/format";
 import { VEHICLE_STATUS_LABELS } from "@/lib/labels";
 
-import { useVehicles, useVehicleById } from "@/features/vehicles/hooks";
+import { useVehicles } from "@/features/vehicles/hooks";
 import { useRentals } from "@/features/rentals/hooks";
 import { useCustomers, useCustomerById } from "@/features/customers/hooks";
 import {
@@ -18,10 +19,6 @@ import {
 import {
   getActiveRentals,
   getEndedRentals,
-  getMonthlyRevenue,
-  getPendingBalance,
-  getVehicleRevenueForMonth,
-  getCustomerBalances,
 } from "@/features/rentals/selectors";
 import { useMaintenance } from "@/features/maintenance/hooks";
 import { getMaintenanceCostPerVehicle } from "@/features/maintenance/selectors";
@@ -32,8 +29,17 @@ import {
   getExpenseTotalPerVehicle,
   getNetProfit,
 } from "@/features/expenses/selectors";
-import { useListVehicles } from "@workspace/api-client-react";
-import type { MaintenanceResponse, ExpenseResponse } from "@workspace/api-client-react";
+import { usePayments, useOrgOutstandingBalances } from "@/features/payments/hooks";
+import {
+  getPaymentRevenueForPeriod,
+  getPaymentRevenuePerVehicle,
+  getOutstandingPerCustomer,
+  getTotalOutstanding,
+  type RentalOutstandingBalance,
+} from "@/features/payments/selectors";
+import { useListVehicles, useListCustomers } from "@workspace/api-client-react";
+import { getApiErrorMessage } from "@/lib/api-error";
+import type { MaintenanceResponse, ExpenseResponse, RentalResponse } from "@workspace/api-client-react";
 
 // ─── Mock date anchor ─────────────────────────────────────────────────────────
 const MOCK_MONTH = 0;   // January
@@ -46,15 +52,18 @@ function deriveAnalytics(
   vehicles: ReturnType<typeof useVehicles>,
   rentals: ReturnType<typeof useRentals>,
   customers: ReturnType<typeof useCustomers>,
-  getVehicleById: (id: string) => import("@/data/types").Vehicle | undefined,
   getCustomerById: (id: string) => import("@/data/types").Customer | undefined,
   maintenance: MaintenanceResponse[],
   realVehicles: Array<{ id: string; make: string; model: string }>,
   expenses: ExpenseResponse[],
+  payments: ReturnType<typeof usePayments>["payments"],
+  apiRentals: RentalResponse[],
+  outstandingBalances: RentalOutstandingBalance[],
+  realCustomersById: Map<string, { id: string; name: string; location: string }>,
 ) {
-  const thisMonthRevenue = getMonthlyRevenue(rentals, MOCK_MONTH, MOCK_YEAR);
-  const prevMonthRevenue = getMonthlyRevenue(rentals, PREV_MONTH, PREV_YEAR);
-  const vehicleRevenueThisMonth = getVehicleRevenueForMonth(rentals, MOCK_MONTH, MOCK_YEAR);
+  const thisMonthRevenue = getPaymentRevenueForPeriod(payments, MOCK_MONTH, MOCK_YEAR);
+  const prevMonthRevenue = getPaymentRevenueForPeriod(payments, PREV_MONTH, PREV_YEAR);
+  const vehicleRevenueThisMonth = getPaymentRevenuePerVehicle(payments, apiRentals, MOCK_MONTH, MOCK_YEAR);
 
   const revenueChange =
     prevMonthRevenue > 0
@@ -62,11 +71,11 @@ function deriveAnalytics(
       : null;
   const revenueUp = revenueChange !== null && revenueChange >= 0;
 
-  const totalPending = getPendingBalance(rentals);
+  const totalPending = getTotalOutstanding(outstandingBalances);
   const activeRentals = getActiveRentals(rentals);
 
   const vehicleRevenueList = Object.entries(vehicleRevenueThisMonth)
-    .map(([vid, amount]) => ({ vehicle: getVehicleById(vid)!, amount }))
+    .map(([vid, amount]) => ({ vehicle: realVehicles.find((v) => v.id === vid)!, amount }))
     .filter((x) => x.vehicle && x.amount > 0)
     .sort((a, b) => b.amount - a.amount);
 
@@ -83,10 +92,13 @@ function deriveAnalytics(
 
   const endedCount = getEndedRentals(rentals).length;
 
-  const customerBalance = getCustomerBalances(rentals);
+  const customerBalance = getOutstandingPerCustomer(outstandingBalances);
   const topDebtorEntry = Object.entries(customerBalance).sort((a, b) => b[1] - a[1])[0];
   const topDebtor = topDebtorEntry
-    ? { customer: getCustomerById(topDebtorEntry[0])!, balance: topDebtorEntry[1] }
+    ? (() => {
+        const customer = realCustomersById.get(topDebtorEntry[0]);
+        return customer ? { customer, balance: topDebtorEntry[1] } : null;
+      })()
     : null;
 
   const maintenanceCostPerVehicle = getMaintenanceCostPerVehicle(maintenance);
@@ -109,10 +121,7 @@ function deriveAnalytics(
     .filter((x) => x.vehicle && x.amount > 0)
     .sort((a, b) => b.amount - a.amount);
 
-  // Net profit = payments - expenses. `thisMonthRevenue` is the existing
-  // revenue/payments figure used by the analytics (mock rental payments until
-  // the real Payments module lands in Phase 16); `expenseTotalForPeriod` is the
-  // sum of `Expense.amount` for the same period.
+  // Net profit = recorded payment revenue - expenses for the period.
   const netProfit = getNetProfit(thisMonthRevenue, expenseTotalForPeriod);
 
   return {
@@ -144,7 +153,6 @@ export default function AnalyticsPage() {
   const vehicles = useVehicles();
   const rentals = useRentals();
   const customers = useCustomers();
-  const getVehicleById = useVehicleById();
   const getCustomerById = useCustomerById();
   const maintenanceQuery = useMaintenance();
   const maintenance = maintenanceQuery.data?.data ?? [];
@@ -152,6 +160,28 @@ export default function AnalyticsPage() {
   const realVehicles = realVehiclesData?.data ?? [];
   const expensesQuery = useExpenses();
   const expenses = expensesQuery.data?.data ?? [];
+  const paymentsQuery = usePayments();
+  const payments = paymentsQuery.payments;
+  const outstandingQuery = useOrgOutstandingBalances();
+  const apiRentals = outstandingQuery.rentals;
+  const outstandingBalances = outstandingQuery.balances;
+  const { data: realCustomersData } = useListCustomers();
+  const realCustomers = realCustomersData?.data ?? [];
+
+  const realCustomersById = useMemo(
+    () =>
+      new Map(
+        realCustomers.map((c) => [
+          c.id,
+          {
+            id: c.id,
+            name: `${c.firstName} ${c.lastName}`.trim(),
+            location: c.address,
+          },
+        ]),
+      ),
+    [realCustomers],
+  );
 
   const {
     thisMonthRevenue,
@@ -177,12 +207,31 @@ export default function AnalyticsPage() {
     vehicles,
     rentals,
     customers,
-    getVehicleById,
     getCustomerById,
     maintenance,
     realVehicles,
     expenses,
+    payments,
+    apiRentals,
+    outstandingBalances,
+    realCustomersById,
   );
+
+  const financialLoading =
+    paymentsQuery.isLoading ||
+    expensesQuery.isLoading ||
+    outstandingQuery.isLoading;
+  const financialError = getApiErrorMessage(
+    paymentsQuery.error ??
+      expensesQuery.error ??
+      outstandingQuery.error,
+  ).title;
+  const hasFinancialError = Boolean(
+    paymentsQuery.error || expensesQuery.error || outstandingQuery.error,
+  );
+  const outstandingLoading = outstandingQuery.isLoading;
+  const hasOutstandingError = Boolean(outstandingQuery.error);
+  const outstandingError = getApiErrorMessage(outstandingQuery.error).title;
 
   return (
     <div className="min-h-full">
@@ -200,9 +249,15 @@ export default function AnalyticsPage() {
           {/* Main revenue card */}
           <div className="rounded-2xl bg-primary p-5 text-white mb-3">
             <p className="text-sm font-medium opacity-80 mb-1">إيرادات كانون الثاني 2025</p>
-            <p className="text-3xl font-bold tracking-tight">{formatCurrency(thisMonthRevenue)}</p>
+            {financialLoading ? (
+              <p className="text-sm font-medium opacity-90 py-2">جارٍ التحميل...</p>
+            ) : hasFinancialError ? (
+              <p className="text-sm font-medium opacity-90 py-2">{financialError}</p>
+            ) : (
+              <p className="text-3xl font-bold tracking-tight">{formatCurrency(thisMonthRevenue)}</p>
+            )}
 
-            {revenueChange !== null && (
+            {!financialLoading && !hasFinancialError && revenueChange !== null && (
               <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-white/20">
                 {revenueUp
                   ? <TrendingUp size={15} className="shrink-0 opacity-90" />
@@ -221,9 +276,15 @@ export default function AnalyticsPage() {
               <AlertCircle size={16} className="shrink-0" />
               <span className="text-sm font-medium">مبالغ غير محصّلة</span>
             </div>
-            <span className="text-sm font-bold text-[hsl(var(--status-danger))]">
-              {formatCurrency(totalPending)}
-            </span>
+            {outstandingLoading ? (
+              <span className="text-sm font-bold text-[hsl(var(--status-danger))]">جارٍ التحميل...</span>
+            ) : hasOutstandingError ? (
+              <span className="text-sm font-bold text-[hsl(var(--status-danger))]">{outstandingError}</span>
+            ) : (
+              <span className="text-sm font-bold text-[hsl(var(--status-danger))]">
+                {formatCurrency(totalPending)}
+              </span>
+            )}
           </div>
         </section>
 
@@ -231,7 +292,11 @@ export default function AnalyticsPage() {
         <section>
           <SectionHeader title="إيرادات السيارات هذا الشهر" />
 
-          {vehicleRevenueList.length === 0 ? (
+          {financialLoading ? (
+            <p className="text-sm text-muted-foreground text-center py-4">جارٍ التحميل...</p>
+          ) : hasFinancialError ? (
+            <p className="text-sm text-muted-foreground text-center py-4">{financialError}</p>
+          ) : vehicleRevenueList.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">
               لا توجد إيرادات هذا الشهر
             </p>
@@ -333,13 +398,23 @@ export default function AnalyticsPage() {
             </div>
             <div className="rounded-2xl border border-border bg-card p-4">
               <p className="text-xs text-muted-foreground">صافي الربح</p>
-              <p
-                className={`text-2xl font-bold leading-tight mt-1 tabular-nums ${
-                  netProfit < 0 ? "text-[hsl(var(--status-danger))]" : "text-[hsl(var(--status-available))]"
-                }`}
-              >
-                {formatCurrency(netProfit)}
-              </p>
+              {financialLoading ? (
+                <p className="text-lg font-semibold text-foreground leading-tight mt-1">
+                  جارٍ التحميل...
+                </p>
+              ) : hasFinancialError ? (
+                <p className="text-sm font-semibold text-destructive leading-tight mt-1">
+                  {financialError}
+                </p>
+              ) : (
+                <p
+                  className={`text-2xl font-bold leading-tight mt-1 tabular-nums ${
+                    netProfit < 0 ? "text-[hsl(var(--status-danger))]" : "text-[hsl(var(--status-available))]"
+                  }`}
+                >
+                  {formatCurrency(netProfit)}
+                </p>
+              )}
             </div>
           </div>
 

@@ -27,8 +27,6 @@ import { getExpenseTotal } from "@/features/expenses/selectors";
 import { useCustomerById } from "@/features/customers/hooks";
 import { getVehicleStatusCounts } from "@/features/vehicles/selectors";
 import {
-  getMonthlyRevenue,
-  getPendingBalance,
   getRentalsEndingSoon,
   getRecentEndedRentals,
 } from "@/features/rentals/selectors";
@@ -37,8 +35,11 @@ import {
   getUpcomingMaintenance,
   getMaintenanceCount,
 } from "@/features/maintenance/selectors";
+import { usePayments, useOrgOutstandingBalances } from "@/features/payments/hooks";
+import { getPaymentRevenueForPeriod } from "@/features/payments/selectors";
+import { getApiErrorMessage } from "@/lib/api-error";
 import { useListVehicles } from "@workspace/api-client-react";
-import type { MaintenanceResponse, ExpenseResponse } from "@workspace/api-client-react";
+import type { MaintenanceResponse, ExpenseResponse, PaymentResponse } from "@workspace/api-client-react";
 
 // ─── Mock date anchor ──────────────────────────────────────────────────────────
 const MOCK_MONTH = 0; // January
@@ -66,6 +67,8 @@ function deriveDashboard(
   maintenance: MaintenanceResponse[],
   realVehicles: Array<{ id: string; status: string }>,
   expenses: ExpenseResponse[],
+  payments: PaymentResponse[],
+  outstandingBalance: number,
 ) {
   const {
     available: availableCount,
@@ -81,8 +84,8 @@ function deriveDashboard(
   const endingSoonRentals = getRentalsEndingSoon(rentals, daysFromToday);
   const overdueItems = getOverdueMaintenance(maintenance);
   const upcomingMaintenance = getUpcomingMaintenance(maintenance, daysFromToday, 7);
-  const monthlyRevenue = getMonthlyRevenue(rentals, MOCK_MONTH, MOCK_YEAR);
-  const pendingBalance = getPendingBalance(rentals);
+  const monthlyRevenue = getPaymentRevenueForPeriod(payments, MOCK_MONTH, MOCK_YEAR);
+  const pendingBalance = outstandingBalance;
   const recentActivity = getRecentEndedRentals(rentals, 4);
   const hasTasks = endingSoonRentals.length > 0 || overdueItems.length > 0;
 
@@ -161,10 +164,14 @@ function RevenueCard({
   onClick,
   monthlyRevenue,
   pendingBalance,
+  isLoading,
+  error,
 }: {
   onClick: () => void;
   monthlyRevenue: number;
   pendingBalance: number;
+  isLoading: boolean;
+  error: string | null;
 }) {
   return (
     <button
@@ -179,24 +186,34 @@ function RevenueCard({
         </div>
         <ChevronLeft className="w-4 h-4 text-primary-foreground/60" strokeWidth={2} />
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <div className="text-2xl font-bold text-primary-foreground leading-tight">
-            {formatCurrency(monthlyRevenue)}
+      {isLoading ? (
+        <div className="text-sm text-primary-foreground/70 font-medium py-3">
+          جارٍ تحميل البيانات المالية...
+        </div>
+      ) : error ? (
+        <div className="text-sm text-primary-foreground/90 font-medium py-3">
+          {error}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <div className="text-2xl font-bold text-primary-foreground leading-tight">
+              {formatCurrency(monthlyRevenue)}
+            </div>
+            <div className="text-xs text-primary-foreground/70 mt-1 font-medium">
+              إجمالي الدخل
+            </div>
           </div>
-          <div className="text-xs text-primary-foreground/70 mt-1 font-medium">
-            إجمالي الدخل
+          <div className="border-r border-primary-foreground/20 pr-4">
+            <div className="text-2xl font-bold text-primary-foreground/90 leading-tight">
+              {formatCurrency(pendingBalance)}
+            </div>
+            <div className="text-xs text-primary-foreground/70 mt-1 font-medium">
+              رصيد متبقي
+            </div>
           </div>
         </div>
-        <div className="border-r border-primary-foreground/20 pr-4">
-          <div className="text-2xl font-bold text-primary-foreground/90 leading-tight">
-            {formatCurrency(pendingBalance)}
-          </div>
-          <div className="text-xs text-primary-foreground/70 mt-1 font-medium">
-            رصيد متبقي
-          </div>
-        </div>
-      </div>
+      )}
     </button>
   );
 }
@@ -259,6 +276,9 @@ export default function DashboardPage() {
   const realVehicles = realVehiclesData?.data ?? [];
   const expensesQuery = useExpenses();
   const expenses = expensesQuery.data?.data ?? [];
+  const paymentsQuery = usePayments();
+  const payments = paymentsQuery.payments;
+  const outstandingQuery = useOrgOutstandingBalances();
   const getVehicleById = useVehicleById();
   const getCustomerById = useCustomerById();
 
@@ -267,6 +287,12 @@ export default function DashboardPage() {
     realVehicles.forEach((v) => map.set(v.id, v));
     return map;
   }, [realVehicles]);
+
+  const financialLoading = paymentsQuery.isLoading || outstandingQuery.isLoading;
+  const financialError =
+    paymentsQuery.error || outstandingQuery.error
+      ? getApiErrorMessage(paymentsQuery.error ?? outstandingQuery.error).title
+      : null;
 
   const {
     availableCount,
@@ -281,7 +307,15 @@ export default function DashboardPage() {
     pendingBalance,
     recentActivity,
     hasTasks,
-  } = deriveDashboard(vehicles, rentals, maintenance, realVehicles, expenses);
+  } = deriveDashboard(
+    vehicles,
+    rentals,
+    maintenance,
+    realVehicles,
+    expenses,
+    payments,
+    outstandingQuery.totalOutstanding ?? 0,
+  );
 
   return (
     <div className="min-h-full">
@@ -361,6 +395,8 @@ export default function DashboardPage() {
             onClick={() => setLocation("/analytics")}
             monthlyRevenue={monthlyRevenue}
             pendingBalance={pendingBalance}
+            isLoading={financialLoading}
+            error={financialError}
           />
         </section>
         </div>

@@ -3,3 +3,9 @@
 [     246ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/rentals/65b03971-ff57-4c82-9c46-7e912c7df464/contract/signed:0
 [    1252ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/rentals/65b03971-ff57-4c82-9c46-7e912c7df464/contract:0
 [    1253ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/rentals/65b03971-ff57-4c82-9c46-7e912c7df464/contract/signed:0
+[ 1826783ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:3000/api/rentals/65b03971-ff57-4c82-9c46-7e912c7df464/payments:0
+[ 1827787ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:3000/api/rentals/65b03971-ff57-4c82-9c46-7e912c7df464/payments:0
+[ 2177987ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=e74e496a:17986
+[ 2178130ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/login:0
+[ 2186129ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/react-dom_client.js?v=e74e496a:17986
+[ 2186247ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/login:0
