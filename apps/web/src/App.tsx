@@ -26,6 +26,9 @@ import ExpensesPage from '@/pages/ExpensesPage';
 import AddExpensePage from '@/pages/AddExpensePage';
 import ExpenseDetailPage from '@/pages/ExpenseDetailPage';
 import AnalyticsPage from '@/pages/AnalyticsPage';
+import TasksPage from '@/pages/TasksPage';
+import AddTaskPage from '@/pages/AddTaskPage';
+import TaskDetailPage from '@/pages/TaskDetailPage';
 import NotFound from '@/pages/not-found';
 
 function Router() {
@@ -47,6 +50,8 @@ function Router() {
       <Route path="/expenses" component={ExpensesPage} />
       <Route path="/expenses/:id" component={ExpenseDetailPage} />
       <Route path="/analytics" component={AnalyticsPage} />
+      <Route path="/tasks" component={TasksPage} />
+      <Route path="/tasks/:id" component={TaskDetailPage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -96,6 +101,15 @@ function App() {
                   <div className="h-[100dvh] flex flex-col bg-background relative overflow-hidden">
                     <div className="flex-1 flex flex-col min-h-0 mx-auto w-full max-w-3xl">
                       <AddExpensePage />
+                    </div>
+                  </div>
+                </ProtectedRoute>
+              </Route>
+              <Route path="/tasks/add">
+                <ProtectedRoute>
+                  <div className="h-[100dvh] flex flex-col bg-background relative overflow-hidden">
+                    <div className="flex-1 flex flex-col min-h-0 mx-auto w-full max-w-3xl">
+                      <AddTaskPage />
                     </div>
                   </div>
                 </ProtectedRoute>

@@ -24,6 +24,11 @@ export const MAINTENANCE_STATUS_LABELS: Record<
   COMPLETED: "مكتملة",
 };
 
+export const TASK_STATUS_LABELS: Record<string, string> = {
+  PENDING: "قيد الانتظار",
+  COMPLETED: "مكتملة",
+};
+
 export const VEHICLE_STATUS_LABELS: Record<string, string> = {
   available: "متاحة",
   rented: "مؤجرة",
