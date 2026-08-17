@@ -10,6 +10,7 @@ import {
   TrendingUp,
   RotateCcw,
   CheckCircle2,
+  ClipboardList,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/ui/StatCard";
@@ -37,9 +38,11 @@ import {
 } from "@/features/maintenance/selectors";
 import { usePayments, useOrgOutstandingBalances } from "@/features/payments/hooks";
 import { getPaymentRevenueForPeriod } from "@/features/payments/selectors";
+import { useTasks } from "@/features/tasks/hooks";
+import { getPendingTaskCount, isTaskOverdue } from "@/features/tasks/selectors";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { useListVehicles } from "@workspace/api-client-react";
-import type { MaintenanceResponse, ExpenseResponse, PaymentResponse } from "@workspace/api-client-react";
+import type { MaintenanceResponse, ExpenseResponse, PaymentResponse, TaskResponse } from "@workspace/api-client-react";
 
 // ─── Mock date anchor ──────────────────────────────────────────────────────────
 const MOCK_MONTH = 0; // January
@@ -294,6 +297,15 @@ export default function DashboardPage() {
       ? getApiErrorMessage(paymentsQuery.error ?? outstandingQuery.error).title
       : null;
 
+  const tasksQuery = useTasks();
+  const tasks = (tasksQuery.data?.data ?? []) as TaskResponse[];
+  const pendingTasks = getPendingTaskCount(tasks);
+  const overdueTasks = tasks.filter((t) => isTaskOverdue(t)).length;
+  const tasksLoading = tasksQuery.isLoading;
+  const tasksError = tasksQuery.error
+    ? getApiErrorMessage(tasksQuery.error).title
+    : null;
+
   const {
     availableCount,
     rentedCount,
@@ -383,6 +395,38 @@ export default function DashboardPage() {
             <span className="flex items-center gap-2">
               <span className="text-sm font-bold text-[hsl(var(--status-danger))] tabular-nums">
                 {formatCurrency(totalExpenses)}
+              </span>
+              <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2.5} />
+            </span>
+          </button>
+
+          {/* Tasks overview → Tasks view */}
+          <button
+            onClick={() => setLocation("/tasks")}
+            className="w-full mt-3 flex items-center justify-between rounded-xl border border-card-border bg-card px-4 py-2.5 text-right active:scale-[0.99] transition-transform"
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <ClipboardList className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
+              المهام
+              {overdueTasks > 0 && !tasksLoading && !tasksError && (
+                <span className="text-xs font-bold text-[hsl(var(--status-danger))]">
+                  {overdueTasks} متأخرة
+                </span>
+              )}
+            </span>
+            <span className="flex items-center gap-2">
+              <span
+                className={
+                  overdueTasks > 0 && !tasksLoading && !tasksError
+                    ? "text-sm font-bold text-[hsl(var(--status-danger))] tabular-nums"
+                    : "text-sm font-bold text-[hsl(var(--status-maintenance))] tabular-nums"
+                }
+              >
+                {tasksLoading
+                  ? "جارٍ التحميل..."
+                  : tasksError
+                    ? tasksError
+                    : pendingTasks}
               </span>
               <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={2.5} />
             </span>
