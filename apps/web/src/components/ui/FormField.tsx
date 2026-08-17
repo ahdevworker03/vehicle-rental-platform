@@ -8,6 +8,7 @@ interface FormFieldProps {
   error?: string;
   children: ReactNode;
   className?: string;
+  htmlFor?: string;
 }
 
 /**
@@ -21,10 +22,11 @@ export function FormField({
   error,
   children,
   className,
+  htmlFor,
 }: FormFieldProps) {
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <label className="text-sm font-semibold text-foreground">
+      <label htmlFor={htmlFor} className="text-sm font-semibold text-foreground">
         {label}
         {required && <span className="text-destructive mr-1">*</span>}
       </label>

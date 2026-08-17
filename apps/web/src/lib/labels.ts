@@ -53,3 +53,14 @@ export const EXPENSE_CATEGORY_FILTER_OPTIONS: { label: string; value: string }[]
   { label: "تنظيف", value: "CLEANING" },
   { label: "أخرى", value: "OTHER" },
 ];
+
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  CASH: "نقداً",
+  CARD: "بطاقة",
+  TRANSFER: "تحويل بنكي",
+  OTHER: "أخرى",
+};
+
+export const PAYMENT_METHOD_OPTIONS = (Object.keys(PAYMENT_METHOD_LABELS)).map(
+  (value) => ({ value, label: PAYMENT_METHOD_LABELS[value] }),
+);

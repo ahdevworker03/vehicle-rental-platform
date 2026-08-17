@@ -18,6 +18,7 @@ import { FormField, inputClass } from "@/components/ui/FormField";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ContractSection } from "@/components/ui/ContractSection";
+import { PaymentSection } from "@/components/ui/PaymentSection";
 import { RENTAL_STATUS_LABELS } from "@/lib/rental-labels";
 import { formatCurrency, formatDateAr } from "@/lib/format";
 import {
@@ -248,6 +249,9 @@ export default function RentalDetailPage({ params }: Props) {
 
         {/* Contract */}
         <ContractSection rentalId={rental.id} />
+
+        {/* Payments */}
+        <PaymentSection rentalId={rental.id} />
 
           </div>
 
