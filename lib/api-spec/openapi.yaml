@@ -28,6 +28,8 @@ tags:
     description: Maintenance operations
   - name: expenses
     description: Expense operations
+  - name: payments
+    description: Payment operations
 paths:
   /healthz:
     get:
@@ -2910,6 +2912,111 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /payments:
+    get:
+      operationId: listPayments
+      tags: [payments]
+      summary: List payments in the current organization
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of payments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /rentals/{rentalId}/payments:
+    get:
+      operationId: listRentalPayments
+      tags: [payments]
+      summary: List payments for a rental in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: rentalId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rental ID
+      responses:
+        "200":
+          description: List of payments with derived outstanding balance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RentalPaymentsResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rental not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createPayment
+      tags: [payments]
+      summary: Record a payment for a rental in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: rentalId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Rental ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaymentRequest"
+      responses:
+        "201":
+          description: Payment recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Rental not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -3920,6 +4027,89 @@ components:
           type: string
           nullable: true
       required: []
+
+    PaymentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        rentalId:
+          type: string
+        amount:
+          type: number
+        paymentDate:
+          type: string
+          format: date-time
+        method:
+          type: string
+          enum: [CASH, CARD, TRANSFER, OTHER]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - rentalId
+        - amount
+        - paymentDate
+        - method
+        - createdAt
+        - updatedAt
+
+    PaymentResponseWrapper:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/PaymentResponse"
+      required:
+        - data
+
+    PaymentListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaymentResponse"
+      required:
+        - data
+
+    RentalPaymentsResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            payments:
+              type: array
+              items:
+                $ref: "#/components/schemas/PaymentResponse"
+            outstandingBalance:
+              type: number
+          required:
+            - payments
+            - outstandingBalance
+      required:
+        - data
+
+    CreatePaymentRequest:
+      type: object
+      properties:
+        amount:
+          type: number
+          exclusiveMinimum: 0
+        payment_date:
+          type: string
+          format: date-time
+        method:
+          type: string
+          enum: [CASH, CARD, TRANSFER, OTHER]
+      required:
+        - amount
+        - payment_date
+        - method
 
     CreateRentalRequest:
       type: object

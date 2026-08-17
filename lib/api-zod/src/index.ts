@@ -9,3 +9,4 @@ export * from './generated/vehicles/vehicles';
 export * from './generated/types';
 export * from './generated/maintenance/maintenance';
 export * from './generated/expenses/expenses';
+export * from './generated/payments/payments';

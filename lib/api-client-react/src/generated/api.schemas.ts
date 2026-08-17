@@ -626,6 +626,60 @@ export interface UpdateExpenseRequest {
   description?: string | null;
 }
 
+export type PaymentResponseMethod = typeof PaymentResponseMethod[keyof typeof PaymentResponseMethod];
+
+
+export const PaymentResponseMethod = {
+  CASH: 'CASH',
+  CARD: 'CARD',
+  TRANSFER: 'TRANSFER',
+  OTHER: 'OTHER',
+} as const;
+
+export interface PaymentResponse {
+  id: string;
+  rentalId: string;
+  amount: number;
+  paymentDate: string;
+  method: PaymentResponseMethod;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaymentResponseWrapper {
+  data: PaymentResponse;
+}
+
+export interface PaymentListResponse {
+  data: PaymentResponse[];
+}
+
+export type RentalPaymentsResponseData = {
+  payments: PaymentResponse[];
+  outstandingBalance: number;
+};
+
+export interface RentalPaymentsResponse {
+  data: RentalPaymentsResponseData;
+}
+
+export type CreatePaymentRequestMethod = typeof CreatePaymentRequestMethod[keyof typeof CreatePaymentRequestMethod];
+
+
+export const CreatePaymentRequestMethod = {
+  CASH: 'CASH',
+  CARD: 'CARD',
+  TRANSFER: 'TRANSFER',
+  OTHER: 'OTHER',
+} as const;
+
+export interface CreatePaymentRequest {
+  /** @exclusiveMinimum 0 */
+  amount: number;
+  payment_date: string;
+  method: CreatePaymentRequestMethod;
+}
+
 export interface CreateRentalRequest {
   /** @minLength 1 */
   customer_id: string;
