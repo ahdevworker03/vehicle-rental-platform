@@ -842,11 +842,11 @@ The following decisions are **not settled by existing documentation** and materi
 
 4. ~~**Maintenance replaced-parts representation.**~~ **RESOLVED** — approved in `11-domain-model-specification.md`. `replaced_parts` is a nullable structured JSON value; no `ReplacedPart` / Parts / Inventory entity.
 
-5. **Task entity associations.**
-   The domain model documents Task as belonging to one Organization with due date, recurring schedule, and completion status. It does **not** document associations with Vehicles, Rentals, Maintenance records, or Users. The business requirements say tasks should "support maintenance reminders" and "administrative reminders" but do not specify how they are linked. Proposal for approval: implement the base Task (organization, due date, status, notes) with no entity associations in Milestone 4; add associations only if a decision is made to support them. The roadmap implements the base Task.
+5. ~~**Task entity associations.**~~
+   The domain model documents Task as belonging to one Organization with due date, recurring schedule, and completion status. It does **not** document associations with Vehicles, Rentals, Maintenance records, or Users. The business requirements say tasks should "support maintenance reminders" and "administrative reminders" but do not specify how they are linked. **RESOLVED** — approved and implemented in `11-domain-model-specification.md` (Milestone 4, Phase 17, Step 17.1). The base Task (organization, due date, status, notes) is implemented with **no entity associations**; associations are deferred.
 
-6. **Task recurring schedule.**
-   `02-business-requirements.md` requires "create recurring tasks" and the domain model lists "recurring schedule" as a responsibility, but `11-domain-model-specification.md` marks the recurrence representation as "Requires Architectural Approval". Proposal for approval: defer recurring tasks (no recurrence field) and implement single-occurrence tasks in Milestone 4, since recurrence generation logic would otherwise expand the milestone scope.
+6. ~~**Task recurring schedule.**~~
+   `02-business-requirements.md` requires "create recurring tasks" and the domain model lists "recurring schedule" as a responsibility, but `11-domain-model-specification.md` marks the recurrence representation as "Requires Architectural Approval". **RESOLVED** — deferred (approved and recorded in `11-domain-model-specification.md`, Milestone 4, Phase 17, Step 17.1). No recurrence field is implemented; tasks are single-occurrence in Milestone 4, since recurrence generation logic would otherwise expand the milestone scope.
 
 7. ~~**Payment method enum and balance tracking.**~~ **RESOLVED** — approved in `11-domain-model-specification.md`. `PaymentMethod` = `CASH`, `CARD`, `TRANSFER`, `OTHER`; outstanding balance is **derived** from `Rental.total_amount` minus recorded payments, never stored.
 

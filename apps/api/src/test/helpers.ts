@@ -11,6 +11,7 @@ interface SeedOrg {
 async function cleanup(): Promise<void> {
   await prisma.refreshToken.deleteMany({});
   await prisma.payment.deleteMany({});
+  await prisma.task.deleteMany({});
   await prisma.maintenance.deleteMany({});
   await prisma.expense.deleteMany({});
   await prisma.contract.deleteMany({});

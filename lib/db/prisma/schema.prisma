@@ -23,6 +23,7 @@ model Organization {
   maintenance Maintenance[]
   expenses   Expense[]
   payments   Payment[]
+  tasks      Task[]
 
   @@index([deleted_at])
 }
@@ -93,6 +94,11 @@ enum PaymentMethod {
   CARD
   TRANSFER
   OTHER
+}
+
+enum TaskStatus {
+  PENDING
+  COMPLETED
 }
 
 model User {
@@ -332,6 +338,23 @@ model Payment {
   @@index([rental_id])
   @@index([deleted_at])
   @@index([payment_date])
+}
+
+model Task {
+  id              String      @id @default(uuid()) @db.Uuid
+  organization_id String      @db.Uuid
+  organization    Organization @relation(fields: [organization_id], references: [id])
+  due_date        DateTime
+  status          TaskStatus  @default(PENDING)
+  notes           String?
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+  deleted_at      DateTime?
+
+  @@index([organization_id])
+  @@index([deleted_at])
+  @@index([status])
+  @@index([due_date])
 }
 
 model Contract {

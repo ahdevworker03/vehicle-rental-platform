@@ -680,6 +680,41 @@ export interface CreatePaymentRequest {
   method: CreatePaymentRequestMethod;
 }
 
+export type TaskResponseStatus = typeof TaskResponseStatus[keyof typeof TaskResponseStatus];
+
+
+export const TaskResponseStatus = {
+  PENDING: 'PENDING',
+  COMPLETED: 'COMPLETED',
+} as const;
+
+export interface TaskResponse {
+  id: string;
+  dueDate: string;
+  status: TaskResponseStatus;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TaskResponseWrapper {
+  data: TaskResponse;
+}
+
+export interface TaskListResponse {
+  data: TaskResponse[];
+}
+
+export interface CreateTaskRequest {
+  due_date: string;
+  notes?: string;
+}
+
+export interface UpdateTaskRequest {
+  due_date?: string;
+  notes?: string | null;
+}
+
 export interface CreateRentalRequest {
   /** @minLength 1 */
   customer_id: string;

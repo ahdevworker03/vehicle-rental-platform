@@ -10,6 +10,7 @@ import contractsRouter from "../modules/contracts/contract.routes";
 import maintenanceRouter from "../modules/maintenance/maintenance.routes";
 import expensesRouter from "../modules/expenses/expense.routes";
 import paymentsRouter from "../modules/payments/payment.routes";
+import tasksRouter from "../modules/tasks/task.routes";
 import mediaRouter from "../modules/media/media.routes";
 
 const router: IRouter = Router();
@@ -25,6 +26,7 @@ router.use(contractsRouter);
 router.use(maintenanceRouter);
 router.use(expensesRouter);
 router.use(paymentsRouter);
+router.use(tasksRouter);
 router.use(mediaRouter);
 
 export default router;

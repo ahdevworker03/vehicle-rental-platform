@@ -226,11 +226,19 @@ Notes:
 
 ## TaskStatus
 
-**Source:** `04-domain-model.md` mentions "completion status" but no enum.
+**Source:** `04-domain-model.md` mentions "completion status" but no enum. Approved architecture decision (Milestone 4, Phase 17, Step 17.1).
 
-| Value          | Status                              |
-| -------------- | ----------------------------------- |
-| (undetermined) | **Requires Architectural Approval** |
+| Value       | Purpose                                                      | Status   | Default  |
+| ----------- | ------------------------------------------------------------ | -------- | -------- |
+| `PENDING`   | Task is created and not yet finished                         | Approved | ✅ `PENDING` |
+| `COMPLETED` | Task is finished and removed from active reminders           | Approved |          |
+
+Notes:
+
+- `UPCOMING` and `OVERDUE` are **not** persisted statuses. They are derived presentation/query states computed from `due_date` and the current date for non-completed records, mirroring the `MaintenanceStatus` `UPCOMING`/`OVERDUE` convention.
+- `CANCELLED` is **not** a status. A task that is no longer needed uses the established soft-delete mechanism (`deleted_at`).
+- `TaskStatus` deliberately does **not** include `IN_PROGRESS`. Unlike maintenance (which has a documented scheduled → in-progress → completed workflow), no Task flow documents a started state; the product defines only create → complete. `MaintenanceStatus` cannot simply be copied because it models a multi-stage workshop process with a middle state, whereas Task models a binary completion lifecycle.
+- Recurring tasks are **deferred** (see the Task model notes): the recurrence representation requires architectural approval and is not implemented in Milestone 4.
 
 ## NotificationType
 
@@ -1066,12 +1074,19 @@ Operational reminders.
 | ------------------ | --------------- | ---------- | -------- | ---------- | ----------------------------------- |
 | id                 | id              | UUID       | ✅       | uuid()     | PK                                  |
 | organization_id    | organization_id | UUID       | ✅       | —          | FK → Organization.id                |
-| due date           | (undetermined)  | DateTime   | ✅       | —          | Documented as "due date"            |
-| recurring schedule | (undetermined)  | —          | —        | —          | **Requires Architectural Approval** |
-| completion status  | (undetermined)  | TaskStatus | —        | —          | **Requires Architectural Approval** |
+| due_date           | due_date        | DateTime   | ✅       | —          | Due/business date                   |
+| status             | status          | TaskStatus | ✅       | PENDING    | PENDING / COMPLETED                 |
+| notes              | notes           | String?    | ❌       | null       | Free-text notes                     |
 | created_at         | created_at      | DateTime   | ✅       | now()      | Audit                               |
 | updated_at         | updated_at      | DateTime   | ✅       | @updatedAt | Audit                               |
 | deleted_at         | deleted_at      | DateTime?  | ❌       | null       | Soft delete                         |
+
+Notes:
+
+- `due_date` is the **due/business date** for the task. It is the date used for ordering and for deriving `UPCOMING`/`OVERDUE` presentation states.
+- `status` default is `PENDING`; transition to `COMPLETED` marks the task finished and removes it from active reminders.
+- Recurring schedule: **deferred** (approved architectural decision, Milestone 4, Phase 17, Step 17.1). No recurrence representation is defined in Milestone 4; tasks are single-occurrence. The product requirement to "create recurring tasks" and the domain responsibility "recurring schedule" remain open for a future approved decision.
+- Entity associations (Vehicle, Rental, Maintenance, User): **deferred** (approved architectural decision, Milestone 4, Phase 17, Step 17.1). The base Task belongs only to its Organization.
 
 ### Constraints
 
@@ -1085,6 +1100,8 @@ Operational reminders.
 
 - `@@index([organization_id])`
 - `@@index([deleted_at])`
+- `@@index([status])`
+- `@@index([due_date])`
 
 ### Foreign Keys
 
@@ -1104,11 +1121,13 @@ Operational reminders.
 
 ### Validation Rules
 
-- **Requires Architectural Approval**.
+- `due_date` is required and must be a valid date.
+- `status` is required and must be a valid `TaskStatus` (default `PENDING`).
+- `notes` is optional; when present, must be a non-empty string.
 
 ### API Notes
 
-- Planned: standard tasks, recurring tasks, due dates.
+- Planned: standard tasks, due dates, completion workflow. Recurring tasks are deferred and not part of the planned Task API in Milestone 4.
 
 ---
 
@@ -1457,7 +1476,7 @@ Those belong to later steps.
 
 1. **Rental field set and status enum** — period structure, pricing, status values.
 2. **Contract representation** — content vs file reference vs template.
-3. **Task field set** — recurrence representation, completion status enum.
+3. **Task field set** — **RESOLVED** (approved in Milestone 4, Phase 17, Step 17.1). Fields: `due_date`, `status` (`TaskStatus` = `PENDING`/`COMPLETED`, default `PENDING`), `notes`. Recurrence representation is **deferred** (not implemented in Milestone 4); entity associations (Vehicle/Rental/Maintenance/User) are **deferred**.
 4. **Notification field set** — type enum, read state, stored vs generated.
 5. **Role permission matrix** — exact per-module permissions for OWNER/MANAGER/EMPLOYEE.
 

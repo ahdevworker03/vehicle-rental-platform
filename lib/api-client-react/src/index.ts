@@ -12,3 +12,4 @@ export * from './generated/vehicles/vehicles';
 export * from './generated/maintenance/maintenance';
 export * from './generated/expenses/expenses';
 export * from './generated/payments/payments';
+export * from './generated/tasks/tasks';
