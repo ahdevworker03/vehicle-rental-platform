@@ -259,7 +259,7 @@ The following decisions are **not settled by existing documentation** and materi
 
 - [x] Report selectors implemented
 - [x] Report export helpers implemented
-- [ ] Reports surface implemented
+- [x] Reports surface implemented
 - [ ] Reports manual testing completed
 - [ ] Analytics expansion selectors implemented
 - [ ] Vehicle profitability implemented
@@ -280,10 +280,10 @@ The following decisions are **not settled by existing documentation** and materi
 
 **Status:** In Progress
 
-Current Phase: Phase 19 — Reports
+Current Phase: Phase 20 — Analytics & Insights
 
-Current Step: Step 19.2 — Reports (Frontend)
+Current Step: Step 20.1 — Analytics Expansion (Frontend Selectors)
 
-Last Completed Step: Step 19.1 — Reports Selectors & Data Layer (Frontend)
+Last Completed Step: Step 19.2 — Reports (Frontend)
 
-Next Step: Step 19.2
+Next Step: Step 20.1

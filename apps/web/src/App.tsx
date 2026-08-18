@@ -26,6 +26,7 @@ import ExpensesPage from '@/pages/ExpensesPage';
 import AddExpensePage from '@/pages/AddExpensePage';
 import ExpenseDetailPage from '@/pages/ExpenseDetailPage';
 import AnalyticsPage from '@/pages/AnalyticsPage';
+import ReportsPage from '@/pages/ReportsPage';
 import TasksPage from '@/pages/TasksPage';
 import AddTaskPage from '@/pages/AddTaskPage';
 import TaskDetailPage from '@/pages/TaskDetailPage';
@@ -50,6 +51,7 @@ function Router() {
       <Route path="/expenses" component={ExpensesPage} />
       <Route path="/expenses/:id" component={ExpenseDetailPage} />
       <Route path="/analytics" component={AnalyticsPage} />
+      <Route path="/reports" component={ReportsPage} />
       <Route path="/tasks" component={TasksPage} />
       <Route path="/tasks/:id" component={TaskDetailPage} />
       <Route component={NotFound} />
