@@ -373,7 +373,7 @@ Represents an employee who can access the platform.
 
 - Every user belongs to exactly one organization.
 - Deleted users are rejected during authentication.
-- Per-module role permissions (OWNER/MANAGER/EMPLOYEE) are partially inferred; exact permission matrix **Requires Architectural Approval**.
+- Role permissions (approved, Milestone 4 Phases 14–17): list/get for any authenticated user; create/update/delete/complete restricted to `OWNER`. Applies to the User module and all operations modules (Maintenance, Expense, Payment, Task).
 
 ### Validation Rules
 
@@ -1478,7 +1478,7 @@ Those belong to later steps.
 2. **Contract representation** — content vs file reference vs template.
 3. **Task field set** — **RESOLVED** (approved in Milestone 4, Phase 17, Step 17.1). Fields: `due_date`, `status` (`TaskStatus` = `PENDING`/`COMPLETED`, default `PENDING`), `notes`. Recurrence representation is **deferred** (not implemented in Milestone 4); entity associations (Vehicle/Rental/Maintenance/User) are **deferred**.
 4. **Notification field set** — type enum, read state, stored vs generated.
-5. **Role permission matrix** — exact per-module permissions for OWNER/MANAGER/EMPLOYEE.
+5. **Role permission matrix** — **RESOLVED** (approved in Milestone 4, Phases 14–17, verified in Step 18.2). For all Milestone 4 operations modules (Maintenance, Expense, Payment, Task): list/get for any authenticated user; create/update/delete/complete restricted to `OWNER`. Mirrors the Milestone 2/3 user-module pattern.
 
 Each open decision must be resolved and approved before the corresponding model is implemented.
 

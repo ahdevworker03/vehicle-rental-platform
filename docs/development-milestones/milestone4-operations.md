@@ -850,8 +850,8 @@ The following decisions are **not settled by existing documentation** and materi
 
 7. ~~**Payment method enum and balance tracking.**~~ **RESOLVED** — approved in `11-domain-model-specification.md`. `PaymentMethod` = `CASH`, `CARD`, `TRANSFER`, `OTHER`; outstanding balance is **derived** from `Rental.total_amount` minus recorded payments, never stored.
 
-8. **Role permission matrix for operations.**
-   `11-domain-model-specification.md` states the per-module role permission matrix for OWNER/MANAGER/EMPLOYEE is partially inferred and "Requires Architectural Approval". Milestone 2 and 3 followed the pattern: list/get for any authenticated user; create/update/delete restricted to `OWNER`. Proposal: apply the same pattern to all Milestone 4 modules (Maintenance, Expense, Payment, Task) unless a different matrix is approved.
+8. ~~**Role permission matrix for operations.**~~
+   `11-domain-model-specification.md` states the per-module role permission matrix for OWNER/MANAGER/EMPLOYEE is partially inferred and "Requires Architectural Approval". Milestone 2 and 3 followed the pattern: list/get for any authenticated user; create/update/delete restricted to `OWNER`. **RESOLVED** — approved and implemented (Milestone 4, Phases 14–17). The same pattern applies to all Milestone 4 modules (Maintenance, Expense, Payment, Task): reads (list/get) for any authenticated user; create/update/delete/complete restricted to `OWNER`. Verified in Step 18.2 (manual role-based access testing).
 
 9. ~~**Currency for expenses and payments.**~~ **RESOLVED** — approved in `11-domain-model-specification.md`. No currency field; amounts use the existing `Decimal(10,2)` monetary convention.
 
@@ -859,49 +859,47 @@ The following decisions are **not settled by existing documentation** and materi
 
 # Milestone 4 Completion Checklist
 
-- [ ] Maintenance model implemented
-- [ ] Maintenance module (backend) implemented
-- [ ] Maintenance module (frontend) implemented
-- [ ] Dashboard and analytics integration for maintenance implemented
-- [ ] Expense model implemented
-- [ ] Expense module (backend) implemented
-- [ ] Expense module (frontend) implemented
-- [ ] Dashboard and analytics integration for expenses implemented
-- [ ] Payment model implemented
-- [ ] Payment module (backend) implemented
-- [ ] Payment module (frontend) implemented
-- [ ] Dashboard and analytics integration for payments implemented
-- [ ] Task model implemented
-- [ ] Task module (backend) implemented
-- [ ] Task module (frontend) implemented
-- [ ] Dashboard integration for tasks implemented
-- [ ] Cross-entity operational integrity verified
-- [ ] Operations manual testing completed
-- [ ] API contracts updated in `lib/api-spec/openapi.yaml`
-- [ ] Generated API client and Zod schemas regenerated and synchronized
-- [ ] Database migrations verified
-- [ ] API validation verified
-- [ ] Organization isolation verified for all new modules
-- [ ] Authentication and authorization verified for all new modules
-- [ ] Manual testing completed
-- [ ] Automated testing completed
-- [ ] AI code review completed
-- [ ] No TypeScript errors
-- [ ] No ESLint errors
-- [ ] No build errors
-- [ ] Documentation updated
-- [ ] Changes committed
+- [x] Maintenance model implemented
+- [x] Maintenance module (backend) implemented
+- [x] Maintenance module (frontend) implemented
+- [x] Dashboard and analytics integration for maintenance implemented
+- [x] Expense model implemented
+- [x] Expense module (backend) implemented
+- [x] Expense module (frontend) implemented
+- [x] Dashboard and analytics integration for expenses implemented
+- [x] Payment model implemented
+- [x] Payment module (backend) implemented
+- [x] Payment module (frontend) implemented
+- [x] Dashboard and analytics integration for payments implemented
+- [x] Task model implemented
+- [x] Task module (backend) implemented
+- [x] Task module (frontend) implemented
+- [x] Dashboard integration for tasks implemented
+- [x] Cross-entity operational integrity verified
+- [x] Operations manual testing completed
+- [x] API contracts updated in `lib/api-spec/openapi.yaml`
+- [x] Generated API client and Zod schemas regenerated and synchronized
+- [x] Database migrations verified
+- [x] API validation verified
+- [x] Organization isolation verified for all new modules
+- [x] Authentication and authorization verified for all new modules
+- [x] Manual testing completed
+- [x] Automated testing completed
+- [x] AI code review completed
+- [x] No TypeScript errors
+- [x] No ESLint errors
+- [x] No build errors
+- [x] Documentation updated
+- [x] Changes committed
 
 ---
 
 ## Milestone Status
 
-**Status:** In Progress
+**Status:** Complete
 
-Current Phase: Phase 14 — Maintenance
+Current Phase: Phase 18 — Verification
 
-Current Step: Step 14.1 — Maintenance Model
+Current Step: Step 18.2 — Operations Manual Testing & Verification
 
-Last Completed Step: Milestone 3, Step 13.3 — Rental History & Availability (Frontend)
-
-Next Step: Step 14.1
+Last Completed Step: Step 18.2 — Operations Manual Testing & Verification
