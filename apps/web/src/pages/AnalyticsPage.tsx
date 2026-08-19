@@ -50,7 +50,6 @@ import type { MaintenanceResponse, ExpenseResponse, RentalResponse } from "@work
 const MOCK_MONTH = 0;   // January
 const MOCK_YEAR  = 2025;
 const PREV_MONTH = 11;  // December
-const PREV_YEAR  = 2024;
 const ANALYTICS_YEARS = [2026, 2025, 2024];
 
 // ─── Derived data (computed per render from the feature hooks) ──────────────────

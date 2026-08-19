@@ -117,7 +117,7 @@ function downloadCsv(filename: string, content: string): void {
 }
 
 function openPrintableWindow(html: string): void {
-  const win = window.open("", "_blank", "noopener,noreferrer");
+  const win = window.open("", "_blank");
   if (!win) return;
   win.document.open();
   win.document.write(html);

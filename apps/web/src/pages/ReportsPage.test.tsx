@@ -86,6 +86,26 @@ describe("ReportsPage", () => {
     expect(screen.getByRole("button", { name: /CSV/ })).toBeInTheDocument();
   });
 
+  it("writes the printable report into the opened window", () => {
+    const document = {
+      open: vi.fn(),
+      write: vi.fn(),
+      close: vi.fn(),
+    };
+    const popup = { document } as unknown as Window;
+    const open = vi.spyOn(window, "open").mockReturnValue(popup);
+
+    render(<ReportsPage />);
+    fireEvent.click(screen.getByRole("button", { name: /طباعة/ }));
+
+    expect(open).toHaveBeenCalledWith("", "_blank");
+    expect(document.open).toHaveBeenCalledOnce();
+    expect(document.write).toHaveBeenCalledWith(expect.stringContaining("<!DOCTYPE html>"));
+    expect(document.close).toHaveBeenCalledOnce();
+
+    open.mockRestore();
+  });
+
   it("switches period type when tab is clicked", () => {
     render(<ReportsPage />);
     fireEvent.click(screen.getByRole("tab", { name: "سنة" }));
