@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Users } from "lucide-react";
 
@@ -37,6 +37,11 @@ import {
   getTotalOutstanding,
   type RentalOutstandingBalance,
 } from "@/features/payments/selectors";
+import {
+  getBusinessPerformanceTrend,
+  getVehicleProfitability,
+  getYearlyMaintenanceCostPerVehicle,
+} from "@/features/reports/selectors";
 import { useListVehicles, useListCustomers } from "@workspace/api-client-react";
 import { getApiErrorMessage } from "@/lib/api-error";
 import type { MaintenanceResponse, ExpenseResponse, RentalResponse } from "@workspace/api-client-react";
@@ -46,6 +51,7 @@ const MOCK_MONTH = 0;   // January
 const MOCK_YEAR  = 2025;
 const PREV_MONTH = 11;  // December
 const PREV_YEAR  = 2024;
+const ANALYTICS_YEARS = [2026, 2025, 2024];
 
 // ─── Derived data (computed per render from the feature hooks) ──────────────────
 function deriveAnalytics(
@@ -60,10 +66,11 @@ function deriveAnalytics(
   apiRentals: RentalResponse[],
   outstandingBalances: RentalOutstandingBalance[],
   realCustomersById: Map<string, { id: string; name: string; location: string }>,
+  selectedYear: number,
 ) {
-  const thisMonthRevenue = getPaymentRevenueForPeriod(payments, MOCK_MONTH, MOCK_YEAR);
-  const prevMonthRevenue = getPaymentRevenueForPeriod(payments, PREV_MONTH, PREV_YEAR);
-  const vehicleRevenueThisMonth = getPaymentRevenuePerVehicle(payments, apiRentals, MOCK_MONTH, MOCK_YEAR);
+  const thisMonthRevenue = getPaymentRevenueForPeriod(payments, MOCK_MONTH, selectedYear);
+  const prevMonthRevenue = getPaymentRevenueForPeriod(payments, PREV_MONTH, selectedYear - 1);
+  const vehicleRevenueThisMonth = getPaymentRevenuePerVehicle(payments, apiRentals, MOCK_MONTH, selectedYear);
 
   const revenueChange =
     prevMonthRevenue > 0
@@ -111,7 +118,7 @@ function deriveAnalytics(
     .sort((a, b) => b.cost - a.cost);
 
   const totalExpenses = getExpenseTotal(expenses);
-  const expenseTotalForPeriod = getExpenseTotalForPeriod(expenses, MOCK_MONTH, MOCK_YEAR);
+  const expenseTotalForPeriod = getExpenseTotalForPeriod(expenses, MOCK_MONTH, selectedYear);
   const expensePerVehicle = getExpenseTotalPerVehicle(expenses);
   const expensePerVehicleList = Object.entries(expensePerVehicle)
     .map(([vid, amount]) => ({
@@ -123,6 +130,9 @@ function deriveAnalytics(
 
   // Net profit = recorded payment revenue - expenses for the period.
   const netProfit = getNetProfit(thisMonthRevenue, expenseTotalForPeriod);
+  const performanceTrend = getBusinessPerformanceTrend(payments, expenses, selectedYear);
+  const yearlyMaintenanceCost = getYearlyMaintenanceCostPerVehicle(maintenance, selectedYear);
+  const profitability = getVehicleProfitability(payments, apiRentals, expenses, maintenance);
 
   return {
     thisMonthRevenue,
@@ -139,24 +149,30 @@ function deriveAnalytics(
     rentedVehicles,
     maintenanceVehicles,
     maintenanceCostList,
+    lifetimeMaintenanceCost: maintenanceCostPerVehicle,
     totalExpenses,
     expensePerVehicleList,
     netProfit,
     endedCount,
     topDebtor,
+    performanceTrend,
+    yearlyMaintenanceCost,
+    profitability,
   };
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function AnalyticsPage() {
   const [, navigate] = useLocation();
+  const [selectedYear, setSelectedYear] = useState(MOCK_YEAR);
   const vehicles = useVehicles();
   const rentals = useRentals();
   const customers = useCustomers();
   const getCustomerById = useCustomerById();
   const maintenanceQuery = useMaintenance();
   const maintenance = maintenanceQuery.data?.data ?? [];
-  const { data: realVehiclesData } = useListVehicles();
+  const realVehiclesQuery = useListVehicles();
+  const { data: realVehiclesData } = realVehiclesQuery;
   const realVehicles = realVehiclesData?.data ?? [];
   const expensesQuery = useExpenses();
   const expenses = expensesQuery.data?.data ?? [];
@@ -203,6 +219,10 @@ export default function AnalyticsPage() {
     netProfit,
     endedCount,
     topDebtor,
+    performanceTrend,
+    yearlyMaintenanceCost,
+    profitability,
+    lifetimeMaintenanceCost,
   } = deriveAnalytics(
     vehicles,
     rentals,
@@ -215,6 +235,7 @@ export default function AnalyticsPage() {
     apiRentals,
     outstandingBalances,
     realCustomersById,
+    selectedYear,
   );
 
   const financialLoading =
@@ -228,6 +249,22 @@ export default function AnalyticsPage() {
   ).title;
   const hasFinancialError = Boolean(
     paymentsQuery.error || expensesQuery.error || outstandingQuery.error,
+  );
+  const analyticsLoading =
+    maintenanceQuery.isLoading || realVehiclesQuery.isLoading || financialLoading;
+  const analyticsError = getApiErrorMessage(
+    maintenanceQuery.error ??
+      realVehiclesQuery.error ??
+      paymentsQuery.error ??
+      expensesQuery.error ??
+      outstandingQuery.error,
+  ).title;
+  const hasAnalyticsError = Boolean(
+    maintenanceQuery.error ||
+      realVehiclesQuery.error ||
+      paymentsQuery.error ||
+      expensesQuery.error ||
+      outstandingQuery.error,
   );
   const outstandingLoading = outstandingQuery.isLoading;
   const hasOutstandingError = Boolean(outstandingQuery.error);
@@ -244,11 +281,28 @@ export default function AnalyticsPage() {
 
         {/* ── Section 1: Revenue ─────────────────────────────────────────── */}
         <section>
-          <SectionHeader title="الإيرادات" />
+          <SectionHeader
+            title="الإيرادات"
+            action={
+              <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                <span className="sr-only">سنة التحليل</span>
+                <select
+                  aria-label="سنة التحليل"
+                  value={selectedYear}
+                  onChange={(event) => setSelectedYear(Number(event.target.value))}
+                  className="rounded-lg border border-border bg-card px-2 py-1.5 text-sm text-foreground"
+                >
+                  {ANALYTICS_YEARS.map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </label>
+            }
+          />
 
           {/* Main revenue card */}
           <div className="rounded-2xl bg-primary p-5 text-white mb-3">
-            <p className="text-sm font-medium opacity-80 mb-1">إيرادات كانون الثاني 2025</p>
+              <p className="text-sm font-medium opacity-80 mb-1">إيرادات كانون الثاني {selectedYear}</p>
             {financialLoading ? (
               <p className="text-sm font-medium opacity-90 py-2">جارٍ التحميل...</p>
             ) : hasFinancialError ? (
@@ -340,6 +394,47 @@ export default function AnalyticsPage() {
         </section>
 
         </div>
+
+        {/* ── Business performance trend ───────────────────────────────── */}
+        <section>
+          <SectionHeader title={`اتجاه أداء الأعمال ${selectedYear}`} />
+          {analyticsLoading ? (
+            <p className="rounded-2xl border border-border bg-card p-5 text-center text-sm text-muted-foreground" role="status">
+              جارٍ تحميل اتجاه الأداء...
+            </p>
+          ) : hasAnalyticsError ? (
+            <p className="rounded-2xl border border-border bg-card p-5 text-center text-sm text-destructive" role="alert">
+              {analyticsError}
+            </p>
+          ) : (
+            <div className="rounded-2xl border border-border bg-card p-4">
+              <div className="mb-4 flex flex-wrap gap-3 text-xs text-muted-foreground" aria-label="مفتاح اتجاه الأداء">
+                <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-primary" aria-hidden="true" /> الإيرادات</span>
+                <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-[hsl(var(--status-danger))]" aria-hidden="true" /> المصروفات</span>
+                <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-[hsl(var(--status-available))]" aria-hidden="true" /> صافي الربح</span>
+              </div>
+              {performanceTrend.every((point) => point.revenue === 0 && point.expenses === 0) ? (
+                <p className="py-5 text-center text-sm text-muted-foreground">لا توجد بيانات أداء لهذه السنة</p>
+              ) : (
+                <div className="grid grid-cols-6 gap-2 sm:grid-cols-12" role="list" aria-label={`الأداء الشهري لعام ${selectedYear}`}>
+                  {performanceTrend.map((point) => {
+                    const maxValue = Math.max(point.revenue, point.expenses, Math.abs(point.netProfit), 1);
+                    return (
+                      <div key={point.period} className="min-w-0 text-center" role="listitem">
+                        <div className="flex h-28 items-end justify-center gap-0.5 rounded-lg bg-muted/40 px-1 py-2" aria-label={`${point.period}: إيرادات ${formatCurrency(point.revenue)}، مصروفات ${formatCurrency(point.expenses)}، صافي ${formatCurrency(point.netProfit)}`}>
+                          <span className="w-1.5 rounded-t bg-primary" style={{ height: `${Math.max((point.revenue / maxValue) * 100, point.revenue ? 4 : 0)}%` }} />
+                          <span className="w-1.5 rounded-t bg-[hsl(var(--status-danger))]" style={{ height: `${Math.max((point.expenses / maxValue) * 100, point.expenses ? 4 : 0)}%` }} />
+                          <span className={`w-1.5 rounded-t ${point.netProfit < 0 ? "bg-[hsl(var(--status-danger))]" : "bg-[hsl(var(--status-available))]"}`} style={{ height: `${Math.max((Math.abs(point.netProfit) / maxValue) * 100, point.netProfit ? 4 : 0)}%` }} />
+                        </div>
+                        <span className="mt-1 block text-[10px] text-muted-foreground">{point.period.slice(5)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </section>
 
         {/* ── Maintenance cost per vehicle ──────────────────────────────── */}
         <section>
@@ -438,6 +533,61 @@ export default function AnalyticsPage() {
                   </span>
                 </button>
               ))}
+            </div>
+          )}
+        </section>
+
+        {/* ── Fleet insights ────────────────────────────────────────────── */}
+        <section>
+          <SectionHeader title="رؤى السيارات" />
+          {analyticsLoading ? (
+            <p className="rounded-2xl border border-border bg-card p-5 text-center text-sm text-muted-foreground" role="status">جارٍ تحميل رؤى السيارات...</p>
+          ) : hasAnalyticsError ? (
+            <p className="rounded-2xl border border-border bg-card p-5 text-center text-sm text-destructive" role="alert">{analyticsError}</p>
+          ) : profitability.length === 0 && Object.keys(lifetimeMaintenanceCost).length === 0 ? (
+            <p className="rounded-2xl border border-border bg-card p-5 text-center text-sm text-muted-foreground">لا توجد بيانات كافية لرؤى السيارات</p>
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div>
+                <h3 className="mb-2 text-sm font-bold text-foreground">تكلفة الصيانة</h3>
+                <div className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden">
+                  {[...new Set([
+                    ...Object.keys(lifetimeMaintenanceCost),
+                    ...Object.keys(yearlyMaintenanceCost),
+                  ])].map((vehicleId) => {
+                    const vehicle = realVehicles.find((item) => item.id === vehicleId);
+                    if (!vehicle) return null;
+                    return (
+                      <button key={vehicleId} type="button" onClick={() => navigate(`/vehicles/${vehicleId}`)} className="flex w-full items-center justify-between px-4 py-3 text-right hover:bg-muted/40">
+                        <span className="text-sm font-semibold text-foreground">{vehicle.make} {vehicle.model}</span>
+                        <span className="text-left text-xs text-muted-foreground">
+                          <span className="block">السنة: <strong className="text-foreground">{formatCurrency(yearlyMaintenanceCost[vehicleId] ?? 0)}</strong></span>
+                          <span className="block">مدى الحياة: <strong className="text-foreground">{formatCurrency(lifetimeMaintenanceCost[vehicleId] ?? 0)}</strong></span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <h3 className="mb-2 text-sm font-bold text-foreground">ربحية السيارات</h3>
+                <div className="rounded-2xl border border-border bg-card divide-y divide-border overflow-hidden">
+                  {profitability.length === 0 ? (
+                    <p className="p-4 text-sm text-muted-foreground">لا توجد بيانات ربحية مسجّلة</p>
+                  ) : profitability.map((item) => {
+                    const vehicle = realVehicles.find((candidate) => candidate.id === item.vehicleId);
+                    if (!vehicle) return null;
+                    return (
+                      <button key={item.vehicleId} type="button" onClick={() => navigate(`/vehicles/${item.vehicleId}`)} className="flex w-full items-center justify-between px-4 py-3 text-right hover:bg-muted/40">
+                        <span className="text-sm font-semibold text-foreground">{vehicle.make} {vehicle.model}</span>
+                        <span className={`text-sm font-bold tabular-nums ${item.profit < 0 ? "text-[hsl(var(--status-danger))]" : "text-[hsl(var(--status-available))]"}`}>
+                          {formatCurrency(item.profit)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
         </section>

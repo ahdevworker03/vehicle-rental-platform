@@ -50,8 +50,10 @@ vi.mock("@workspace/api-client-react", async (importOriginal) => {
 });
 
 import { useTasks } from "@/features/tasks/hooks";
+import { usePayments } from "@/features/payments/hooks";
 
 const mockedUseTasks = vi.mocked(useTasks);
+const mockedUsePayments = vi.mocked(usePayments);
 
 function makeTask(overrides: Partial<TaskResponse>): TaskResponse {
   return {
@@ -78,9 +80,39 @@ function mockTasks(tasks: TaskResponse[], overrides: Partial<ReturnType<typeof u
 beforeEach(() => {
   vi.clearAllMocks();
   mockTasks([]);
+  mockedUsePayments.mockReturnValue({
+    data: { data: [] },
+    payments: [],
+    isLoading: false,
+    isError: false,
+    error: null,
+  } as ReturnType<typeof usePayments>);
 });
 
 describe("DashboardPage tasks surface", () => {
+  it("renders the business performance insight without replacing existing dashboard cards", () => {
+    render(<DashboardPage />);
+
+    expect(screen.getByRole("region", { name: "مؤشر أداء الأعمال" })).toBeInTheDocument();
+    expect(screen.getByText("حالة السيارات")).toBeInTheDocument();
+    expect(screen.getByText("الإجراءات الأساسية")).toBeInTheDocument();
+  });
+
+  it("does not show a misleading insight value while financial data is loading", () => {
+    mockedUsePayments.mockReturnValue({
+      data: undefined,
+      payments: [],
+      isLoading: true,
+      isError: false,
+      error: null,
+    } as ReturnType<typeof usePayments>);
+
+    render(<DashboardPage />);
+
+    expect(screen.getByRole("status")).toHaveTextContent("جارٍ تحميل المؤشر");
+    expect(screen.queryByText("$0", { selector: "p" })).not.toBeInTheDocument();
+  });
+
   it("shows the pending task count", () => {
     mockTasks([
       makeTask({ id: "t1", status: "PENDING" }),

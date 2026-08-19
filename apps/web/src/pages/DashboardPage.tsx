@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   Clock,
   TrendingUp,
+  TrendingDown,
   RotateCcw,
   CheckCircle2,
   ClipboardList,
@@ -38,6 +39,7 @@ import {
 } from "@/features/maintenance/selectors";
 import { usePayments, useOrgOutstandingBalances } from "@/features/payments/hooks";
 import { getPaymentRevenueForPeriod } from "@/features/payments/selectors";
+import { getBusinessPerformanceTrend } from "@/features/reports/selectors";
 import { useTasks } from "@/features/tasks/hooks";
 import { getPendingTaskCount, isTaskOverdue } from "@/features/tasks/selectors";
 import { getApiErrorMessage } from "@/lib/api-error";
@@ -47,6 +49,7 @@ import type { MaintenanceResponse, ExpenseResponse, PaymentResponse, TaskRespons
 // ─── Mock date anchor ──────────────────────────────────────────────────────────
 const MOCK_MONTH = 0; // January
 const MOCK_YEAR = 2025;
+const PREV_MONTH = 11;
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 function dueLabelFor(days: number): { text: string; urgent: boolean } {
@@ -88,6 +91,7 @@ function deriveDashboard(
   const overdueItems = getOverdueMaintenance(maintenance);
   const upcomingMaintenance = getUpcomingMaintenance(maintenance, daysFromToday, 7);
   const monthlyRevenue = getPaymentRevenueForPeriod(payments, MOCK_MONTH, MOCK_YEAR);
+  const performanceTrend = getBusinessPerformanceTrend(payments, expenses, MOCK_YEAR);
   const pendingBalance = outstandingBalance;
   const recentActivity = getRecentEndedRentals(rentals, 4);
   const hasTasks = endingSoonRentals.length > 0 || overdueItems.length > 0;
@@ -102,6 +106,8 @@ function deriveDashboard(
     overdueItems,
     upcomingMaintenance,
     monthlyRevenue,
+    currentPerformance: performanceTrend[MOCK_MONTH],
+    previousPerformance: performanceTrend[PREV_MONTH],
     pendingBalance,
     recentActivity,
     hasTasks,
@@ -296,6 +302,10 @@ export default function DashboardPage() {
     paymentsQuery.error || outstandingQuery.error
       ? getApiErrorMessage(paymentsQuery.error ?? outstandingQuery.error).title
       : null;
+  const insightLoading = paymentsQuery.isLoading || expensesQuery.isLoading;
+  const insightError = paymentsQuery.error || expensesQuery.error
+    ? getApiErrorMessage(paymentsQuery.error ?? expensesQuery.error).title
+    : null;
 
   const tasksQuery = useTasks();
   const tasks = (tasksQuery.data?.data ?? []) as TaskResponse[];
@@ -316,6 +326,8 @@ export default function DashboardPage() {
     overdueItems,
     upcomingMaintenance,
     monthlyRevenue,
+    currentPerformance,
+    previousPerformance,
     pendingBalance,
     recentActivity,
     hasTasks,
@@ -444,6 +456,37 @@ export default function DashboardPage() {
           />
         </section>
         </div>
+
+        {/* ── Business insight ──────────────────────────────────────────── */}
+        <section aria-label="مؤشر أداء الأعمال">
+          <SectionHeader
+            title="مؤشر أداء الأعمال"
+            action={<button onClick={() => setLocation("/analytics")} className="flex items-center gap-1">التفاصيل <ChevronLeft className="w-3.5 h-3.5" strokeWidth={2.5} /></button>}
+          />
+          <div className="rounded-2xl border border-border bg-card p-4">
+            {insightLoading ? (
+              <p className="text-sm text-muted-foreground" role="status">جارٍ تحميل المؤشر...</p>
+            ) : insightError ? (
+              <p className="text-sm text-destructive" role="alert">{insightError}</p>
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs text-muted-foreground">صافي الربح في كانون الثاني 2025</p>
+                  <p className={`mt-1 text-2xl font-bold tabular-nums ${currentPerformance.netProfit < 0 ? "text-[hsl(var(--status-danger))]" : "text-[hsl(var(--status-available))]"}`}>
+                    {formatCurrency(currentPerformance.netProfit)}
+                  </p>
+                </div>
+                <div className="text-left">
+                  <div className="flex items-center justify-end gap-1 text-sm font-semibold text-muted-foreground">
+                    {currentPerformance.netProfit >= previousPerformance.netProfit ? <TrendingUp className="h-4 w-4 text-[hsl(var(--status-available))]" aria-hidden="true" /> : <TrendingDown className="h-4 w-4 text-[hsl(var(--status-danger))]" aria-hidden="true" />}
+                    مقارنةً بالشهر السابق
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">الإيرادات {formatCurrency(currentPerformance.revenue)} · المصروفات {formatCurrency(currentPerformance.expenses)}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
 
         {/* ── Quick Actions ─────────────────────────────────────────────── */}
         <section>

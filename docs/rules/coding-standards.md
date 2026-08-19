@@ -17,6 +17,7 @@ These standards apply across the entire repository regardless of language or fra
 - Reuse existing code when appropriate instead of duplicating logic.
 - Introduce new abstractions only when they provide clear value.
 - Remove obsolete code rather than leaving unused implementations.
+- Don't write comments inside the code unless it's important.
 
 ## Naming
 
