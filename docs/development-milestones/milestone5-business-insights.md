@@ -234,18 +234,18 @@ Including:
 
 ---
 
-# Architectural and Product Ambiguities Requiring Approval
+# Architectural and Product Decisions — Approved
 
-The following decisions are **not settled by existing documentation** and materially affect the Milestone 5 architecture. They must be approved before the corresponding step is implemented. They are listed here so they can be resolved rather than silently invented.
+The following Milestone 5 decisions were approved:
 
-1. **Reports export format.**
-   `02-business-requirements.md` requires reporting but does not define an export format. Proposal: printable HTML and CSV export (client-side), no PDF service, for Milestone 5.
+1. **Reports export format — Approved.**
+   Reports use client-side printable HTML and CSV exports. No PDF service is introduced for Milestone 5.
 
-2. **Trends representation and period semantics.**
-   `02-business-requirements.md` requires "business performance trends" but does not define the aggregation source. Proposal: trends are computed client-side from loaded organization data using the existing period conventions; no backend aggregate endpoints are added.
+2. **Trends representation and period semantics — Approved.**
+   Business trends are aggregated client-side from organization-scoped API data using the existing period conventions. No backend aggregate endpoints are introduced for the current Version 2 scale.
 
-3. **Vehicle profitability definition.**
-   `02-business-requirements.md` requires "vehicle profitability" but does not define the exact revenue/cost basis. Proposal: vehicle profitability = vehicle revenue (payments mapped to the vehicle via its rentals, per the Milestone 4 convention) minus vehicle expenses and maintenance cost attributed to that vehicle. Costs are reported separately from the Expense module to avoid double-counting.
+3. **Vehicle profitability definition — Approved.**
+   Vehicle profitability equals recorded payment revenue minus vehicle-associated expenses minus completed maintenance costs. Maintenance costs remain separate from Expense totals to avoid double-counting.
 
 ---
 
@@ -254,30 +254,30 @@ The following decisions are **not settled by existing documentation** and materi
 - [x] Report selectors implemented
 - [x] Report export helpers implemented
 - [x] Reports surface implemented
-- [ ] Reports manual testing completed
-- [ ] Analytics expansion selectors implemented
-- [ ] Vehicle profitability implemented
-- [ ] Business performance trends implemented
-- [ ] Analytics and Dashboard insights integrated
-- [ ] Manual testing completed
-- [ ] Automated testing completed
-- [ ] Organization isolation verified for underlying data
-- [ ] No TypeScript errors
-- [ ] No ESLint errors
-- [ ] No build errors
-- [ ] Documentation updated
+- [x] Reports manual testing completed
+- [x] Analytics expansion selectors implemented
+- [x] Vehicle profitability implemented
+- [x] Business performance trends implemented
+- [x] Analytics and Dashboard insights integrated
+- [x] Manual testing completed
+- [x] Automated testing completed
+- [x] Organization isolation verified for underlying data
+- [x] No TypeScript errors
+- [x] No ESLint errors
+- [x] No build errors
+- [x] Documentation updated
 - [ ] Changes committed
 
 ---
 
 ## Milestone Status
 
-**Status:** In Progress
+**Status:** Implementation and verification complete; pending documentation commit
 
-Current Phase: Phase 20 — Analytics & Insights
+Current Phase: Phase 21 — Insights Verification
 
-Current Step: Step 20.1 — Analytics Expansion (Frontend Selectors)
+Current Step: Complete pending documentation commit
 
-Last Completed Step: Step 19.2 — Reports (Frontend)
+Last Completed Step: Step 21.1 — Manual & Automated Verification
 
-Next Step: Step 20.1
+Next Step: Commit documentation changes
