@@ -68,3 +68,20 @@ export function getMaintenanceCostPerVehicle(
   }
   return costs;
 }
+
+/** Total finalized maintenance cost per vehicle for a calendar year. */
+export function getMaintenanceCostPerVehicleForYear(
+  records: MaintenanceResponse[],
+  year: number,
+): Record<string, number> {
+  return getMaintenanceCostPerVehicle(
+    records.filter((record) => new Date(record.maintenanceDate).getFullYear() === year),
+  );
+}
+
+/** Total finalized maintenance cost per vehicle across all loaded records. */
+export function getLifetimeMaintenanceCostPerVehicle(
+  records: MaintenanceResponse[],
+): Record<string, number> {
+  return getMaintenanceCostPerVehicle(records);
+}

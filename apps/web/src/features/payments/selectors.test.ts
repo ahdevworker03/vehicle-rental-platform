@@ -3,6 +3,7 @@ import type { PaymentResponse, RentalResponse } from "@workspace/api-client-reac
 import {
   getPaymentRevenueForPeriod,
   getPaymentRevenuePerVehicle,
+  getLifetimePaymentRevenuePerVehicle,
   getTotalOutstanding,
   getOutstandingPerCustomer,
 } from "./selectors";
@@ -103,6 +104,25 @@ describe("getPaymentRevenuePerVehicle", () => {
     ];
     const rentals = [makeRental({ id: "r1", vehicleId: "v1" })];
     expect(getPaymentRevenuePerVehicle(payments, rentals, 7, 2026)).toEqual({});
+  });
+});
+
+describe("getLifetimePaymentRevenuePerVehicle", () => {
+  it("maps all recorded payments to their vehicles", () => {
+    const payments = [
+      makePayment({ rentalId: "r1", amount: 100 }),
+      makePayment({ rentalId: "r2", amount: 50 }),
+      makePayment({ rentalId: "missing", amount: 999 }),
+    ];
+    const rentals = [
+      makeRental({ id: "r1", vehicleId: "v1" }),
+      makeRental({ id: "r2", vehicleId: "v1" }),
+    ];
+    expect(getLifetimePaymentRevenuePerVehicle(payments, rentals)).toEqual({ v1: 150 });
+  });
+
+  it("returns no vehicles for empty data", () => {
+    expect(getLifetimePaymentRevenuePerVehicle([], [])).toEqual({});
   });
 });
 

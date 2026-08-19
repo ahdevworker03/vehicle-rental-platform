@@ -40,6 +40,23 @@ export function getPaymentRevenuePerVehicle(
   return byVehicle;
 }
 
+/** Total recorded payment revenue per vehicle across all loaded records. */
+export function getLifetimePaymentRevenuePerVehicle(
+  payments: PaymentResponse[],
+  rentals: RentalResponse[],
+): Record<string, number> {
+  const vehicleByRentalId = new Map(rentals.map((r) => [r.id, r.vehicleId]));
+  const byVehicle: Record<string, number> = {};
+
+  for (const payment of payments) {
+    const vehicleId = vehicleByRentalId.get(payment.rentalId);
+    if (!vehicleId) continue;
+    byVehicle[vehicleId] = (byVehicle[vehicleId] ?? 0) + payment.amount;
+  }
+
+  return byVehicle;
+}
+
 /** A single rental's authoritative outstanding balance returned by the API. */
 export interface RentalOutstandingBalance {
   rentalId: string;

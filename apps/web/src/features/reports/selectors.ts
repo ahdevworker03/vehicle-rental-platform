@@ -5,6 +5,12 @@ import type {
   RentalResponse,
   TaskResponse,
 } from "@workspace/api-client-react";
+import { getExpenseTotalPerVehicle } from "@/features/expenses/selectors";
+import {
+  getLifetimeMaintenanceCostPerVehicle,
+  getMaintenanceCostPerVehicleForYear,
+} from "@/features/maintenance/selectors";
+import { getLifetimePaymentRevenuePerVehicle } from "@/features/payments/selectors";
 
 // ─── Period helpers ────────────────────────────────────────────────────────────
 
@@ -211,6 +217,88 @@ export function buildReportSummary(
     paymentCount: getPaymentsCountForPeriod(data.payments, range),
     completedTaskCount: getCompletedTasksCountForPeriod(data.tasks, range),
   };
+}
+
+// ─── Analytics selectors ─────────────────────────────────────────────────────
+
+export interface VehicleProfitability {
+  vehicleId: string;
+  revenue: number;
+  expenses: number;
+  maintenanceCost: number;
+  totalCosts: number;
+  profit: number;
+}
+
+/**
+ * Build lifetime profitability per vehicle using recorded payments as revenue.
+ * Maintenance remains a separate cost component and is not added to expenses.
+ */
+export function getVehicleProfitability(
+  payments: PaymentResponse[],
+  rentals: RentalResponse[],
+  expenses: ExpenseResponse[],
+  maintenance: MaintenanceResponse[],
+): VehicleProfitability[] {
+  const revenueByVehicle = getLifetimePaymentRevenuePerVehicle(payments, rentals);
+  const expensesByVehicle = getExpenseTotalPerVehicle(expenses);
+  const maintenanceByVehicle = getLifetimeMaintenanceCostPerVehicle(maintenance);
+  const vehicleIds = new Set([
+    ...Object.keys(revenueByVehicle),
+    ...Object.keys(expensesByVehicle),
+    ...Object.keys(maintenanceByVehicle),
+  ]);
+
+  return [...vehicleIds]
+    .map((vehicleId) => {
+      const revenue = revenueByVehicle[vehicleId] ?? 0;
+      const vehicleExpenses = expensesByVehicle[vehicleId] ?? 0;
+      const maintenanceCost = maintenanceByVehicle[vehicleId] ?? 0;
+      const totalCosts = vehicleExpenses + maintenanceCost;
+      return {
+        vehicleId,
+        revenue,
+        expenses: vehicleExpenses,
+        maintenanceCost,
+        totalCosts,
+        profit: revenue - totalCosts,
+      };
+    })
+    .sort((a, b) => b.profit - a.profit || a.vehicleId.localeCompare(b.vehicleId));
+}
+
+export interface BusinessPerformancePoint {
+  period: string;
+  revenue: number;
+  expenses: number;
+  netProfit: number;
+}
+
+/** Build a January-to-December business performance series for a year. */
+export function getBusinessPerformanceTrend(
+  payments: PaymentResponse[],
+  expenses: ExpenseResponse[],
+  year: number,
+): BusinessPerformancePoint[] {
+  return Array.from({ length: 12 }, (_, month) => {
+    const range = getReportPeriodRange("month", month, year);
+    const revenue = getRevenueForPeriod(payments, range);
+    const expenseTotal = getExpensesForPeriod(expenses, range);
+    return {
+      period: `${year}-${String(month + 1).padStart(2, "0")}`,
+      revenue,
+      expenses: expenseTotal,
+      netProfit: getNetProfitForPeriod(revenue, expenseTotal),
+    };
+  });
+}
+
+/** Build yearly maintenance cost per vehicle for analytics consumers. */
+export function getYearlyMaintenanceCostPerVehicle(
+  records: MaintenanceResponse[],
+  year: number,
+): Record<string, number> {
+  return getMaintenanceCostPerVehicleForYear(records, year);
 }
 
 // ─── Export formatting helpers (pure, no DOM) ─────────────────────────────────

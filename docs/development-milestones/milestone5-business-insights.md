@@ -164,8 +164,8 @@ Do not:
 
 ### Must Read
 
-- 03-frontend-architecture.md
-- 06-api-design.md
+- docs/architecture/03-frontend-architecture.md
+- docs/architecture/06-api-design.md
 - docs/product/02-business-requirements.md
 - docs/product/03-user-flows.md
 
@@ -205,12 +205,6 @@ Do not:
 # Phase 21 — Insights Verification
 
 ## Step 21.1 — Manual & Automated Verification
-
-### Must Read
-
-- docs/rules/testing.md
-- docs/rules/development-workflow.md
-- docs/rules/git.md
 
 ### Objectives
 

@@ -6,6 +6,8 @@ import {
   getDisplayStatus,
   getMaintenanceCount,
   getMaintenanceCostPerVehicle,
+  getMaintenanceCostPerVehicleForYear,
+  getLifetimeMaintenanceCostPerVehicle,
 } from "./selectors";
 
 function makeRecord(overrides: Partial<MaintenanceResponse>): MaintenanceResponse {
@@ -136,5 +138,25 @@ describe("getMaintenanceCostPerVehicle", () => {
 
   it("returns an empty map for an empty list", () => {
     expect(getMaintenanceCostPerVehicle([])).toEqual({});
+  });
+});
+
+describe("maintenance analytics selectors", () => {
+  it("limits yearly cost to the selected calendar year", () => {
+    const records = [
+      makeRecord({ vehicleId: "v1", cost: 100, maintenanceDate: "2026-01-10T12:00:00Z" }),
+      makeRecord({ vehicleId: "v1", cost: 50, maintenanceDate: "2025-12-31T12:00:00Z" }),
+      makeRecord({ vehicleId: "v2", cost: null, maintenanceDate: "2026-05-01T12:00:00Z" }),
+    ];
+    expect(getMaintenanceCostPerVehicleForYear(records, 2026)).toEqual({ v1: 100 });
+  });
+
+  it("returns lifetime cost without counting records missing a cost", () => {
+    const records = [
+      makeRecord({ vehicleId: "v1", cost: 100 }),
+      makeRecord({ vehicleId: "v1", cost: 25 }),
+      makeRecord({ vehicleId: "v2", cost: null }),
+    ];
+    expect(getLifetimeMaintenanceCostPerVehicle(records)).toEqual({ v1: 125 });
   });
 });

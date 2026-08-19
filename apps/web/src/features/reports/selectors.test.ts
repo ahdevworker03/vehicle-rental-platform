@@ -21,6 +21,9 @@ import {
   csvCell,
   toCsv,
   toPrintableHtml,
+  getVehicleProfitability,
+  getBusinessPerformanceTrend,
+  getYearlyMaintenanceCostPerVehicle,
   type ReportPeriodRange,
 } from "./selectors";
 
@@ -290,6 +293,51 @@ describe("buildReportSummary", () => {
     expect(summary.netProfit).toBe(0);
     expect(summary.revenue).toBe(0);
     expect(summary.rentalCount).toBe(0);
+  });
+});
+
+describe("analytics selectors", () => {
+  it("ranks vehicle profitability using revenue, expenses, and maintenance separately", () => {
+    const result = getVehicleProfitability(
+      [payment({ rentalId: "r1", amount: 500 })],
+      [rental({ id: "r1", vehicleId: "v1" })],
+      [expense({ vehicleId: "v1", amount: 100 })],
+      [maintenance({ vehicleId: "v1", cost: 50 })],
+    );
+    expect(result).toEqual([{
+      vehicleId: "v1",
+      revenue: 500,
+      expenses: 100,
+      maintenanceCost: 50,
+      totalCosts: 150,
+      profit: 350,
+    }]);
+  });
+
+  it("handles zero-data and does not treat maintenance as an expense", () => {
+    expect(getVehicleProfitability([], [], [], [])).toEqual([]);
+    const result = getVehicleProfitability(
+      [], [], [], [maintenance({ vehicleId: "v1", cost: 75 })],
+    );
+    expect(result[0]).toMatchObject({ vehicleId: "v1", expenses: 0, maintenanceCost: 75, profit: -75 });
+  });
+
+  it("produces a monthly trend with revenue, expenses, and net profit", () => {
+    const trend = getBusinessPerformanceTrend(
+      [payment({ amount: 200, paymentDate: "2026-08-05T12:00:00Z" })],
+      [expense({ amount: 50, expenseDate: "2026-08-20T12:00:00Z" })],
+      2026,
+    );
+    expect(trend).toHaveLength(12);
+    expect(trend[7]).toEqual({ period: "2026-08", revenue: 200, expenses: 50, netProfit: 150 });
+    expect(trend[6]).toEqual({ period: "2026-07", revenue: 0, expenses: 0, netProfit: 0 });
+  });
+
+  it("exposes yearly maintenance cost per vehicle", () => {
+    expect(getYearlyMaintenanceCostPerVehicle([
+      maintenance({ vehicleId: "v1", cost: 100, maintenanceDate: "2026-01-01T12:00:00Z" }),
+      maintenance({ vehicleId: "v1", cost: 25, maintenanceDate: "2025-01-01T12:00:00Z" }),
+    ], 2026)).toEqual({ v1: 100 });
   });
 });
 
