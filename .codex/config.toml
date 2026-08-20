@@ -15,6 +15,15 @@ args = [
   "/usr/bin/brave-browser"
 ]
 
+[mcp_servers.shadcn]
+command = "npx"
+args = ["shadcn@latest", "mcp"]
+enabled = true
+
+[mcp_servers."21st"]
+url = "https://21st.dev/api/mcp"
+enabled = true
+
 [mcp_servers.playwright.tools.browser_navigate]
 approval_mode = "approve"
 
