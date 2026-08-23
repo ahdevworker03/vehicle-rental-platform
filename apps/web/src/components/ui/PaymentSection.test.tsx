@@ -79,7 +79,7 @@ beforeEach(() => {
 });
 
 describe("PaymentSection", () => {
-  it("shows a loading spinner while payments are loading", () => {
+  it("shows a structured loading state while payments are loading", () => {
     mockedUseRentalPayments.mockReturnValue({
       isLoading: true,
       isError: false,
@@ -87,8 +87,8 @@ describe("PaymentSection", () => {
       data: { payments: [], outstandingBalance: 0 },
     } as unknown as ReturnType<typeof useRentalPayments>);
 
-    const { container } = render(<PaymentSection rentalId="r1" />);
-    expect(container.querySelector(".animate-spin")).toBeTruthy();
+    render(<PaymentSection rentalId="r1" />);
+    expect(screen.getByLabelText("جارٍ تحميل البيانات")).toBeInTheDocument();
   });
 
   it("shows an error message when loading fails", () => {
@@ -110,7 +110,7 @@ describe("PaymentSection", () => {
 
     expect(screen.getByText("الرصيد المتبقي")).toBeInTheDocument();
     expect(screen.getByText("USD 120")).toBeInTheDocument();
-    expect(screen.getByText("لا توجد مدفوعات مسجّلة بعد")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("لا توجد مدفوعات مسجلة");
   });
 
   it("renders payment history entries with amount, date, and method label", () => {
@@ -126,8 +126,8 @@ describe("PaymentSection", () => {
 
     expect(screen.getByText("USD 50")).toBeInTheDocument();
     expect(screen.getByText("USD 70")).toBeInTheDocument();
-    expect(screen.getAllByText("نقداً")).toHaveLength(1);
-    expect(screen.getByText("تحويل بنكي")).toBeInTheDocument();
+    expect(screen.getAllByText("نقداً").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("تحويل بنكي").length).toBeGreaterThan(0);
   });
 
   it("records a payment and shows a success message", async () => {
@@ -136,13 +136,13 @@ describe("PaymentSection", () => {
 
     render(<PaymentSection rentalId="r1" />);
 
-    fireEvent.click(screen.getByText("تسجيل أول دفعة"));
+    fireEvent.click(screen.getByRole("button", { name: /تسجيل دفعة/ }));
 
     fireEvent.change(screen.getByLabelText(/المبلغ/), { target: { value: "50" } });
     fireEvent.change(screen.getByLabelText(/تاريخ الدفع/), { target: { value: "2026-08-15" } });
     fireEvent.change(screen.getByLabelText(/طريقة الدفع/), { target: { value: "CASH" } });
 
-    fireEvent.click(screen.getByText("تسجيل الدفع"));
+    fireEvent.click(screen.getByText("تسجيل الدفعة"));
 
     await waitFor(() => {
       expect(create.mutateAsync).toHaveBeenCalledWith({
@@ -155,7 +155,7 @@ describe("PaymentSection", () => {
       });
     });
 
-    expect(screen.getByText("تم تسجيل الدفع بنجاح")).toBeInTheDocument();
+    expect(screen.getByText("تم تسجيل الدفعة.")).toBeInTheDocument();
   });
 
   it("validates required fields before submitting", async () => {
@@ -164,12 +164,12 @@ describe("PaymentSection", () => {
 
     render(<PaymentSection rentalId="r1" />);
 
-    fireEvent.click(screen.getByText("تسجيل أول دفعة"));
-    fireEvent.click(screen.getByText("تسجيل الدفع"));
+    fireEvent.click(screen.getByRole("button", { name: /تسجيل دفعة/ }));
+    fireEvent.click(screen.getByText("تسجيل الدفعة"));
 
-    expect(await screen.findByText("أدخل مبلغاً صحيحاً")).toBeInTheDocument();
-    expect(screen.getByText("أدخل تاريخ الدفع")).toBeInTheDocument();
-    expect(screen.getByText("اختر طريقة الدفع")).toBeInTheDocument();
+    expect(await screen.findByText("أدخل مبلغاً صحيحاً.")).toBeInTheDocument();
+    expect(screen.getByText("أدخل تاريخ الدفع.")).toBeInTheDocument();
+    expect(screen.getByText("اختر طريقة الدفع.")).toBeInTheDocument();
     expect(create.mutateAsync).not.toHaveBeenCalled();
   });
 
@@ -177,11 +177,11 @@ describe("PaymentSection", () => {
     mockData([], 120);
     render(<PaymentSection rentalId="r1" />);
 
-    fireEvent.click(screen.getByText("تسجيل أول دفعة"));
+    fireEvent.click(screen.getByRole("button", { name: /تسجيل دفعة/ }));
     fireEvent.change(screen.getByLabelText(/المبلغ/), { target: { value: "0" } });
-    fireEvent.click(screen.getByText("تسجيل الدفع"));
+    fireEvent.click(screen.getByText("تسجيل الدفعة"));
 
-    expect(await screen.findByText("أدخل مبلغاً أكبر من صفر")).toBeInTheDocument();
+    expect(await screen.findByText("أدخل مبلغاً أكبر من صفر.")).toBeInTheDocument();
   });
 
   it("shows the backend error message when a payment fails", async () => {
@@ -191,11 +191,11 @@ describe("PaymentSection", () => {
 
     render(<PaymentSection rentalId="r1" />);
 
-    fireEvent.click(screen.getByText("تسجيل أول دفعة"));
+    fireEvent.click(screen.getByRole("button", { name: /تسجيل دفعة/ }));
     fireEvent.change(screen.getByLabelText(/المبلغ/), { target: { value: "50" } });
     fireEvent.change(screen.getByLabelText(/تاريخ الدفع/), { target: { value: "2026-08-15" } });
     fireEvent.change(screen.getByLabelText(/طريقة الدفع/), { target: { value: "CASH" } });
-    fireEvent.click(screen.getByText("تسجيل الدفع"));
+    fireEvent.click(screen.getByText("تسجيل الدفعة"));
 
     expect(await screen.findByText("الرصيد غير كافٍ")).toBeInTheDocument();
   });
@@ -206,7 +206,6 @@ describe("PaymentSection", () => {
 
     render(<PaymentSection rentalId="r1" />);
 
-    expect(screen.queryByText("تسجيل دفع")).not.toBeInTheDocument();
-    expect(screen.queryByText("تسجيل أول دفعة")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /تسجيل دفعة/ })).not.toBeInTheDocument();
   });
 });

@@ -1,68 +1,67 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
-import { Car, User, ChevronRight, Check, Search, X, AlertCircle } from "lucide-react";
-
-import { PageHeader } from "@/components/layout/PageHeader";
-import { FormField, inputClass } from "@/components/ui/FormField";
-import { Spinner } from "@/components/ui/spinner";
-import { formatCurrency } from "@/lib/format";
-import { cn } from "@/lib/utils";
-import { useTimeout } from "@/hooks/useTimeout";
+import { Car, Check, ChevronDown, Search, User, X, Plus } from "lucide-react";
+import type { CustomerResponse, VehicleResponse } from "@workspace/api-client-react";
 import {
-  useListVehicles,
-  useListCustomers,
-  useCreateRental,
-  useCheckRentalAvailability,
+  getCheckRentalAvailabilityQueryKey,
   getListRentalsQueryKey,
   getListVehiclesQueryKey,
-  getCheckRentalAvailabilityQueryKey,
+  useCheckRentalAvailability,
+  useCreateRental,
+  useListCustomers,
+  useListVehicles,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { InfoBanner, InlineError, LoadingState } from "@/components/ui/FeedbackState";
+import { FormField, inputClass } from "@/components/ui/FormField";
+import { FormSection } from "@/components/ui/FormSection";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { useTimeout } from "@/hooks/useTimeout";
 import { getApiErrorMessage } from "@/lib/api-error";
-import type { VehicleResponse } from "@workspace/api-client-react";
+import { formatCurrency, formatDateTime } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
-function toDateInput(d: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+function toDateInput(date: Date): string {
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 function calcDays(start: string, end: string): number {
   if (!start || !end) return 0;
-  const diff = new Date(end).getTime() - new Date(start).getTime();
-  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  const difference = new Date(end).getTime() - new Date(start).getTime();
+  return Math.max(0, Math.ceil(difference / (24 * 60 * 60 * 1000)));
+}
+
+function dateAtDefaultTime(value: string): string {
+  return formatDateTime(new Date(`${value}T09:00:00Z`));
 }
 
 export default function NewRentalPage() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-
   const params = new URLSearchParams(window.location.search);
   const preVehicle = params.get("vehicle") ?? "";
   const preCustomer = params.get("customer") ?? "";
-
   const [selectedVehicleId, setSelectedVehicleId] = useState(preVehicle);
   const [selectedCustomerId, setSelectedCustomerId] = useState(preCustomer);
-
   const [vehicleSearch, setVehicleSearch] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
-
   const [showVehiclePicker, setShowVehiclePicker] = useState(!preVehicle);
   const [showCustomerPicker, setShowCustomerPicker] = useState(!!preVehicle && !preCustomer);
-
   const [pickupDate, setPickupDate] = useState(toDateInput(new Date()));
   const [returnDate, setReturnDate] = useState("");
   const [dailyRate, setDailyRate] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
-
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
   useTimeout(() => setLocation("/rentals"), saved ? 1200 : null);
 
-  const { data: vehiclesData, isLoading: vehiclesLoading } = useListVehicles();
-  const { data: customersData, isLoading: customersLoading } = useListCustomers();
-
+  const vehiclesQuery = useListVehicles();
+  const customersQuery = useListCustomers();
   const createMutation = useCreateRental({
     mutation: {
       onSuccess: () => {
@@ -72,8 +71,10 @@ export default function NewRentalPage() {
     },
   });
 
-  const vehicles = useMemo(() => vehiclesData?.data ?? [], [vehiclesData]);
-  const customers = useMemo(() => customersData?.data ?? [], [customersData]);
+  const vehicles = useMemo(() => vehiclesQuery.data?.data ?? [], [vehiclesQuery.data]);
+  const customers = useMemo(() => customersQuery.data?.data ?? [], [customersQuery.data]);
+  const selectedVehicle = vehicles.find((vehicle) => vehicle.id === selectedVehicleId);
+  const selectedCustomer = customers.find((customer) => customer.id === selectedCustomerId);
 
   const availabilityParams = useMemo(() => {
     if (!pickupDate || !returnDate || returnDate <= pickupDate) return null;
@@ -84,133 +85,75 @@ export default function NewRentalPage() {
     };
   }, [pickupDate, returnDate, selectedVehicleId]);
 
-  const availabilityQueryKey = availabilityParams
-    ? getCheckRentalAvailabilityQueryKey(availabilityParams)
-    : [];
-
-  const { data: availabilityData } = useCheckRentalAvailability(
+  const availabilityQuery = useCheckRentalAvailability(
     availabilityParams ?? { vehicleId: "x", pickupDate: "", expectedReturnDate: "" },
     {
       query: {
         enabled: Boolean(availabilityParams),
-        queryKey: availabilityQueryKey,
+        queryKey: availabilityParams ? getCheckRentalAvailabilityQueryKey(availabilityParams) : [],
       },
     },
   );
 
   const periodSet = Boolean(pickupDate && returnDate && returnDate > pickupDate);
-
-  const availableVehicles = useMemo(() => {
-    if (!periodSet) return vehicles;
-    return vehicles.filter((v) => v.status === "AVAILABLE");
-  }, [vehicles, periodSet]);
-
+  const availableVehicles = useMemo(
+    () => (periodSet ? vehicles.filter((vehicle) => vehicle.status === "AVAILABLE") : vehicles),
+    [periodSet, vehicles],
+  );
   const filteredVehicles = useMemo(() => {
-    const q = vehicleSearch.trim().toLowerCase();
-    if (!q) return availableVehicles;
-    return availableVehicles.filter(
-      (v) =>
-        `${v.make} ${v.model}`.toLowerCase().includes(q) ||
-        v.plateNumber.toLowerCase().includes(q)
-    );
+    const query = vehicleSearch.trim().toLowerCase();
+    if (!query) return availableVehicles;
+    return availableVehicles.filter((vehicle) => `${vehicle.make} ${vehicle.model}`.toLowerCase().includes(query) || vehicle.plateNumber.toLowerCase().includes(query));
   }, [availableVehicles, vehicleSearch]);
-
   const filteredCustomers = useMemo(() => {
-    const q = customerSearch.trim().toLowerCase();
-    if (!q) return customers;
-    return customers.filter(
-      (c) =>
-        `${c.firstName} ${c.lastName}`.toLowerCase().includes(q) ||
-        c.phone.toLowerCase().includes(q)
-    );
+    const query = customerSearch.trim().toLowerCase();
+    if (!query) return customers;
+    return customers.filter((customer) => `${customer.firstName} ${customer.lastName}`.toLowerCase().includes(query) || customer.phone.toLowerCase().includes(query));
   }, [customers, customerSearch]);
 
-  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
-  const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
-
   const days = calcDays(pickupDate, returnDate);
-  const rate = parseFloat(dailyRate.replace(/,/g, "")) || 0;
-  const deposit = parseFloat(depositAmount.replace(/,/g, "")) || 0;
+  const rate = Number.parseFloat(dailyRate.replace(/,/g, "")) || 0;
+  const deposit = Number.parseFloat(depositAmount.replace(/,/g, "")) || 0;
   const total = days * rate;
-
-  const availabilityAvailable = availabilityData?.data?.available ?? true;
-
-  const canSave =
-    !!selectedVehicleId &&
-    !!selectedCustomerId &&
-    !!pickupDate &&
-    !!returnDate &&
-    returnDate > pickupDate &&
-    rate > 0;
-
-  const stepVehicleDone = !!selectedVehicleId;
-  const stepCustomerDone = !!selectedCustomerId;
-  const currentStepIdx = !stepVehicleDone ? 0 : !stepCustomerDone ? 1 : 2;
+  const availabilityAvailable = availabilityQuery.data?.data?.available ?? true;
+  const canSave = Boolean(selectedVehicleId && selectedCustomerId && pickupDate && returnDate && returnDate > pickupDate && rate > 0);
 
   function clearError(key: string) {
-    if (errors[key]) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[key];
-        return next;
-      });
-    }
-  }
-
-  const STEPS = [
-    { key: "vehicle", label: "السيارة" },
-    { key: "customer", label: "العميل" },
-    { key: "details", label: "التفاصيل" },
-  ];
-
-  function stepState(idx: number): "done" | "current" | "future" {
-    if (idx < currentStepIdx) return "done";
-    if (idx === currentStepIdx) return "current";
-    return "future";
+    if (!errors[key]) return;
+    setErrors((current) => {
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
   }
 
   function selectVehicle(id: string) {
-    const v = vehicles.find((v) => v.id === id);
     setSelectedVehicleId(id);
     setShowVehiclePicker(false);
     if (!selectedCustomerId) setShowCustomerPicker(true);
-    void v;
+    clearError("vehicle");
   }
 
   function selectCustomer(id: string) {
     setSelectedCustomerId(id);
     setShowCustomerPicker(false);
-  }
-
-  function removeVehicle() {
-    setSelectedVehicleId("");
-    setShowVehiclePicker(true);
-    setVehicleSearch("");
-  }
-
-  function removeCustomer() {
-    setSelectedCustomerId("");
-    setShowCustomerPicker(true);
-    setCustomerSearch("");
+    clearError("customer");
   }
 
   function validate(): boolean {
-    const errs: Record<string, string> = {};
-    if (!selectedVehicleId) errs.vehicle = "اختر سيارة";
-    if (!selectedCustomerId) errs.customer = "اختر عميلاً";
-    if (!pickupDate) errs.pickupDate = "أدخل تاريخ الاستلام";
-    if (!returnDate) errs.returnDate = "أدخل تاريخ الإرجاع";
-    if (returnDate && pickupDate && returnDate <= pickupDate)
-      errs.returnDate = "تاريخ الإرجاع يجب أن يكون بعد تاريخ الاستلام";
-    if (!dailyRate || rate <= 0) errs.dailyRate = "أدخل الأجرة اليومية";
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+    const nextErrors: Record<string, string> = {};
+    if (!selectedVehicleId) nextErrors.vehicle = "اختر مركبة.";
+    if (!selectedCustomerId) nextErrors.customer = "اختر عميلاً.";
+    if (!pickupDate) nextErrors.pickupDate = "أدخل تاريخ الاستلام.";
+    if (!returnDate) nextErrors.returnDate = "أدخل تاريخ الإرجاع.";
+    if (returnDate && pickupDate && returnDate <= pickupDate) nextErrors.returnDate = "تاريخ الإرجاع يجب أن يكون بعد تاريخ الاستلام.";
+    if (!dailyRate || rate <= 0) nextErrors.dailyRate = "أدخل الأجرة اليومية.";
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   }
 
   async function handleSave() {
-    if (createMutation.isPending) return;
-    if (!validate()) return;
-
+    if (createMutation.isPending || !validate()) return;
     setFormError(null);
 
     try {
@@ -226,422 +169,119 @@ export default function NewRentalPage() {
         },
       });
       setSaved(true);
-    } catch (err) {
-      setFormError(getApiErrorMessage(err).title);
+    } catch (error) {
+      setFormError(getApiErrorMessage(error).title);
     }
   }
 
   if (saved) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-background px-6 gap-3">
-        <div className="w-20 h-20 rounded-full bg-[hsl(var(--status-available-bg))] flex items-center justify-center">
-          <Check className="w-10 h-10 text-[hsl(var(--status-available))]" strokeWidth={2.5} />
-        </div>
-        <h2 className="text-xl font-bold text-foreground">تم إنشاء عقد الإيجار</h2>
-        <div className="text-center text-sm text-muted-foreground space-y-1">
-          {selectedVehicle && (
-            <p>{selectedVehicle.make} {selectedVehicle.model}</p>
-          )}
-          {selectedCustomer && (
-            <p>العميل: {selectedCustomer.firstName} {selectedCustomer.lastName}</p>
-          )}
-        </div>
-        <p className="text-xs text-muted-foreground pt-2">
-          جاري العودة إلى قائمة الإيجارات...
-        </p>
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 bg-background px-6 text-center">
+        <div className="flex size-16 items-center justify-center rounded-xl bg-status-positive-bg text-status-positive"><Check className="size-8" aria-hidden="true" /></div>
+        <h2 className="ui-page-title">تم إنشاء عقد الإيجار</h2>
+        <p className="ui-secondary-text">{selectedCustomer && selectedVehicle ? `${selectedCustomer.firstName} ${selectedCustomer.lastName} · ${selectedVehicle.make} ${selectedVehicle.model}` : ""}</p>
+        <p className="text-xs text-muted-foreground">جاري العودة إلى قائمة الإيجارات...</p>
       </div>
     );
   }
 
   return (
-    <>
-      <PageHeader
-        title="تأجير جديد"
-        showBack
-        onBack={() => setLocation("/rentals")}
-      />
-
-      {/* Step Progress */}
-      <div className="flex items-start justify-center gap-0 px-6 pt-3 pb-1">
-        {STEPS.map((step, idx) => {
-          const state = stepState(idx);
-          const isLast = idx === STEPS.length - 1;
-          return (
-            <div key={step.key} className="flex items-center flex-1">
-              <div className="flex flex-col items-center gap-1">
-                <div
-                  className={cn(
-                    "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors",
-                    state === "done" && "bg-[hsl(var(--status-available))] text-white",
-                    state === "current" && "bg-primary text-primary-foreground ring-2 ring-primary/20",
-                    state === "future" && "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {state === "done" ? (
-                    <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                  ) : (
-                    idx + 1
-                  )}
-                </div>
-                <span
-                  className={cn(
-                    "text-[10px] font-medium",
-                    state === "future" ? "text-muted-foreground" : "text-foreground"
-                  )}
-                >
-                  {step.label}
-                </span>
-              </div>
-              {!isLast && (
-                <div
-                  className={cn(
-                    "flex-1 h-[2px] mx-2 mb-5 rounded-full",
-                    state === "done" ? "bg-[hsl(var(--status-available))]" : "bg-muted"
-                  )}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-4 pt-2 pb-8 space-y-4">
-        {formError && (
-          <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3 text-sm text-destructive flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
-            <span>{formError}</span>
-          </div>
-        )}
-
-        {/* 1. Vehicle picker */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm overflow-hidden">
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowVehiclePicker((v) => !v)}
-              aria-expanded={showVehiclePicker}
-              aria-label="اختيار السيارة"
-              className="absolute inset-0 w-full rounded-2xl"
-            />
-            <div className="w-full flex items-center justify-between p-4 pointer-events-none">
-              <ChevronRight
-                className={`w-4 h-4 text-muted-foreground transition-transform ${
-                  showVehiclePicker ? "-rotate-90" : ""
-                }`}
-                strokeWidth={2}
-              />
-              <div className="flex items-center gap-3 flex-1 justify-end">
-                {selectedVehicle ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={removeVehicle}
-                      className="pointer-events-auto relative w-8 h-8 rounded-full flex items-center justify-center bg-muted text-muted-foreground hover:bg-destructive/10 hover:text-destructive active:scale-90 transition-all flex-shrink-0"
-                      aria-label="إلغاء اختيار السيارة"
-                    >
-                      <X className="w-4 h-4" strokeWidth={2} />
-                    </button>
-                    <div className="text-right">
-                      <div className="text-sm font-bold text-foreground">
-                        {selectedVehicle.make} {selectedVehicle.model}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        {selectedVehicle.plateNumber}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <span className="text-sm font-semibold text-muted-foreground">
-                    اختر السيارة
-                    <span className="text-destructive mr-1">*</span>
-                  </span>
-                )}
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Car className="w-5 h-5 text-primary" strokeWidth={1.5} />
-                </div>
-              </div>
-            </div>
+    <div className="flex min-h-0 flex-1 flex-col bg-background">
+      <PageHeader title="إنشاء إيجار" showBack onBack={() => setLocation("/rentals")} />
+      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl space-y-4 lg:space-y-5">
+          <div>
+            <h2 className="ui-page-title">بيانات عقد الإيجار</h2>
+            <p className="ui-secondary-text mt-1">اختر العميل والمركبة ثم حدّد فترة الإيجار والتسعير.</p>
           </div>
 
-          {errors.vehicle && (
-            <p className="text-xs text-destructive px-4 pb-2 text-right">{errors.vehicle}</p>
-          )}
+          {formError && <InlineError className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3">{formError}</InlineError>}
 
-          {showVehiclePicker && (
-            <div className="border-t border-border px-4 pt-3 pb-4 space-y-2">
-              <div className="relative">
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <Search className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <input
-                  type="search"
-                  placeholder="ابحث..."
-                  value={vehicleSearch}
-                  onChange={(e) => setVehicleSearch(e.target.value)}
-                  className="w-full bg-muted rounded-xl pr-9 pl-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 border-none"
-                />
-              </div>
-
-              {vehiclesLoading ? (
-                <div className="flex items-center justify-center py-6">
-                  <Spinner />
-                </div>
-              ) : availableVehicles.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  {periodSet
-                    ? "لا توجد سيارات متاحة في هذه الفترة"
-                    : "حدّد فترة الإيجار أولاً لعرض السيارات المتاحة"}
-                </p>
-              ) : filteredVehicles.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-3">لا توجد نتائج</p>
-              ) : (
-                filteredVehicles.map((v: VehicleResponse) => (
-                  <button
-                    key={v.id}
-                    onClick={() => selectVehicle(v.id)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                      selectedVehicleId === v.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border bg-background"
-                    }`}
-                  >
-                    <div className="text-right flex-1">
-                      <div className="text-sm font-bold text-foreground">
-                        {v.make} {v.model}
-                      </div>
-                      <div className="text-xs text-muted-foreground">{v.plateNumber}</div>
-                    </div>
-                    {selectedVehicleId === v.id && (
-                      <Check className="w-4 h-4 text-primary flex-shrink-0" strokeWidth={2.5} />
-                    )}
-                  </button>
-                ))
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* 2. Customer picker */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm overflow-hidden">
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowCustomerPicker((v) => !v)}
-              aria-expanded={showCustomerPicker}
-              aria-label="اختيار العميل"
-              className="absolute inset-0 w-full rounded-2xl"
-            />
-            <div className="w-full flex items-center justify-between p-4 pointer-events-none">
-              <ChevronRight
-                className={`w-4 h-4 text-muted-foreground transition-transform ${
-                  showCustomerPicker ? "-rotate-90" : ""
-                }`}
-                strokeWidth={2}
-              />
-              <div className="flex items-center gap-3 flex-1 justify-end">
-                {selectedCustomer ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={removeCustomer}
-                      className="pointer-events-auto relative w-8 h-8 rounded-full flex items-center justify-center bg-muted text-muted-foreground hover:bg-destructive/10 hover:text-destructive active:scale-90 transition-all flex-shrink-0"
-                      aria-label="إلغاء اختيار العميل"
-                    >
-                      <X className="w-4 h-4" strokeWidth={2} />
-                    </button>
-                    <div className="text-right">
-                      <div className="text-sm font-bold text-foreground">
-                        {selectedCustomer.firstName} {selectedCustomer.lastName}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">
-                        {selectedCustomer.phone}
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <span className="text-sm font-semibold text-muted-foreground">
-                    اختر العميل
-                    <span className="text-destructive mr-1">*</span>
-                  </span>
-                )}
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <User className="w-5 h-5 text-primary" strokeWidth={1.5} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {errors.customer && (
-            <p className="text-xs text-destructive px-4 pb-2 text-right">{errors.customer}</p>
-          )}
-
-          {showCustomerPicker && (
-            <div className="border-t border-border px-4 pt-3 pb-4 space-y-2">
-              <div className="relative">
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <Search className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <input
-                  type="search"
-                  placeholder="ابحث بالاسم أو الهاتف..."
-                  value={customerSearch}
-                  onChange={(e) => setCustomerSearch(e.target.value)}
-                  className="w-full bg-muted rounded-xl pr-9 pl-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 border-none"
-                />
-              </div>
-
-              {customersLoading ? (
-                <div className="flex items-center justify-center py-6">
-                  <Spinner />
-                </div>
-              ) : filteredCustomers.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-3">لا توجد نتائج</p>
-              ) : (
-                filteredCustomers.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => selectCustomer(c.id)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                      selectedCustomerId === c.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border bg-background"
-                    }`}
-                  >
-                    <div className="text-right flex-1">
-                      <div className="text-sm font-bold text-foreground">
-                        {c.firstName} {c.lastName}
-                      </div>
-                      <div className="text-xs text-muted-foreground">{c.phone}</div>
-                    </div>
-                    <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">
-                      {`${c.firstName[0] ?? ""}${c.lastName[0] ?? ""}`}
-                    </div>
-                    {selectedCustomerId === c.id && (
-                      <Check className="w-4 h-4 text-primary flex-shrink-0" strokeWidth={2.5} />
-                    )}
-                  </button>
-                ))
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* 3. Rental details */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <FormField label="تاريخ الاستلام" required error={errors.pickupDate}>
-              <input
-                type="date"
-                value={pickupDate}
-                onChange={(e) => { setPickupDate(e.target.value); clearError("pickupDate"); }}
-                className={errors.pickupDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-              />
-            </FormField>
-
-            <FormField label="تاريخ الإرجاع" required error={errors.returnDate}>
-              <input
-                type="date"
-                value={returnDate}
-                min={pickupDate}
-                onChange={(e) => { setReturnDate(e.target.value); clearError("returnDate"); }}
-                className={errors.returnDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-              />
-            </FormField>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <FormField label="الأجرة اليومية" required hint="بالدولار" error={errors.dailyRate}>
-              <input
-                type="number"
-                inputMode="decimal"
-                placeholder="0"
-                value={dailyRate}
-                onChange={(e) => { setDailyRate(e.target.value); clearError("dailyRate"); }}
-                className={errors.dailyRate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-              />
-            </FormField>
-
-            <FormField label="التأمين" hint="بالدولار">
-              <input
-                type="number"
-                inputMode="decimal"
-                placeholder="0"
-                value={depositAmount}
-                onChange={(e) => setDepositAmount(e.target.value)}
-                className={inputClass}
-              />
-            </FormField>
-          </div>
-
-          {/* Availability warning */}
-          {periodSet && selectedVehicleId && availabilityData && (
-            <div
-              className={cn(
-                "rounded-xl px-4 py-3 text-sm font-semibold flex items-center gap-2",
-                availabilityAvailable
-                  ? "bg-[hsl(var(--status-available-bg))] text-[hsl(var(--status-available))]"
-                  : "bg-destructive/10 text-destructive"
-              )}
-            >
-              <AlertCircle className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
-              <span>
-                {availabilityAvailable
-                  ? "السيارة متاحة في هذه الفترة"
-                  : "السيارة غير متاحة في هذه الفترة"}
-              </span>
-            </div>
-          )}
-
-          {/* Rental Summary */}
-          {days > 0 && rate > 0 && selectedVehicle && selectedCustomer && (
-            <div className="border-t border-border pt-4 mt-2 space-y-3">
-              <h3 className="text-sm font-bold text-foreground">ملخص الإيجار</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">السيارة</span>
-                  <span className="font-semibold text-foreground">{selectedVehicle.make} {selectedVehicle.model}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">العميل</span>
-                  <span className="font-semibold text-foreground">{selectedCustomer.firstName} {selectedCustomer.lastName}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">المدة</span>
-                  <span className="font-semibold text-foreground">{pickupDate} → {returnDate}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">الأجرة اليومية</span>
-                  <span className="font-semibold text-foreground">{formatCurrency(rate)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">عدد الأيام</span>
-                  <span className="font-semibold text-foreground">{days}</span>
-                </div>
-                <div className="border-t border-border pt-2 mt-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">الإجمالي</span>
-                    <span className="text-lg font-bold text-foreground">{formatCurrency(total)}</span>
+          <FormSection title="العميل" description="ابحث عن العميل أو أضف عميلاً جديداً قبل إنشاء العقد." contentClassName="md:grid-cols-1">
+            <div className="space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <FormField label="البحث عن عميل" htmlFor="customer-search" className="flex-1">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                    <input id="customer-search" type="search" value={customerSearch} onChange={(event) => { setCustomerSearch(event.target.value); setShowCustomerPicker(true); }} placeholder="الاسم أو رقم الهاتف" className={`${inputClass} ps-10`} />
                   </div>
-                </div>
+                </FormField>
+                <div className="flex flex-col gap-1.5 sm:w-auto"><span className="ui-label">عميل جديد</span><Button type="button" variant="outline" onClick={() => setLocation("/customers/add")}><Plus className="size-4" aria-hidden="true" />إضافة عميل</Button></div>
               </div>
+              <SelectionTrigger icon={User} label="العميل المحدد" value={selectedCustomer ? `${selectedCustomer.firstName} ${selectedCustomer.lastName}` : "اختر عميلاً"} description={selectedCustomer?.phone ?? ""} expanded={showCustomerPicker} onToggle={() => setShowCustomerPicker((current) => !current)} onClear={selectedCustomer ? () => { setSelectedCustomerId(""); setShowCustomerPicker(true); setCustomerSearch(""); } : undefined} />
+              {errors.customer && <InlineError>{errors.customer}</InlineError>}
+              {showCustomerPicker && <CustomerOptions loading={customersQuery.isLoading} customers={filteredCustomers} selectedId={selectedCustomerId} onSelect={selectCustomer} />}
             </div>
-          )}
-        </div>
+          </FormSection>
 
-        {/* Save button */}
-        <button
-          onClick={handleSave}
-          disabled={!canSave || createMutation.isPending}
-          className={cn(
-            "w-full rounded-2xl py-4 text-base font-bold transition-all shadow-sm flex items-center justify-center gap-2",
-            canSave && !createMutation.isPending
-              ? "bg-primary text-primary-foreground active:scale-[0.98]"
-              : "bg-muted text-muted-foreground cursor-not-allowed",
-          )}
-        >
-          {createMutation.isPending ? <Spinner /> : "حفظ الإيجار"}
-        </button>
+          <FormSection title="المركبة والتوافر" description="اختر المركبة المناسبة لفترة الإيجار المحددة." contentClassName="md:grid-cols-1">
+            <div className="space-y-4">
+              <FormField label="البحث عن مركبة" htmlFor="vehicle-search">
+                <div className="relative"><Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><input id="vehicle-search" type="search" value={vehicleSearch} onChange={(event) => { setVehicleSearch(event.target.value); setShowVehiclePicker(true); }} placeholder="الشركة أو الطراز أو رقم اللوحة" className={`${inputClass} ps-10`} /></div>
+              </FormField>
+              <SelectionTrigger icon={Car} label="المركبة المحددة" value={selectedVehicle ? `${selectedVehicle.make} ${selectedVehicle.model}` : "اختر مركبة"} description={selectedVehicle?.plateNumber ?? ""} valueDir="ltr" expanded={showVehiclePicker} onToggle={() => setShowVehiclePicker((current) => !current)} onClear={selectedVehicle ? () => { setSelectedVehicleId(""); setShowVehiclePicker(true); setVehicleSearch(""); } : undefined} />
+              {errors.vehicle && <InlineError>{errors.vehicle}</InlineError>}
+              {showVehiclePicker && <VehicleOptions loading={vehiclesQuery.isLoading} vehicles={filteredVehicles} periodSet={periodSet} selectedId={selectedVehicleId} onSelect={selectVehicle} />}
+              {periodSet && selectedVehicleId && availabilityQuery.data && (
+                availabilityAvailable ? <InfoBanner icon={Check}>متاحة للفترة المحددة</InfoBanner> : <InlineError className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">هذه المركبة غير متاحة في الفترة المحددة.</InlineError>
+              )}
+            </div>
+          </FormSection>
+
+          <FormSection title="فترة الإيجار" description="تُعرض مواعيد العقد بتنسيق اليوم-الشهر-السنة والوقت.">
+            <DateField label="تاريخ الاستلام" id="pickup-date" value={pickupDate} error={errors.pickupDate} onChange={(value) => { setPickupDate(value); clearError("pickupDate"); }} />
+            <DateField label="تاريخ الإرجاع المتوقع" id="return-date" value={returnDate} min={pickupDate} error={errors.returnDate} onChange={(value) => { setReturnDate(value); clearError("returnDate"); }} />
+          </FormSection>
+
+          <FormSection title="التسعير والتأمين" description="حدّد الأجرة اليومية والتأمين قبل حفظ عقد الإيجار.">
+            <FormField label="الأجرة اليومية" required hint="بالدولار الأمريكي" error={errors.dailyRate} htmlFor="daily-rate">
+              <input id="daily-rate" type="number" inputMode="decimal" placeholder="0" value={dailyRate} onChange={(event) => { setDailyRate(event.target.value); clearError("dailyRate"); }} className={errors.dailyRate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass} />
+            </FormField>
+            <FormField label="مبلغ التأمين" hint="بالدولار الأمريكي" htmlFor="deposit-amount">
+              <input id="deposit-amount" type="number" inputMode="decimal" placeholder="0" value={depositAmount} onChange={(event) => setDepositAmount(event.target.value)} className={inputClass} />
+            </FormField>
+            <div className="rounded-lg bg-muted/45 p-4 md:col-span-2">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div><div className="ui-label">إجمالي الإيجار</div><div className="number-ltr mt-1 text-xl font-bold text-foreground">{formatCurrency(total)}</div></div>
+                <div className="text-end"><div className="ui-label">المدة</div><div className="number-ltr mt-1 text-sm font-semibold text-foreground">{days} {days === 1 ? "يوم" : "أيام"}</div></div>
+              </div>
+              {selectedCustomer && selectedVehicle && days > 0 && rate > 0 && <div className="mt-3 border-t border-border pt-3 text-xs text-muted-foreground"><span className="font-medium text-foreground">{selectedCustomer.firstName} {selectedCustomer.lastName}</span> · <span dir="ltr">{selectedVehicle.make} {selectedVehicle.model}</span></div>}
+            </div>
+          </FormSection>
+        </div>
       </div>
-    </>
+      <div className="border-t border-border bg-background px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-5xl flex-wrap justify-end gap-2"><Button type="button" variant="outline" onClick={() => setLocation("/rentals")}>إلغاء</Button><Button type="button" onClick={handleSave} disabled={!canSave || createMutation.isPending}>{createMutation.isPending ? "جارٍ الحفظ" : "حفظ الإيجار"}</Button></div>
+      </div>
+    </div>
   );
+}
+
+function SelectionTrigger({ icon: Icon, label, value, description, valueDir, expanded, onToggle, onClear }: { icon: typeof User; label: string; value: string; description: string; valueDir?: "ltr"; expanded: boolean; onToggle: () => void; onClear?: () => void }) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-border bg-card p-3">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Icon className="size-4" aria-hidden="true" /></span>
+      <button type="button" onClick={onToggle} aria-expanded={expanded} className="flex min-w-0 flex-1 items-center justify-between gap-3 text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40">
+        <span className="min-w-0"><span className="block text-xs text-muted-foreground">{label}</span><span className="mt-1 block truncate text-sm font-semibold text-foreground" dir={valueDir}>{value}</span>{description && <span className="number-ltr mt-0.5 block truncate text-xs text-muted-foreground">{description}</span>}</span>
+        <ChevronDown className={cn("size-4 shrink-0 text-muted-foreground transition-transform", expanded && "rotate-180")} aria-hidden="true" />
+      </button>
+      {onClear && <Button type="button" variant="ghost" size="icon" onClick={onClear} aria-label={`إلغاء اختيار ${label}`}><X className="size-4" aria-hidden="true" /></Button>}
+    </div>
+  );
+}
+
+function CustomerOptions({ loading, customers, selectedId, onSelect }: { loading: boolean; customers: CustomerResponse[]; selectedId: string; onSelect: (id: string) => void }) {
+  if (loading) return <LoadingState rows={3} className="rounded-lg border border-border" />;
+  if (customers.length === 0) return <InfoBanner>لا توجد نتائج للعملاء. جرّب البحث باسم مختلف أو أضف عميلاً جديداً.</InfoBanner>;
+  return <div className="divide-y divide-border rounded-lg border border-border">{customers.map((customer) => <button key={customer.id} type="button" onClick={() => onSelect(customer.id)} className="flex w-full items-center justify-between gap-3 px-3 py-3 text-start transition-colors hover:bg-muted/50"><span><span className="block text-sm font-semibold text-foreground">{customer.firstName} {customer.lastName}</span><span className="number-ltr mt-1 block text-xs text-muted-foreground">{customer.phone}</span></span>{selectedId === customer.id && <Check className="size-4 shrink-0 text-primary" aria-label="محدد" />}</button>)}</div>;
+}
+
+function VehicleOptions({ loading, vehicles, periodSet, selectedId, onSelect }: { loading: boolean; vehicles: VehicleResponse[]; periodSet: boolean; selectedId: string; onSelect: (id: string) => void }) {
+  if (loading) return <LoadingState rows={3} className="rounded-lg border border-border" />;
+  if (vehicles.length === 0) return <InfoBanner>{periodSet ? "لا توجد مركبات متاحة في هذه الفترة." : "حدّد فترة الإيجار لعرض المركبات المتاحة."}</InfoBanner>;
+  return <div className="divide-y divide-border rounded-lg border border-border">{vehicles.map((vehicle) => <button key={vehicle.id} type="button" onClick={() => onSelect(vehicle.id)} className="flex w-full items-center justify-between gap-3 px-3 py-3 text-start transition-colors hover:bg-muted/50"><span className="min-w-0"><span className="block truncate text-sm font-semibold text-foreground" dir="ltr">{vehicle.make} {vehicle.model}</span><span className="number-ltr mt-1 block text-xs text-muted-foreground">{vehicle.plateNumber}</span></span>{selectedId === vehicle.id ? <Check className="size-4 shrink-0 text-primary" aria-label="محدد" /> : <StatusBadge status={vehicle.status} />}</button>)}</div>;
+}
+
+function DateField({ label, id, value, min, error, onChange }: { label: string; id: string; value: string; min?: string; error?: string; onChange: (value: string) => void }) {
+  return <FormField label={label} required error={error} htmlFor={id}><div className="relative"><input id={id} type="date" value={value} min={min} onChange={(event) => onChange(event.target.value)} className={inputClass} /></div>{value && <p className="number-ltr text-xs text-muted-foreground">{dateAtDefaultTime(value)}</p>}</FormField>;
 }

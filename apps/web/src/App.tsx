@@ -83,7 +83,7 @@ function App() {
               <Route path="/rentals/new">
                 <ProtectedRoute>
                   <div className="h-[100dvh] flex flex-col bg-background relative overflow-hidden">
-                    <div className="flex-1 flex flex-col min-h-0 mx-auto w-full max-w-3xl">
+                    <div className="flex-1 flex flex-col min-h-0 mx-auto w-full max-w-5xl">
                       <NewRentalPage />
                     </div>
                   </div>

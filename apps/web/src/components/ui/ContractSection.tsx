@@ -12,9 +12,10 @@ import {
 
 import { InfoRow } from "@/components/ui/InfoRow";
 import { Spinner } from "@/components/ui/spinner";
+import { SectionCard } from "@/components/ui/SectionCard";
 import { useAuth } from "@/providers/AuthProvider";
 import { getApiErrorMessage } from "@/lib/api-error";
-import { formatCurrency, formatDateAr } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
 import { formatFileSize, formatDate } from "@/lib/media-labels";
 import { useRentalContract, useRentalContractSignedDocuments } from "@/features/contracts/hooks";
 import { ApiError, type DocumentResponse } from "@workspace/api-client-react";
@@ -146,13 +147,12 @@ export function ContractSection({ rentalId }: ContractSectionProps) {
   const deleting = signed.remove.isPending;
 
   return (
-    <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-foreground">العقد</h3>
-        {data && (
-          <span className="text-xs text-muted-foreground">#{data.id.slice(0, 8)}</span>
-        )}
-      </div>
+    <SectionCard
+      title="العقد والمستندات"
+      description="إنشاء العقد أو طباعته أو إدارة النسخة الموقّعة."
+      action={data ? <span className="number-ltr text-xs text-muted-foreground">#{data.id.slice(0, 8)}</span> : undefined}
+    >
+      <div className="space-y-4">
 
       {(localError || successMsg) && (
         <div
@@ -209,11 +209,8 @@ export function ContractSection({ rentalId }: ContractSectionProps) {
               label="السيارة"
               value={`${data.vehicleMake} ${data.vehicleModel} (${data.vehiclePlateNumber})`}
             />
-            <InfoRow label="تاريخ الاستلام" value={formatDateAr(data.pickupDate)} />
-            <InfoRow label="تاريخ الإرجاع" value={formatDateAr(data.expectedReturnDate)} />
-            <InfoRow label="الأجرة اليومية" value={formatCurrency(data.dailyRate)} />
-            <InfoRow label="الإجمالي" value={formatCurrency(data.totalAmount)} />
-            <InfoRow label="التأمين" value={formatCurrency(data.depositAmount)} />
+            <InfoRow label="تاريخ الاستلام" value={formatDateTime(data.pickupDate)} />
+            <InfoRow label="تاريخ الإرجاع" value={formatDateTime(data.expectedReturnDate)} />
           </div>
 
           {/* Printable + PDF actions */}
@@ -350,6 +347,7 @@ export function ContractSection({ rentalId }: ContractSectionProps) {
           </div>
         </>
       )}
-    </div>
+      </div>
+    </SectionCard>
   );
 }

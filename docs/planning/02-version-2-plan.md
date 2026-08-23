@@ -277,6 +277,7 @@ Business owners gain visibility into business performance.
 Objectives:
 
 - Feature-Based Frontend Architecture Refactoring
+- Contract/signed-contract fetches log 404 when a rental has no contract resource. Decide whether the frontend should suppress expected 404s or the API should return a clearer empty state.
 - Offline synchronization
 - Performance optimization
 - Bug fixing
