@@ -40,39 +40,59 @@ describe("ReportsPage", () => {
 
   it("renders summary cards with zero values when data is empty", () => {
     render(<ReportsPage />);
-    expect(screen.getByText("الإيرادات")).toBeInTheDocument();
-    expect(screen.getByText("المصروفات")).toBeInTheDocument();
-    expect(screen.getByText("صافي الربح")).toBeInTheDocument();
-    expect(screen.getByText("تكلفة الصيانة")).toBeInTheDocument();
+    expect(screen.getAllByText("الإيرادات").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText("المصروفات").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText("صافي الربح").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText("تكلفة الصيانة").length).toBeGreaterThanOrEqual(
+      2,
+    );
     expect(screen.getAllByText("USD 0").length).toBeGreaterThanOrEqual(3);
   });
 
   it("renders summary cards with computed values from data", () => {
     mockData({
       payments: [
-        { id: "p1", rentalId: "r1", amount: 100, paymentDate: new Date().toISOString(), method: "CASH", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        {
+          id: "p1",
+          rentalId: "r1",
+          amount: 100,
+          paymentDate: new Date().toISOString(),
+          method: "CASH",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
       ],
       expenses: [
-        { id: "e1", vehicleId: null, expenseDate: new Date().toISOString(), amount: 40, category: "FUEL", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+        {
+          id: "e1",
+          vehicleId: null,
+          expenseDate: new Date().toISOString(),
+          amount: 40,
+          category: "FUEL",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
       ],
     });
     render(<ReportsPage />);
-    expect(screen.getByText("USD 100")).toBeInTheDocument();
-    expect(screen.getByText("USD 40")).toBeInTheDocument();
-    expect(screen.getByText("USD 60")).toBeInTheDocument(); // net profit
+    expect(screen.getAllByText("USD 100").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText("USD 40").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText("USD 60").length).toBeGreaterThanOrEqual(2); // net profit
   });
 
   it("shows loading state while data is loading", () => {
     mockData({ isLoading: true });
-    const { container } = render(<ReportsPage />);
-    expect(container.querySelector(".animate-spin")).toBeTruthy();
+    render(<ReportsPage />);
+    expect(
+      screen.getAllByLabelText("جارٍ تحميل البيانات").length,
+    ).toBeGreaterThanOrEqual(2);
     expect(screen.queryByText("الإيرادات")).not.toBeInTheDocument();
   });
 
   it("shows error state when data fails to load", () => {
     mockData({ isError: true, error: new Error("boom") });
     render(<ReportsPage />);
-    expect(screen.getAllByText(/حدث خطأ/).length).toBeGreaterThan(0);
+    expect(screen.getByText("تعذر تحميل التقرير")).toBeInTheDocument();
   });
 
   it("shows empty state when period has no activity", () => {
@@ -100,15 +120,39 @@ describe("ReportsPage", () => {
 
     expect(open).toHaveBeenCalledWith("", "_blank");
     expect(document.open).toHaveBeenCalledOnce();
-    expect(document.write).toHaveBeenCalledWith(expect.stringContaining("<!DOCTYPE html>"));
+    expect(document.write).toHaveBeenCalledWith(
+      expect.stringContaining("<!DOCTYPE html>"),
+    );
     expect(document.close).toHaveBeenCalledOnce();
 
     open.mockRestore();
   });
 
+  it("exports the summary as a CSV download", () => {
+    const createObjectURL = vi.fn(() => "blob:report");
+    const revokeObjectURL = vi.fn();
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+    vi.stubGlobal("URL", { createObjectURL, revokeObjectURL });
+
+    render(<ReportsPage />);
+    fireEvent.click(screen.getByRole("button", { name: /CSV/ }));
+
+    expect(createObjectURL).toHaveBeenCalledOnce();
+    expect(click).toHaveBeenCalledOnce();
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:report");
+
+    click.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
   it("switches period type when tab is clicked", () => {
     render(<ReportsPage />);
     fireEvent.click(screen.getByRole("tab", { name: "سنة" }));
-    expect(screen.getByRole("tab", { name: "سنة" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "سنة" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 });

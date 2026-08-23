@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import { SegmentedControl } from "./SegmentedControl";
 import { cn } from "@/lib/utils";
 import type { ReportPeriodType } from "@/features/reports/selectors";
@@ -17,7 +18,12 @@ const LEBANESE_MONTHS = [
   "كانون الأول",
 ];
 
-const QUARTER_LABELS = ["الربع الأول", "الربع الثاني", "الربع الثالث", "الربع الرابع"];
+const QUARTER_LABELS = [
+  "الربع الأول",
+  "الربع الثاني",
+  "الربع الثالث",
+  "الربع الرابع",
+];
 
 const PERIOD_TYPE_OPTIONS = [
   { label: "شهر", value: "month" },
@@ -58,6 +64,41 @@ interface PeriodSelectorProps {
   className?: string;
 }
 
+function PeriodSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { label: string; value: string }[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="block min-w-0 text-sm font-semibold text-foreground">
+      {label}
+      <span className="relative mt-2 block">
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="min-h-10 w-full appearance-none rounded-lg border border-input bg-background py-2 ps-3 pe-9 text-sm font-medium text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown
+          className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+          aria-hidden="true"
+        />
+      </span>
+    </label>
+  );
+}
+
 export function PeriodSelector({
   type,
   month,
@@ -78,40 +119,45 @@ export function PeriodSelector({
       />
 
       {type === "month" && (
-        <div className="grid grid-cols-2 gap-2">
-          <SegmentedControl
-            options={monthOptions()}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <PeriodSelect
+            label="الشهر"
             value={String(month)}
-            onChange={(v) => onMonthChange(Number(v))}
+            options={monthOptions()}
+            onChange={(value) => onMonthChange(Number(value))}
           />
-          <SegmentedControl
-            options={yearOptions()}
+          <PeriodSelect
+            label="السنة"
             value={String(year)}
-            onChange={(v) => onYearChange(Number(v))}
+            options={yearOptions()}
+            onChange={(value) => onYearChange(Number(value))}
           />
         </div>
       )}
 
       {type === "quarter" && (
-        <div className="grid grid-cols-2 gap-2">
-          <SegmentedControl
-            options={quarterOptions()}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <PeriodSelect
+            label="الربع"
             value={String(quarter)}
-            onChange={(v) => onMonthChange(Number(v) * 3)}
+            options={quarterOptions()}
+            onChange={(value) => onMonthChange(Number(value) * 3)}
           />
-          <SegmentedControl
-            options={yearOptions()}
+          <PeriodSelect
+            label="السنة"
             value={String(year)}
-            onChange={(v) => onYearChange(Number(v))}
+            options={yearOptions()}
+            onChange={(value) => onYearChange(Number(value))}
           />
         </div>
       )}
 
       {type === "year" && (
-        <SegmentedControl
-          options={yearOptions()}
+        <PeriodSelect
+          label="السنة"
           value={String(year)}
-          onChange={(v) => onYearChange(Number(v))}
+          options={yearOptions()}
+          onChange={(value) => onYearChange(Number(value))}
         />
       )}
     </div>
@@ -119,7 +165,11 @@ export function PeriodSelector({
 }
 
 /** Human-readable label for the currently selected period. */
-export function periodLabel(type: ReportPeriodType, month: number, year: number): string {
+export function periodLabel(
+  type: ReportPeriodType,
+  month: number,
+  year: number,
+): string {
   if (type === "year") return String(year);
   if (type === "quarter") {
     const q = Math.floor(month / 3) + 1;

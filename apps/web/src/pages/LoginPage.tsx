@@ -59,7 +59,9 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold text-foreground">تسجيل الدخول</h1>
-          <p className="text-sm text-muted-foreground">أدخل بياناتك للوصول إلى النظام</p>
+          <p className="text-sm text-muted-foreground">
+            أدخل بياناتك للوصول إلى النظام
+          </p>
         </div>
 
         {formError && (
@@ -69,9 +71,19 @@ export default function LoginPage() {
         )}
 
         <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">
-          <FormField label="البريد الإلكتروني" required error={errors.email}>
+          <FormField
+            label="البريد الإلكتروني"
+            required
+            error={errors.email}
+            htmlFor="login-email"
+          >
             <input
-              className={errors.email ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
+              id="login-email"
+              className={
+                errors.email
+                  ? `${inputClass} border-destructive focus:ring-destructive/30`
+                  : inputClass
+              }
               placeholder="example@company.com"
               type="email"
               value={form.email}
@@ -81,9 +93,19 @@ export default function LoginPage() {
             />
           </FormField>
 
-          <FormField label="كلمة المرور" required error={errors.password}>
+          <FormField
+            label="كلمة المرور"
+            required
+            error={errors.password}
+            htmlFor="login-password"
+          >
             <input
-              className={errors.password ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
+              id="login-password"
+              className={
+                errors.password
+                  ? `${inputClass} border-destructive focus:ring-destructive/30`
+                  : inputClass
+              }
               placeholder="••••••••"
               type="password"
               value={form.password}

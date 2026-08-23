@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -46,7 +46,16 @@ function NavTab({ tab }: { tab: NavigationItem }) {
 export function BottomNavigation() {
   const [location] = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
   const moreActive = isMobileMoreRoute(location);
+
+  const handleMoreOpenChange = (open: boolean) => {
+    setMoreOpen(open);
+
+    if (!open) {
+      window.requestAnimationFrame(() => moreButtonRef.current?.focus());
+    }
+  };
 
   return (
     <>
@@ -59,6 +68,7 @@ export function BottomNavigation() {
             <NavTab key={tab.route} tab={tab} />
           ))}
           <button
+            ref={moreButtonRef}
             type="button"
             onClick={() => setMoreOpen(true)}
             aria-label="المزيد من وحدات النظام"
@@ -77,7 +87,7 @@ export function BottomNavigation() {
           </button>
         </div>
       </nav>
-      <NavigationDrawer open={moreOpen} onOpenChange={setMoreOpen} />
+      <NavigationDrawer open={moreOpen} onOpenChange={handleMoreOpenChange} />
     </>
   );
 }
