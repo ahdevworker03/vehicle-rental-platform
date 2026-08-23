@@ -46,7 +46,7 @@ describe("AddTaskPage", () => {
   it("rejects submission when the due date is missing", () => {
     render(<AddTaskPage />);
     fireEvent.click(screen.getByText("إنشاء المهمة"));
-    expect(screen.getByText("أدخل تاريخ الاستحقاق")).toBeInTheDocument();
+    expect(screen.getByText("أدخل تاريخ الاستحقاق.")).toBeInTheDocument();
   });
 
   it("calls the API with a valid due date", async () => {
@@ -83,7 +83,7 @@ describe("AddTaskPage", () => {
     await waitFor(() => {
       expect(create.mutateAsync).toHaveBeenCalled();
     });
-    expect(await screen.findByText("تم إنشاء المهمة")).toBeInTheDocument();
+    expect(await screen.findByText("تم إنشاء المهمة.")).toBeInTheDocument();
   });
 
   it("displays a mutation error without false success", async () => {

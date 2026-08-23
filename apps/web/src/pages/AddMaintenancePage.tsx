@@ -1,17 +1,20 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
-import { ChevronRight, Car, Search, Check, Plus, X } from "lucide-react";
+import { Car, CheckCircle2, Plus, Search, X } from "lucide-react";
+import type { CreateMaintenanceRequestType, MaintenanceReplacedPart } from "@workspace/api-client-react";
+import { useListVehicles } from "@workspace/api-client-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { InlineError, LoadingState } from "@/components/ui/FeedbackState";
 import { FormField, inputClass } from "@/components/ui/FormField";
-import { Spinner } from "@/components/ui/spinner";
-import { cn } from "@/lib/utils";
-import { MAINTENANCE_TYPE_OPTIONS } from "@/lib/labels";
-import { getApiErrorMessage } from "@/lib/api-error";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { useListVehicles } from "@workspace/api-client-react";
-import type { CreateMaintenanceRequestType, MaintenanceReplacedPart } from "@workspace/api-client-react";
+import { FormSection } from "@/components/ui/FormSection";
+import { SectionCard } from "@/components/ui/SectionCard";
 import { useMaintenanceMutations } from "@/features/maintenance/hooks";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { getApiErrorMessage } from "@/lib/api-error";
+import { MAINTENANCE_TYPE_OPTIONS } from "@/lib/labels";
 
 interface PartDraft {
   name: string;
@@ -22,424 +25,116 @@ interface PartDraft {
 
 const EMPTY_PART: PartDraft = { name: "", brand: "", quantity: "", unitCost: "" };
 
-function toISO(dateStr: string): string {
-  return new Date(dateStr + "T12:00:00Z").toISOString();
+function toISO(date: string): string {
+  return new Date(`${date}T12:00:00Z`).toISOString();
+}
+
+function fieldClass(error?: string) {
+  return error ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass;
 }
 
 export default function AddMaintenancePage() {
   const [, setLocation] = useLocation();
   const mutations = useMaintenanceMutations();
-
-  // Pre-select vehicle from query param (?vehicle=v1)
   const preVehicle = new URLSearchParams(window.location.search).get("vehicle") ?? "";
-
   const [selectedVehicleId, setSelectedVehicleId] = useState(preVehicle);
   const [showVehiclePicker, setShowVehiclePicker] = useState(!preVehicle);
   const [vehicleSearch, setVehicleSearch] = useState("");
   const debouncedVehicleSearch = useDebouncedValue(vehicleSearch.trim(), 300);
-
   const [type, setType] = useState<CreateMaintenanceRequestType | "">("");
   const [maintenanceDate, setMaintenanceDate] = useState("");
   const [vendor, setVendor] = useState("");
   const [cost, setCost] = useState("");
   const [notes, setNotes] = useState("");
   const [parts, setParts] = useState<PartDraft[]>([]);
-
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-
-  const { data: vehiclesData, isLoading: vehiclesLoading } = useListVehicles();
-  const vehicles = useMemo(() => vehiclesData?.data ?? [], [vehiclesData]);
-
-  const selectedVehicle = vehicles.find((v) => v.id === selectedVehicleId);
-
+  const vehiclesQuery = useListVehicles();
+  const vehicles = useMemo(() => vehiclesQuery.data?.data ?? [], [vehiclesQuery.data]);
+  const selectedVehicle = vehicles.find((vehicle) => vehicle.id === selectedVehicleId);
   const filteredVehicles = useMemo(() => {
-    const q = debouncedVehicleSearch.toLowerCase();
-    if (!q) return vehicles;
-    return vehicles.filter(
-      (v) =>
-        `${v.make} ${v.model}`.toLowerCase().includes(q) ||
-        v.plateNumber.toLowerCase().includes(q),
-    );
+    const query = debouncedVehicleSearch.toLowerCase();
+    if (!query) return vehicles;
+    return vehicles.filter((vehicle) => `${vehicle.make} ${vehicle.model} ${vehicle.plateNumber}`.toLowerCase().includes(query));
   }, [debouncedVehicleSearch, vehicles]);
 
   function clearError(key: string) {
-    if (errors[key]) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[key];
-        return next;
-      });
-    }
-  }
-
-  function validate(): boolean {
-    const errs: Record<string, string> = {};
-    if (!selectedVehicleId) errs.vehicle = "اختر سيارة";
-    if (!type) errs.type = "اختر نوع الصيانة";
-    if (!maintenanceDate) errs.maintenanceDate = "أدخل تاريخ الصيانة";
-    if (cost && (Number(cost) < 0 || isNaN(Number(cost)))) {
-      errs.cost = "أدخل تكلفة غير سالبة";
-    }
-    parts.forEach((part, i) => {
-      if (!part.name.trim()) {
-        errs[`part-${i}`] = "اسم القطعة مطلوب";
-      }
-    });
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+    if (!errors[key]) return;
+    setErrors((current) => { const next = { ...current }; delete next[key]; return next; });
   }
 
   function setPart(index: number, patch: Partial<PartDraft>) {
-    setParts((prev) =>
-      prev.map((p, i) => (i === index ? { ...p, ...patch } : p)),
-    );
+    setParts((current) => current.map((part, partIndex) => partIndex === index ? { ...part, ...patch } : part));
   }
 
-  function addPart() {
-    setParts((prev) => [...prev, { ...EMPTY_PART }]);
-  }
-
-  function removePart(index: number) {
-    setParts((prev) => prev.filter((_, i) => i !== index));
+  function validate(): boolean {
+    const nextErrors: Record<string, string> = {};
+    if (!selectedVehicleId) nextErrors.vehicle = "اختر مركبة.";
+    if (!type) nextErrors.type = "اختر نوع الصيانة.";
+    if (!maintenanceDate) nextErrors.maintenanceDate = "أدخل تاريخ الصيانة.";
+    if (cost && (Number.isNaN(Number(cost)) || Number(cost) < 0)) nextErrors.cost = "أدخل تكلفة غير سالبة.";
+    parts.forEach((part, index) => { if (!part.name.trim()) nextErrors[`part-${index}`] = "اسم القطعة مطلوب."; });
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   }
 
   async function handleSubmit() {
-    if (mutations.create.isPending) return;
-    if (!validate()) return;
-
+    if (mutations.create.isPending || !validate()) return;
     setFormError(null);
-
-    const replacedParts: MaintenanceReplacedPart[] | undefined = parts
-      .filter((p) => p.name.trim())
-      .map((p) => ({
-        name: p.name.trim(),
-        ...(p.brand.trim() ? { brand: p.brand.trim() } : {}),
-        ...(p.quantity.trim()
-          ? { quantity: Math.max(1, parseInt(p.quantity, 10)) }
-          : {}),
-        ...(p.unitCost.trim()
-          ? { unitCost: Math.max(0, Number(p.unitCost)) }
-          : {}),
-      }));
-
+    const replacedParts: MaintenanceReplacedPart[] | undefined = parts.filter((part) => part.name.trim()).map((part) => ({
+      name: part.name.trim(), ...(part.brand.trim() ? { brand: part.brand.trim() } : {}),
+      ...(part.quantity.trim() ? { quantity: Math.max(1, Number.parseInt(part.quantity, 10)) } : {}),
+      ...(part.unitCost.trim() ? { unitCost: Math.max(0, Number(part.unitCost)) } : {}),
+    }));
     try {
-      await mutations.create.mutateAsync({
-        data: {
-          vehicle_id: selectedVehicleId,
-          type: type as CreateMaintenanceRequestType,
-          maintenance_date: toISO(maintenanceDate),
-          ...(vendor.trim() ? { vendor: vendor.trim() } : {}),
-          ...(cost ? { cost: Number(cost) } : {}),
-          ...(notes.trim() ? { notes: notes.trim() } : {}),
-          ...(replacedParts && replacedParts.length > 0
-            ? { replaced_parts: replacedParts }
-            : {}),
-        },
-      });
+      await mutations.create.mutateAsync({ data: {
+        vehicle_id: selectedVehicleId, type: type as CreateMaintenanceRequestType, maintenance_date: toISO(maintenanceDate),
+        ...(vendor.trim() ? { vendor: vendor.trim() } : {}), ...(cost ? { cost: Number(cost) } : {}), ...(notes.trim() ? { notes: notes.trim() } : {}),
+        ...(replacedParts && replacedParts.length > 0 ? { replaced_parts: replacedParts } : {}),
+      } });
       setSaved(true);
       setTimeout(() => setLocation("/maintenance"), 1200);
-    } catch (err) {
-      setFormError(getApiErrorMessage(err).title);
+    } catch (error) {
+      setFormError(getApiErrorMessage(error).title);
     }
   }
 
-  const isSubmitting = mutations.create.isPending;
+  const canSave = Boolean(selectedVehicleId && type && maintenanceDate);
 
-  if (saved) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-background px-6 gap-3">
-        <div className="w-20 h-20 rounded-full bg-[hsl(var(--status-available-bg))] flex items-center justify-center">
-          <Check className="w-10 h-10 text-[hsl(var(--status-available))]" strokeWidth={2.5} />
-        </div>
-        <h2 className="text-xl font-bold text-foreground">تم تسجيل الصيانة</h2>
-        {selectedVehicle && (
-          <div className="text-center text-sm text-muted-foreground space-y-1">
-            <p>{selectedVehicle.make} {selectedVehicle.model}</p>
-            <p>{selectedVehicle.plateNumber}</p>
-          </div>
-        )}
-        <p className="text-xs text-muted-foreground pt-2">
-          جاري العودة إلى قائمة الصيانة...
-        </p>
-      </div>
-    );
-  }
+  if (saved) return <div className="flex flex-1 flex-col items-center justify-center gap-3 bg-background px-6 text-center"><span className="flex size-20 items-center justify-center rounded-full bg-status-positive-bg text-status-positive"><CheckCircle2 className="size-10" aria-hidden="true" /></span><h2 className="ui-page-title">تم تسجيل الصيانة</h2>{selectedVehicle && <p className="ui-secondary-text"><span dir="ltr">{selectedVehicle.make} {selectedVehicle.model}</span><br /><span dir="ltr" className="number-ltr">{selectedVehicle.plateNumber}</span></p>}<p className="text-xs text-muted-foreground">جارٍ العودة إلى سجل الصيانة...</p></div>;
 
   return (
-    <>
-      <PageHeader
-        title="تسجيل صيانة"
-        showBack
-        onBack={() => setLocation("/maintenance")}
-      />
+    <div className="flex min-h-0 flex-1 flex-col">
+      <PageHeader title="تسجيل صيانة" showBack onBack={() => setLocation("/maintenance")} />
+      <div className="mx-auto w-full max-w-5xl flex-1 space-y-4 overflow-y-auto px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
+        <div><h2 className="ui-page-title">سجل صيانة جديد</h2><p className="ui-secondary-text mt-1">اختر المركبة وسجّل موعد الصيانة وتفاصيل العمل.</p></div>
+        {formError && <InlineError className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3">{formError}</InlineError>}
 
-      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-8 space-y-4">
-        {formError && (
-          <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3 text-sm text-destructive">
-            {formError}
-          </div>
-        )}
-
-        {/* ── 1. Vehicle picker ─────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setShowVehiclePicker((v) => !v)}
-            aria-expanded={showVehiclePicker}
-            className="w-full flex items-center justify-between p-4"
-          >
-            <ChevronRight
-              className={`w-4 h-4 text-muted-foreground transition-transform ${
-                showVehiclePicker ? "-rotate-90" : ""
-              }`}
-              strokeWidth={2}
-            />
-            <div className="flex items-center gap-3 flex-1 justify-end">
-              {selectedVehicle ? (
-                <div className="text-right">
-                  <div className="text-sm font-bold text-foreground">
-                    {selectedVehicle.make} {selectedVehicle.model}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {selectedVehicle.plateNumber}
-                  </div>
-                </div>
-              ) : (
-                <span className="text-sm font-semibold text-muted-foreground">
-                  اختر السيارة
-                  <span className="text-destructive mr-1">*</span>
-                </span>
-              )}
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Car className="w-5 h-5 text-primary" strokeWidth={1.5} />
-              </div>
-            </div>
-          </button>
-
-          {errors.vehicle && (
-            <p className="text-xs text-destructive px-4 pb-2 text-right">{errors.vehicle}</p>
-          )}
-
-          {showVehiclePicker && (
-            <div className="border-t border-border px-4 pt-3 pb-4 space-y-2">
-              <div className="relative">
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <Search className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <input
-                  type="search"
-                  placeholder="ابحث..."
-                  value={vehicleSearch}
-                  onChange={(e) => setVehicleSearch(e.target.value)}
-                  className="w-full bg-muted rounded-xl pr-9 pl-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 border-none"
-                />
-              </div>
-
-              {vehiclesLoading ? (
-                <div className="flex justify-center py-4">
-                  <Spinner className="size-5" />
-                </div>
-              ) : filteredVehicles.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-3">لا توجد نتائج</p>
-              ) : (
-                filteredVehicles.map((v) => (
-                  <button
-                    key={v.id}
-                    onClick={() => {
-                      setSelectedVehicleId(v.id);
-                      setShowVehiclePicker(false);
-                      clearError("vehicle");
-                    }}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                      selectedVehicleId === v.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border bg-background"
-                    }`}
-                  >
-                    <div className="text-right flex-1">
-                      <div className="text-sm font-bold text-foreground">
-                        {v.make} {v.model}
-                      </div>
-                      <div className="text-xs text-muted-foreground">{v.plateNumber}</div>
-                    </div>
-                    {selectedVehicleId === v.id && (
-                      <Check className="w-4 h-4 text-primary flex-shrink-0" strokeWidth={2.5} />
-                    )}
-                  </button>
-                ))
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* ── 2. Maintenance type ───────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
-          <label className="text-sm font-semibold text-foreground block mb-3 text-right">
-            نوع الصيانة
-            <span className="text-destructive mr-1">*</span>
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {MAINTENANCE_TYPE_OPTIONS.map((opt) => {
-              const Icon = opt.icon;
-              const isSelected = type === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  onClick={() => { setType(opt.value); clearError("type"); }}
-                  className={`flex items-center justify-end gap-2 p-3 rounded-xl border transition-all ${
-                    isSelected
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border bg-background text-muted-foreground"
-                  }`}
-                >
-                  <span className={`text-sm font-semibold ${isSelected ? "text-primary" : "text-foreground"}`}>
-                    {opt.label}
-                  </span>
-                  <Icon className="w-4 h-4 flex-shrink-0" strokeWidth={1.8} />
-                </button>
-              );
-            })}
-          </div>
-          {errors.type && (
-            <p className="text-xs text-destructive mt-2 text-right">{errors.type}</p>
-          )}
-        </div>
-
-        {/* ── 3. Date + Cost + Vendor ──────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <FormField label="تاريخ الصيانة" required error={errors.maintenanceDate}>
-              <input
-                type="date"
-                value={maintenanceDate}
-                onChange={(e) => { setMaintenanceDate(e.target.value); clearError("maintenanceDate"); }}
-                className={errors.maintenanceDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-              />
-            </FormField>
-
-            <FormField label="التكلفة المتوقعة" hint="اختياري · تُحسم عند الإنجاز" error={errors.cost}>
-              <input
-                type="number"
-                inputMode="numeric"
-                min={0}
-                placeholder="مثال: 150"
-                value={cost}
-                onChange={(e) => setCost(e.target.value)}
-                className={errors.cost ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-              />
-            </FormField>
-          </div>
-
-          <FormField label="الورشة / المزوّد" hint="اختياري">
-            <input
-              className={inputClass}
-              placeholder="اسم ورشة الصيانة"
-              value={vendor}
-              onChange={(e) => setVendor(e.target.value)}
-            />
+        <FormSection title="المركبة" description="اختر المركبة المرتبط بها سجل الصيانة." contentClassName="md:grid-cols-1">
+          <FormField label="المركبة" required error={errors.vehicle} htmlFor="maintenance-vehicle-search">
+            <button type="button" onClick={() => setShowVehiclePicker((current) => !current)} aria-expanded={showVehiclePicker} className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg border border-input bg-card px-3 py-2 text-start shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"><span className="flex min-w-0 items-center gap-2"><Car className="size-4 shrink-0 text-primary" aria-hidden="true" /><span className="min-w-0">{selectedVehicle ? <><span dir="ltr" className="block truncate text-sm font-semibold text-foreground">{selectedVehicle.make} {selectedVehicle.model}</span><span dir="ltr" className="number-ltr mt-0.5 block text-xs text-muted-foreground">{selectedVehicle.plateNumber}</span></> : <span className="text-sm text-muted-foreground">اختر مركبة</span>}</span></span><span className="text-xs font-medium text-primary">{showVehiclePicker ? "إخفاء" : "اختيار"}</span></button>
           </FormField>
-        </div>
+          {showVehiclePicker && <div className="rounded-lg border border-border bg-muted/25 p-3"><div className="relative"><Search className="pointer-events-none absolute inset-y-0 start-3 my-auto size-4 text-muted-foreground" aria-hidden="true" /><input id="maintenance-vehicle-search" type="search" value={vehicleSearch} onChange={(event) => setVehicleSearch(event.target.value)} placeholder="ابحث باسم المركبة أو رقم اللوحة..." className={`${inputClass} ps-10`} /></div><div className="mt-3 max-h-60 space-y-1 overflow-y-auto">{vehiclesQuery.isLoading ? <LoadingState rows={2} className="p-0" /> : filteredVehicles.length === 0 ? <EmptyState icon={Car} title="لا توجد مركبات مطابقة" description="جرّب كلمة بحث مختلفة." className="py-6" /> : filteredVehicles.map((vehicle) => <button key={vehicle.id} type="button" onClick={() => { setSelectedVehicleId(vehicle.id); setShowVehiclePicker(false); clearError("vehicle"); }} className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-start transition-colors ${selectedVehicleId === vehicle.id ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}><span className="min-w-0"><span dir="ltr" className="block truncate text-sm font-semibold text-foreground">{vehicle.make} {vehicle.model}</span><span dir="ltr" className="number-ltr mt-0.5 block text-xs text-muted-foreground">{vehicle.plateNumber}</span></span>{selectedVehicleId === vehicle.id && <CheckCircle2 className="size-4 shrink-0" aria-label="محددة" />}</button>)}</div></div>}
+        </FormSection>
 
-        {/* ── 4. Replaced parts ─────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-foreground">القطع المبدلة</h3>
-            <button
-              type="button"
-              onClick={addPart}
-              className="flex items-center gap-1 text-xs font-semibold text-primary"
-            >
-              <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
-              إضافة قطعة
-            </button>
-          </div>
+        <FormSection title="تفاصيل الصيانة" description="حدّد نوع الصيانة والموعد المطلوب.">
+          <FormField label="نوع الصيانة" required error={errors.type} htmlFor="maintenance-type"><select id="maintenance-type" value={type} onChange={(event) => { setType(event.target.value as CreateMaintenanceRequestType); clearError("type"); }} className={fieldClass(errors.type)}><option value="">اختر نوع الصيانة</option>{MAINTENANCE_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></FormField>
+          <FormField label="تاريخ الصيانة" required error={errors.maintenanceDate} htmlFor="maintenance-date"><input id="maintenance-date" type="date" dir="ltr" value={maintenanceDate} onChange={(event) => { setMaintenanceDate(event.target.value); clearError("maintenanceDate"); }} className={fieldClass(errors.maintenanceDate)} /></FormField>
+        </FormSection>
 
-          {parts.length === 0 && (
-            <p className="text-xs text-muted-foreground">لا توجد قطع مبدلة — اختياري</p>
-          )}
+        <FormSection title="التكلفة والمزوّد" description="أضف تقدير التكلفة والورشة أو المزوّد عند توفرها.">
+          <FormField label="التكلفة المتوقعة" hint="اختيارية · USD" error={errors.cost} htmlFor="maintenance-cost"><input id="maintenance-cost" type="number" dir="ltr" inputMode="decimal" min={0} placeholder="150" value={cost} onChange={(event) => { setCost(event.target.value); clearError("cost"); }} className={fieldClass(errors.cost)} /></FormField>
+          <FormField label="الورشة / المزوّد" hint="اختياري" htmlFor="maintenance-vendor"><input id="maintenance-vendor" value={vendor} onChange={(event) => setVendor(event.target.value)} placeholder="اسم ورشة الصيانة" className={inputClass} /></FormField>
+          <FormField label="ملاحظات" hint="اختيارية" htmlFor="maintenance-notes" className="md:col-span-2"><textarea id="maintenance-notes" rows={3} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="أي تفاصيل إضافية..." className={`${inputClass} resize-y`} /></FormField>
+        </FormSection>
 
-          {parts.map((part, i) => (
-            <div key={i} className="space-y-2 rounded-xl border border-border p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground">قطعة {i + 1}</span>
-                <button
-                  type="button"
-                  onClick={() => removePart(i)}
-                  aria-label="حذف القطعة"
-                  className="text-destructive"
-                >
-                  <X className="w-4 h-4" strokeWidth={2} />
-                </button>
-              </div>
-              <FormField label="الاسم" required error={errors[`part-${i}`]}>
-                <input
-                  className={errors[`part-${i}`] ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                  placeholder="مثال: بواجي"
-                  value={part.name}
-                  onChange={(e) => { setPart(i, { name: e.target.value }); clearError(`part-${i}`); }}
-                />
-              </FormField>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                <FormField label="الماركة" hint="اختياري">
-                  <input
-                    className={inputClass}
-                    placeholder="مثال: Bosch"
-                    value={part.brand}
-                    onChange={(e) => setPart(i, { brand: e.target.value })}
-                  />
-                </FormField>
-                <FormField label="الكمية" hint="اختياري">
-                  <input
-                    className={inputClass}
-                    inputMode="numeric"
-                    min={1}
-                    placeholder="1"
-                    value={part.quantity}
-                    onChange={(e) => setPart(i, { quantity: e.target.value })}
-                  />
-                </FormField>
-                <FormField label="سعر الوحدة" hint="اختياري">
-                  <input
-                    className={inputClass}
-                    inputMode="numeric"
-                    min={0}
-                    placeholder="0"
-                    value={part.unitCost}
-                    onChange={(e) => setPart(i, { unitCost: e.target.value })}
-                  />
-                </FormField>
-              </div>
-            </div>
-          ))}
-        </div>
+        <SectionCard title="القطع المبدلة" description="اختيارية، ويمكن إضافتها عند توفر تفاصيل القطع." action={<Button type="button" variant="ghost" size="sm" onClick={() => setParts((current) => [...current, { ...EMPTY_PART }])}><Plus className="size-4" aria-hidden="true" />إضافة قطعة</Button>}>
+          {parts.length === 0 ? <p className="ui-secondary-text">لا توجد قطع مبدلة مسجلة.</p> : <div className="space-y-3">{parts.map((part, index) => <div key={index} className="rounded-lg border border-border p-3 sm:p-4"><div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-semibold text-foreground">قطعة {index + 1}</h3><Button type="button" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/5" onClick={() => setParts((current) => current.filter((_, partIndex) => partIndex !== index))} aria-label={`حذف القطعة ${index + 1}`}><X className="size-4" aria-hidden="true" /></Button></div><div className="grid gap-3 md:grid-cols-2"><FormField label="الاسم" required error={errors[`part-${index}`]} htmlFor={`maintenance-part-name-${index}`} className="md:col-span-2"><input id={`maintenance-part-name-${index}`} value={part.name} onChange={(event) => { setPart(index, { name: event.target.value }); clearError(`part-${index}`); }} placeholder="مثال: بواجي" className={fieldClass(errors[`part-${index}`])} /></FormField><FormField label="الماركة" hint="اختيارية" htmlFor={`maintenance-part-brand-${index}`}><input id={`maintenance-part-brand-${index}`} value={part.brand} onChange={(event) => setPart(index, { brand: event.target.value })} placeholder="Bosch" className={inputClass} /></FormField><FormField label="الكمية" hint="اختيارية" htmlFor={`maintenance-part-quantity-${index}`}><input id={`maintenance-part-quantity-${index}`} type="number" dir="ltr" inputMode="numeric" min={1} value={part.quantity} onChange={(event) => setPart(index, { quantity: event.target.value })} placeholder="1" className={inputClass} /></FormField><FormField label="سعر الوحدة" hint="اختياري · USD" htmlFor={`maintenance-part-cost-${index}`} className="md:col-span-2"><input id={`maintenance-part-cost-${index}`} type="number" dir="ltr" inputMode="decimal" min={0} value={part.unitCost} onChange={(event) => setPart(index, { unitCost: event.target.value })} placeholder="0" className={inputClass} /></FormField></div></div>)}</div>}
+        </SectionCard>
 
-        {/* ── 5. Notes ──────────────────────────────────────────────── */}
-        <FormField label="ملاحظات" hint="اختياري">
-          <textarea
-            placeholder="أي تفاصيل إضافية..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            className={`${inputClass} resize-none`}
-          />
-        </FormField>
-
-        {/* ── Save ──────────────────────────────────────────────────── */}
-        <button
-          onClick={handleSubmit}
-          disabled={!selectedVehicleId || !type || !maintenanceDate || isSubmitting}
-          className={cn(
-            "w-full rounded-2xl py-4 text-base font-bold transition-all shadow-sm flex items-center justify-center gap-2",
-            selectedVehicleId && type && maintenanceDate && !isSubmitting
-              ? "bg-primary text-primary-foreground active:scale-[0.98]"
-              : "bg-muted text-muted-foreground cursor-not-allowed"
-          )}
-        >
-          {isSubmitting ? <Spinner /> : "حفظ السجل"}
-        </button>
+        <div className="sticky bottom-0 flex flex-wrap justify-end gap-2 border-t border-border bg-background/95 py-3 backdrop-blur-sm"><Button type="button" variant="outline" onClick={() => setLocation("/maintenance")}>إلغاء</Button><Button type="button" onClick={handleSubmit} disabled={!canSave || mutations.create.isPending}>{mutations.create.isPending ? "جارٍ الحفظ" : "حفظ السجل"}</Button></div>
       </div>
-    </>
+    </div>
   );
 }

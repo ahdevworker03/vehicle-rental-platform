@@ -1,274 +1,117 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Car, Wrench, CheckCircle, AlertCircle, Banknote, Calendar, Package, StickyNote, Store } from "lucide-react";
+import { Car, CheckCircle2, Package, StickyNote } from "lucide-react";
+import { useGetVehicle } from "@workspace/api-client-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
-import { InfoRow } from "@/components/ui/InfoRow";
+import { Button } from "@/components/ui/button";
+import { ErrorState, InfoBanner, LoadingState } from "@/components/ui/FeedbackState";
 import { FormField, inputClass } from "@/components/ui/FormField";
-import { Spinner } from "@/components/ui/spinner";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { DetailSection, SummaryActionPanel } from "@/components/ui/SectionCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { formatCurrency, formatDateAr } from "@/lib/format";
-import { MAINTENANCE_TYPES, MAINTENANCE_STATUS_LABELS } from "@/lib/labels";
+import { useMaintenanceMutations, useMaintenanceRecord } from "@/features/maintenance/hooks";
 import { getApiErrorMessage } from "@/lib/api-error";
+import { formatDate, formatDateTime, formatUsd } from "@/lib/format";
+import { MAINTENANCE_TYPES } from "@/lib/labels";
 import { useAuth } from "@/providers/AuthProvider";
-import { useGetVehicle } from "@workspace/api-client-react";
-import { useMaintenanceRecord, useMaintenanceMutations } from "@/features/maintenance/hooks";
 
 interface DetailPageParams {
   params: { id: string };
 }
 
+function KeyValue({ label, value, numeric = false }: { label: string; value?: string | null; numeric?: boolean }) {
+  return <div className="min-w-0"><div className="ui-label">{label}</div><div dir={numeric ? "ltr" : undefined} className={`mt-1 break-words text-sm font-semibold text-foreground ${numeric ? "number-ltr" : ""}`}>{value || "—"}</div></div>;
+}
+
 export default function MaintenanceDetailPage({ params }: DetailPageParams) {
-  const id = params.id;
+  const { id } = params;
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const isOwner = user?.role === "OWNER";
-
-  const { data, isLoading, isError, error } = useMaintenanceRecord(id);
-  const { data: vehicleData } = useGetVehicle(data?.data?.vehicleId ?? "");
+  const maintenanceQuery = useMaintenanceRecord(id);
+  const record = maintenanceQuery.data?.data;
+  const vehicleQuery = useGetVehicle(record?.vehicleId ?? "");
   const mutations = useMaintenanceMutations();
-
   const [completing, setCompleting] = useState(false);
   const [cost, setCost] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
-
-  const record = data?.data;
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   async function handleComplete() {
     if (!record) return;
     setActionError(null);
-
     const finalCost = Number(cost);
-    if (!cost || isNaN(finalCost) || finalCost < 0) {
-      setActionError("أدخل تكلفة غير سالبة");
+    if (!cost || Number.isNaN(finalCost) || finalCost < 0) {
+      setActionError("أدخل تكلفة نهائية غير سالبة.");
       return;
     }
-
     try {
-      await mutations.complete.mutateAsync({
-        id: record.id,
-        data: { cost: finalCost },
-      });
-      setSuccessMsg("تم إكمال الصيانة بنجاح");
+      await mutations.complete.mutateAsync({ id: record.id, data: { cost: finalCost } });
+      setSuccessMessage("تم إكمال الصيانة.");
       setCompleting(false);
-    } catch (err) {
-      setActionError(getApiErrorMessage(err).title);
+    } catch (error) {
+      setActionError(getApiErrorMessage(error).title);
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-full flex items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
+  if (maintenanceQuery.isLoading) return <div className="min-h-full"><PageHeader title="تفاصيل الصيانة" showBack /><div className="px-4 py-6 sm:px-6"><LoadingState rows={5} /></div></div>;
+  if (maintenanceQuery.isError || !record) return <div className="min-h-full"><PageHeader title="تفاصيل الصيانة" showBack /><div className="px-4 py-6 sm:px-6"><ErrorState title="تعذر تحميل سجل الصيانة" description={maintenanceQuery.error ? getApiErrorMessage(maintenanceQuery.error).title : "لم يتم العثور على هذا السجل."} onRetry={() => void maintenanceQuery.refetch()} /></div></div>;
 
-  if (isError || !record) {
-    return (
-      <div className="min-h-full">
-        <PageHeader title="تفاصيل الصيانة" showBack />
-        <EmptyState
-          icon={AlertCircle}
-          title="لا توجد بيانات"
-          description={error ? getApiErrorMessage(error).title : "لم يتم العثور على هذا السجل"}
-          className="py-16"
-        />
-      </div>
-    );
-  }
-
-  const vehicle = vehicleData?.data;
-  const typeConfig = MAINTENANCE_TYPES[record.type];
+  const vehicle = vehicleQuery.data?.data;
+  const type = MAINTENANCE_TYPES[record.type];
+  const TypeIcon = type.icon;
 
   return (
     <div className="min-h-full pb-8">
       <PageHeader title="تفاصيل الصيانة" showBack />
+      <div className="space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
+        {successMessage && <InfoBanner icon={CheckCircle2}>{successMessage}</InfoBanner>}
 
-      {successMsg && (
-        <div className="mx-4 mt-3 px-4 py-3 rounded-xl bg-[hsl(var(--status-available-bg))] text-[hsl(var(--status-available))] text-sm font-semibold flex items-center gap-2 justify-end">
-          <span>{successMsg}</span>
-          <CheckCircle className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
+        <DetailSection className="shadow-none">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-3"><span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-status-warning-bg text-status-warning"><TypeIcon className="size-7" aria-hidden="true" /></span><div className="min-w-0"><div className="text-xs font-medium text-muted-foreground">سجل صيانة</div><h2 className="truncate text-lg font-bold text-foreground">{type.label}</h2><div className="number-ltr mt-1 text-xs text-muted-foreground">#{record.id.slice(0, 8)}</div></div></div>
+            <div><div className="ui-label mb-1">حالة الصيانة</div><StatusBadge status={record.status} /></div>
+          </div>
+        </DetailSection>
+
+        <div className="grid gap-4 xl:grid-cols-12 xl:items-start">
+          <aside className="order-1 xl:order-2 xl:col-span-4">
+            <SummaryActionPanel title="حالة الصيانة وإجراءاتها" description="تابع الحالة الحالية وأكمل السجل عند انتهاء العمل.">
+              <div className="space-y-4">
+                <div className="rounded-lg bg-muted/45 p-3"><div className="ui-label">الموعد</div><div className="number-ltr mt-1 text-sm font-semibold text-foreground">{formatDate(record.maintenanceDate)}</div></div>
+                {isOwner && record.status !== "COMPLETED" && (completing ? (
+                  <div className="space-y-3 border-t border-border pt-4">
+                    <div><h3 className="text-sm font-semibold text-foreground">إكمال الصيانة</h3><p className="ui-secondary-text mt-1">أدخل التكلفة النهائية لتأكيد الإكمال.</p></div>
+                    <FormField label="التكلفة النهائية" required hint="USD · رقم غير سالب" error={actionError ?? undefined} htmlFor="maintenance-completion-cost"><input id="maintenance-completion-cost" type="number" dir="ltr" inputMode="decimal" min={0} placeholder="150" value={cost} onChange={(event) => { setCost(event.target.value); setActionError(null); }} className={actionError ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass} /></FormField>
+                    <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => { setCompleting(false); setActionError(null); }} disabled={mutations.complete.isPending}>إلغاء</Button><Button type="button" onClick={handleComplete} disabled={mutations.complete.isPending}>{mutations.complete.isPending ? "جارٍ الحفظ" : "تأكيد الإكمال"}</Button></div>
+                  </div>
+                ) : <Button type="button" className="w-full" onClick={() => { setCompleting(true); setActionError(null); }}><CheckCircle2 className="size-4" aria-hidden="true" />إكمال الصيانة</Button>)}
+                {!isOwner && record.status !== "COMPLETED" && <InfoBanner>لا تملك صلاحية إكمال الصيانة.</InfoBanner>}
+              </div>
+            </SummaryActionPanel>
+          </aside>
+
+          <section aria-label="بيانات الصيانة" className="order-2 space-y-4 xl:order-1 xl:col-span-8">
+            <DetailSection title="المركبة" description="المركبة المرتبط بها سجل الصيانة.">
+              <div className="flex items-center gap-3"><span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Car className="size-5" aria-hidden="true" /></span><div className="min-w-0">{vehicle ? <button type="button" onClick={() => setLocation(`/vehicles/${vehicle.id}`)} className="block truncate text-start text-base font-semibold text-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40">{vehicle.make} {vehicle.model}</button> : <span className="text-sm text-muted-foreground">جارٍ تحميل المركبة</span>}{vehicle && <div dir="ltr" className="number-ltr mt-1 text-sm text-muted-foreground">{vehicle.plateNumber}</div>}</div></div>
+            </DetailSection>
+
+            <DetailSection title="تفاصيل الصيانة" description="النوع والموعد وتفاصيل التنفيذ والتكلفة.">
+              <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+                <KeyValue label="نوع الصيانة" value={type.label} />
+                <div><div className="ui-label">الحالة</div><div className="mt-1"><StatusBadge status={record.status} /></div></div>
+                <KeyValue label="تاريخ الصيانة" value={formatDate(record.maintenanceDate)} numeric />
+                <KeyValue label="تاريخ الإنجاز" value={record.completedAt ? formatDateTime(record.completedAt) : null} numeric />
+                <KeyValue label="التكلفة" value={record.cost == null ? null : formatUsd(record.cost)} numeric />
+                <KeyValue label="الورشة / المزوّد" value={record.vendor} />
+              </div>
+            </DetailSection>
+
+            {record.replacedParts && record.replacedParts.length > 0 && <DetailSection title="القطع المبدلة" description="القطع المسجّلة ضمن أعمال الصيانة."><div className="divide-y divide-border">{record.replacedParts.map((part, index) => <div key={`${part.name}-${index}`} className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"><div className="min-w-0"><div className="flex items-center gap-2 text-sm font-semibold text-foreground"><Package className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />{part.name}</div><div className="mt-1 text-xs text-muted-foreground">{part.brand || "من دون ماركة"}{part.quantity ? ` · الكمية ${part.quantity}` : ""}</div></div><span className="number-ltr text-sm font-semibold text-foreground">{part.unitCost == null ? "—" : formatUsd(part.unitCost)}</span></div>)}</div></DetailSection>}
+
+            {record.notes && <DetailSection title="ملاحظات"><div className="flex items-start gap-2"><StickyNote className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" /><p className="whitespace-pre-wrap text-sm leading-6 text-foreground">{record.notes}</p></div></DetailSection>}
+          </section>
         </div>
-      )}
-
-      <div className="px-4 pt-4 space-y-4">
-        {/* Header card */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 flex items-center gap-3">
-          <div className="w-14 h-14 rounded-xl bg-[hsl(var(--status-maintenance-bg))] flex items-center justify-center flex-shrink-0">
-            <Wrench className="w-7 h-7 text-[hsl(var(--status-maintenance))]" strokeWidth={1.5} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-base font-bold text-foreground truncate">
-                {typeConfig.label}
-              </span>
-              <StatusBadge status={record.status} />
-            </div>
-            <div className="text-sm text-muted-foreground mt-0.5">
-              {record.id.slice(0, 8)}
-            </div>
-          </div>
-        </div>
-
-        {/* Vehicle */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
-          <div className="text-xs font-semibold text-muted-foreground mb-3 text-right">السيارة</div>
-          <div className="flex items-center justify-between gap-3">
-            <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
-              <Car className="w-6 h-6 text-muted-foreground" strokeWidth={1.5} />
-            </div>
-            <div className="text-right flex-1">
-              {vehicle ? (
-                <button
-                  onClick={() => setLocation(`/vehicles/${vehicle.id}`)}
-                  className="text-base font-bold text-foreground hover:text-primary active:text-primary/80 transition-colors"
-                >
-                  {vehicle.make} {vehicle.model}
-                </button>
-              ) : (
-                <span className="text-sm text-muted-foreground">—</span>
-              )}
-              {vehicle && (
-                <div className="text-sm text-muted-foreground">{vehicle.plateNumber}</div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Details */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm px-4 py-2">
-          <InfoRow label="نوع الصيانة" value={typeConfig.label} />
-          <InfoRow label="الحالة" value={MAINTENANCE_STATUS_LABELS[record.status] ?? record.status} />
-          <InfoRow
-            label="تاريخ الصيانة"
-            value={
-              <span className="flex items-center gap-1.5">
-                {formatDateAr(record.maintenanceDate)}
-                <Calendar className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
-              </span>
-            }
-          />
-          {record.completedAt && (
-            <InfoRow
-              label="تاريخ الإنجاز"
-              value={
-                <span className="flex items-center gap-1.5 font-semibold text-[hsl(var(--status-available))]">
-                  {formatDateAr(record.completedAt)}
-                  <CheckCircle className="w-3.5 h-3.5" strokeWidth={1.5} />
-                </span>
-              }
-            />
-          )}
-          {record.cost !== null && record.cost !== undefined && (
-            <InfoRow
-              label="التكلفة"
-              value={
-                <span className="flex items-center gap-1.5 font-bold text-foreground">
-                  {formatCurrency(record.cost)}
-                  <Banknote className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
-                </span>
-              }
-            />
-          )}
-          {record.vendor && (
-            <InfoRow
-              label="الورشة / المزوّد"
-              value={
-                <span className="flex items-center gap-1.5">
-                  {record.vendor}
-                  <Store className="w-3.5 h-3.5 text-muted-foreground" strokeWidth={1.5} />
-                </span>
-              }
-            />
-          )}
-        </div>
-
-        {/* Replaced parts */}
-        {record.replacedParts && record.replacedParts.length > 0 && (
-          <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <Package className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
-              <h3 className="text-sm font-bold text-foreground">القطع المبدلة</h3>
-            </div>
-            <div className="space-y-1.5">
-              {record.replacedParts.map((part, i) => (
-                <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                  <span className="text-sm text-foreground">
-                    {part.name}
-                    {part.brand ? ` (${part.brand})` : ""}
-                    {part.quantity ? ` ×${part.quantity}` : ""}
-                  </span>
-                  {part.unitCost !== undefined && part.unitCost !== null && (
-                    <span className="text-sm text-muted-foreground">{formatCurrency(part.unitCost)}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Notes */}
-        {record.notes && (
-          <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <StickyNote className="w-4 h-4 text-muted-foreground" strokeWidth={1.75} />
-              <h3 className="text-sm font-bold text-foreground">ملاحظات</h3>
-            </div>
-            <p className="text-sm text-foreground text-right">{record.notes}</p>
-          </div>
-        )}
-
-        {/* Complete action — only for non-completed records, OWNER only */}
-        {isOwner && record.status !== "COMPLETED" && (
-          <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-3">
-            {completing ? (
-              <>
-                <div className="text-sm font-bold text-foreground text-right">إكمال الصيانة</div>
-                <FormField label="التكلفة النهائية" required hint="غير سالبة · تُحسم نهائياً" error={actionError ?? undefined}>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    placeholder="مثال: 150"
-                    value={cost}
-                    onChange={(e) => { setCost(e.target.value); setActionError(null); }}
-                    className={actionError ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                  />
-                </FormField>
-                {actionError && !cost && (
-                  <p className="text-xs text-destructive text-right">{actionError}</p>
-                )}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setCompleting(false)}
-                    disabled={mutations.complete.isPending}
-                    className="flex-1 border border-border text-foreground rounded-xl py-3 text-sm font-semibold active:scale-[0.98] transition-transform"
-                  >
-                    إلغاء
-                  </button>
-                  <button
-                    onClick={handleComplete}
-                    disabled={mutations.complete.isPending}
-                    className="flex-1 rounded-xl py-3 text-sm font-semibold bg-[hsl(var(--status-available))] text-white active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
-                  >
-                    {mutations.complete.isPending ? <Spinner /> : "تأكيد الإنجاز"}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <button
-                onClick={() => { setCompleting(true); setActionError(null); }}
-                className="w-full flex items-center justify-center gap-2 bg-[hsl(var(--status-available))] text-white rounded-2xl py-4 text-base font-bold active:scale-[0.98] transition-transform shadow-sm"
-              >
-                <CheckCircle className="w-5 h-5" strokeWidth={2} />
-                إكمال الصيانة
-              </button>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

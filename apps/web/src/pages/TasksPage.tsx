@@ -1,20 +1,22 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocation, useSearchParams } from "wouter";
-import { Plus, ClipboardList, AlertCircle } from "lucide-react";
+import { AlertTriangle, ClipboardList, Plus } from "lucide-react";
 
+import { TasksDataList, TasksDataListSkeleton } from "@/components/tasks/TasksDataList";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/FeedbackState";
 import { FilterChips } from "@/components/ui/FilterChips";
 import { SearchBar } from "@/components/ui/SearchBar";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Spinner } from "@/components/ui/spinner";
-import { TaskCard } from "@/components/ui/TaskCard";
+import { SectionCard } from "@/components/ui/SectionCard";
+import { useTasks } from "@/features/tasks/hooks";
+import { filterTasks, getPendingTaskCount, isTaskOverdue, type TaskStatusFilter } from "@/features/tasks/selectors";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { useAuth } from "@/providers/AuthProvider";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { useTasks } from "@/features/tasks/hooks";
-import { filterTasks, getPendingTaskCount, type TaskStatusFilter } from "@/features/tasks/selectors";
 
-const FILTER_OPTIONS: { label: string; value: string }[] = [
+const FILTER_OPTIONS = [
   { label: "الكل", value: "all" },
   { label: "قيد الانتظار", value: "pending" },
   { label: "مكتملة", value: "completed" },
@@ -25,120 +27,38 @@ export default function TasksPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const { user } = useAuth();
-  const debouncedSearch = useDebouncedValue(search.trim(), 300);
-
   const isOwner = user?.role === "OWNER";
+  const debouncedSearch = useDebouncedValue(search.trim(), 300);
   const filter = (searchParams.get("filter") as TaskStatusFilter) || "all";
-
-  const { data, isLoading, isError, error } = useTasks();
-
-  const tasks = useMemo(() => data?.data ?? [], [data]);
-
-  const filtered = useMemo(
-    () => filterTasks(tasks, filter, debouncedSearch),
-    [tasks, filter, debouncedSearch],
-  );
-
+  const tasksQuery = useTasks();
+  const tasks = useMemo(() => tasksQuery.data?.data ?? [], [tasksQuery.data]);
+  const filtered = useMemo(() => filterTasks(tasks, filter, debouncedSearch), [tasks, filter, debouncedSearch]);
   const pendingCount = getPendingTaskCount(tasks);
+  const overdueCount = useMemo(() => tasks.filter((task) => isTaskOverdue(task)).length, [tasks]);
+  const countLabel = `${filtered.length} ${filtered.length === 1 ? "مهمة" : "مهام"}`;
 
   return (
     <div className="min-h-full">
-      <PageHeader
-        title="المهام"
-        action={
-          isOwner ? (
-            <button
-              onClick={() => setLocation("/tasks/add")}
-              aria-label="إضافة مهمة"
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm active:scale-95 transition-transform"
-            >
-              <Plus className="w-5 h-5" strokeWidth={2.5} />
-            </button>
-          ) : undefined
-        }
-      />
+      <PageHeader title="المهام" action={isOwner ? <Button type="button" onClick={() => setLocation("/tasks/add")}><Plus className="size-4" aria-hidden="true" />إضافة مهمة</Button> : undefined} />
 
-      <div className="px-4 pt-4 pb-2 space-y-3">
-        {pendingCount > 0 && (
-          <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-[hsl(var(--status-maintenance-bg))] border border-[hsl(var(--status-maintenance))]/20">
-            <button
-              onClick={() => setSearchParams({ filter: "pending" }, { replace: true })}
-              className="text-xs font-bold text-[hsl(var(--status-maintenance))] underline"
-            >
-              عرض المهام المعلّقة
-            </button>
-            <span className="text-sm font-bold text-[hsl(var(--status-maintenance))]">
-              {pendingCount} {pendingCount === 1 ? "مهمة معلّقة" : "مهام معلّقة"}
-            </span>
+      <div className="space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
+        {overdueCount > 0 && <button type="button" onClick={() => setSearchParams({ filter: "pending" }, { replace: true })} className="flex w-full items-center justify-between gap-3 rounded-xl border border-status-danger/25 bg-status-danger-bg px-4 py-3 text-start text-sm text-status-danger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"><span className="font-semibold">لديك {overdueCount} {overdueCount === 1 ? "مهمة متأخرة" : "مهام متأخرة"} تحتاج إلى متابعة.</span><span className="shrink-0 font-semibold underline">عرض المعلّقة</span></button>}
+
+        <SectionCard title="قائمة المهام" description="تابع المواعيد والاستحقاقات وأكمل المهام من سجلها.">
+          <div className="space-y-3">
+            <SearchBar placeholder="ابحث في الملاحظات..." value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch("")} />
+            <div className="flex flex-wrap items-center justify-between gap-3"><FilterChips options={FILTER_OPTIONS} value={filter} onChange={(value) => { const next = value as TaskStatusFilter; setSearchParams(next === "all" ? {} : { filter: next }, { replace: true }); }} className="-mb-1 [&_button]:px-3 [&_button]:text-xs" />{pendingCount > 0 && <span className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-muted-foreground"><AlertTriangle className="size-3.5 text-status-warning" aria-hidden="true" />{pendingCount} {pendingCount === 1 ? "مهمة معلّقة" : "مهام معلّقة"}</span>}</div>
           </div>
-        )}
+        </SectionCard>
 
-        <FilterChips
-          options={FILTER_OPTIONS}
-          value={filter}
-          onChange={(v) => {
-            const val = v as TaskStatusFilter;
-            if (val === "all") {
-              setSearchParams({}, { replace: true });
-            } else {
-              setSearchParams({ filter: val }, { replace: true });
-            }
-          }}
-        />
-
-        <SearchBar
-          placeholder="ابحث في الملاحظات..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onClear={() => setSearch("")}
-        />
-      </div>
-
-      <div className="px-4 pb-6 mt-3">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Spinner className="size-6" />
-          </div>
-        ) : isError ? (
-          <EmptyState
-            icon={AlertCircle}
-            title="حدث خطأ"
-            description={error ? getApiErrorMessage(error).title : "تعذر تحميل المهام"}
-            className="py-16"
-          />
+        {tasksQuery.isLoading ? (
+          <SectionCard className="overflow-hidden p-0 shadow-none"><TasksDataListSkeleton /></SectionCard>
+        ) : tasksQuery.isError ? (
+          <SectionCard className="shadow-none"><ErrorState title="تعذر تحميل المهام" description={getApiErrorMessage(tasksQuery.error).title} onRetry={() => void tasksQuery.refetch()} /></SectionCard>
         ) : filtered.length === 0 ? (
-          search || filter !== "all" ? (
-            <EmptyState
-              icon={ClipboardList}
-              title="لا توجد نتائج"
-              description="جرّب تغيير كلمة البحث أو إزالة بعض الفلاتر"
-              className="py-16"
-            />
-          ) : (
-            <EmptyState
-              icon={ClipboardList}
-              title="لا توجد مهام"
-              description={isOwner ? "اضغط + لإضافة مهمة جديدة" : "لا توجد مهام في هذه المنظمة حالياً"}
-              action={
-                isOwner
-                  ? {
-                      label: "إضافة مهمة",
-                      onClick: () => setLocation("/tasks/add"),
-                    }
-                  : undefined
-              }
-            />
-          )
+          <SectionCard className="shadow-none"><EmptyState icon={ClipboardList} title={search || filter !== "all" ? "لا توجد نتائج مطابقة" : "لا توجد مهام"} description={search || filter !== "all" ? "جرّب تغيير كلمة البحث أو إزالة بعض عوامل التصفية." : isOwner ? "أضف أول مهمة لبدء متابعة الأعمال اليومية." : "لا توجد مهام في هذه المنظمة حالياً."} action={isOwner && !search && filter === "all" ? { label: "إضافة مهمة", onClick: () => setLocation("/tasks/add") } : undefined} /></SectionCard>
         ) : (
-          <div className="space-y-2">
-            {filtered.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onClick={() => setLocation(`/tasks/${task.id}`)}
-              />
-            ))}
-          </div>
+          <SectionCard title="المهام" action={<span className="text-xs font-medium text-muted-foreground">{countLabel}</span>} className="overflow-hidden p-0 shadow-none"><TasksDataList tasks={filtered} onOpen={(taskId) => setLocation(`/tasks/${taskId}`)} /></SectionCard>
         )}
       </div>
     </div>

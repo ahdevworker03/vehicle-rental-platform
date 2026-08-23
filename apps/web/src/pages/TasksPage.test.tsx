@@ -62,13 +62,13 @@ describe("TasksPage", () => {
     });
 
     render(<TasksPage />);
-    expect(screen.getByText("تجديد التأمين")).toBeInTheDocument();
+    expect(screen.getAllByText("تجديد التأمين").length).toBeGreaterThan(0);
   });
 
   it("shows a loading state without rendering an empty state", () => {
     mockQuery({ isLoading: true, data: undefined });
-    const { container } = render(<TasksPage />);
-    expect(container.querySelector(".animate-spin")).toBeTruthy();
+    render(<TasksPage />);
+    expect(screen.getByLabelText("جارٍ تحميل المهام")).toBeInTheDocument();
     expect(screen.queryByText("لا توجد مهام")).not.toBeInTheDocument();
   });
 
@@ -85,7 +85,7 @@ describe("TasksPage", () => {
       data: undefined,
     });
     render(<TasksPage />);
-    expect(screen.getAllByText(/حدث خطأ/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/تعذر تحميل المهام/).length).toBeGreaterThan(0);
   });
 
   it("filters tasks by search", () => {
@@ -105,7 +105,7 @@ describe("TasksPage", () => {
     act(() => {
       vi.advanceTimersByTime(400);
     });
-    expect(screen.getByText("تجديد التأمين")).toBeInTheDocument();
+    expect(screen.getAllByText("تجديد التأمين").length).toBeGreaterThan(0);
     expect(screen.queryByText("فحص السيارة")).not.toBeInTheDocument();
   });
 
@@ -120,7 +120,7 @@ describe("TasksPage", () => {
     });
     render(<TasksPage />);
     fireEvent.click(screen.getByRole("button", { name: "مكتملة" }));
-    expect(screen.getByText("ب")).toBeInTheDocument();
+    expect(screen.getAllByText("ب").length).toBeGreaterThan(0);
     expect(screen.queryByText("أ")).not.toBeInTheDocument();
   });
 
@@ -143,7 +143,7 @@ describe("TasksPage", () => {
     act(() => {
       vi.advanceTimersByTime(400);
     });
-    expect(screen.getByText("تجديد التأمين")).toBeInTheDocument();
+    expect(screen.getAllByText("تجديد التأمين").length).toBeGreaterThan(0);
     expect(screen.queryByText("فحص")).not.toBeInTheDocument();
   });
 });

@@ -106,7 +106,7 @@ describe("TaskDetailPage", () => {
     fireEvent.click(screen.getByText("إكمال المهمة"));
     fireEvent.click(screen.getByText("تأكيد الإكمال"));
 
-    expect(await screen.findByText("تم إكمال المهمة بنجاح")).toBeInTheDocument();
+    expect(await screen.findByText("تم إكمال المهمة.")).toBeInTheDocument();
   });
 
   it("does not show an active completion action for a completed task", () => {
@@ -114,7 +114,7 @@ describe("TaskDetailPage", () => {
     render(<TaskDetailPage params={{ id: "task-1" }} />);
     expect(screen.getAllByText("مكتملة").length).toBeGreaterThan(0);
     expect(screen.queryByText("إكمال المهمة")).not.toBeInTheDocument();
-    expect(screen.getByText("هذه المهمة مكتملة")).toBeInTheDocument();
+    expect(screen.getByText("هذه المهمة مكتملة ولا تتطلب إجراءً إضافياً.")).toBeInTheDocument();
   });
 
   it("shows an API error without false success", async () => {
@@ -140,6 +140,6 @@ describe("TaskDetailPage", () => {
   it("shows the error/empty state when the task is not found", () => {
     mockTask(null, { isError: true, error: new Error("Task not found") });
     render(<TaskDetailPage params={{ id: "task-1" }} />);
-    expect(screen.getByText(/لا توجد بيانات/)).toBeInTheDocument();
+    expect(screen.getByText(/تعذر تحميل المهمة/)).toBeInTheDocument();
   });
 });

@@ -3,150 +3,72 @@ import { useLocation } from "wouter";
 import { Check, ClipboardList } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { InlineError } from "@/components/ui/FeedbackState";
 import { FormField, inputClass } from "@/components/ui/FormField";
-import { Spinner } from "@/components/ui/spinner";
-import { cn } from "@/lib/utils";
-import { getApiErrorMessage } from "@/lib/api-error";
+import { FormSection } from "@/components/ui/FormSection";
 import { useTaskMutations } from "@/features/tasks/hooks";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 function toISO(dateStr: string): string {
-  return new Date(dateStr + "T12:00:00Z").toISOString();
+  return new Date(`${dateStr}T12:00:00Z`).toISOString();
 }
 
 export default function AddTaskPage() {
   const [, setLocation] = useLocation();
   const mutations = useTaskMutations();
-
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
-
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
   function clearError(key: string) {
-    if (errors[key]) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[key];
-        return next;
-      });
-    }
+    if (!errors[key]) return;
+    setErrors((current) => {
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
   }
 
   function validate(): boolean {
-    const errs: Record<string, string> = {};
-    if (!dueDate) errs.dueDate = "أدخل تاريخ الاستحقاق";
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+    const nextErrors: Record<string, string> = {};
+    if (!dueDate) nextErrors.dueDate = "أدخل تاريخ الاستحقاق.";
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   }
 
   async function handleSubmit() {
-    if (mutations.create.isPending) return;
-    if (!validate()) return;
-
+    if (mutations.create.isPending || !validate()) return;
     setFormError(null);
-
     try {
-      await mutations.create.mutateAsync({
-        data: {
-          due_date: toISO(dueDate),
-          ...(notes.trim() ? { notes: notes.trim() } : {}),
-        },
-      });
+      await mutations.create.mutateAsync({ data: { due_date: toISO(dueDate), ...(notes.trim() ? { notes: notes.trim() } : {}) } });
       setSaved(true);
       setTimeout(() => setLocation("/tasks"), 1200);
-    } catch (err) {
-      setFormError(getApiErrorMessage(err).title);
+    } catch (error) {
+      setFormError(getApiErrorMessage(error).title);
     }
+  }
+
+  if (saved) {
+    return <div className="flex min-h-full flex-1 flex-col items-center justify-center gap-3 bg-background px-6"><div className="flex size-20 items-center justify-center rounded-full bg-status-positive-bg text-status-positive"><Check className="size-10" aria-hidden="true" /></div><h2 className="text-xl font-bold text-foreground">تم إنشاء المهمة.</h2><p className="text-sm text-muted-foreground">جارٍ العودة إلى قائمة المهام...</p></div>;
   }
 
   const isSubmitting = mutations.create.isPending;
 
-  if (saved) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-background px-6 gap-3">
-        <div className="w-20 h-20 rounded-full bg-[hsl(var(--status-available-bg))] flex items-center justify-center">
-          <Check className="w-10 h-10 text-[hsl(var(--status-available))]" strokeWidth={2.5} />
-        </div>
-        <h2 className="text-xl font-bold text-foreground">تم إنشاء المهمة</h2>
-        <p className="text-xs text-muted-foreground pt-2">
-          جاري العودة إلى قائمة المهام...
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <>
-      <PageHeader
-        title="إضافة مهمة"
-        showBack
-        onBack={() => setLocation("/tasks")}
-      />
+    <div className="min-h-full">
+      <PageHeader title="إضافة مهمة" showBack onBack={() => setLocation("/tasks")} />
+      <form className="mx-auto max-w-3xl space-y-4 px-4 pb-24 pt-4 sm:px-6 lg:space-y-5" onSubmit={(event) => { event.preventDefault(); void handleSubmit(); }}>
+        {formError && <InlineError className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5">{formError}</InlineError>}
+        <FormSection title="تفاصيل المهمة" description="المهمة الجديدة تُسجل بحالة قيد الانتظار حتى إكمالها.">
+          <FormField label="تاريخ الاستحقاق" required error={errors.dueDate} htmlFor="task-due-date"><input id="task-due-date" type="date" value={dueDate} onChange={(event) => { setDueDate(event.target.value); clearError("dueDate"); }} className={errors.dueDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass} /></FormField>
+          <FormField label="ملاحظات" hint="اختياري" className="md:col-span-2" htmlFor="task-notes"><textarea id="task-notes" rows={4} className={`${inputClass} resize-none`} placeholder="مثال: تجديد التأمين" value={notes} onChange={(event) => setNotes(event.target.value)} /></FormField>
+        </FormSection>
 
-      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-8 space-y-4">
-        {formError && (
-          <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3 text-sm text-destructive">
-            {formError}
-          </div>
-        )}
-
-        {/* Header card */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-[hsl(var(--status-maintenance-bg))] flex items-center justify-center flex-shrink-0">
-            <ClipboardList className="w-6 h-6 text-[hsl(var(--status-maintenance))]" strokeWidth={1.5} />
-          </div>
-          <div className="text-right flex-1">
-            <div className="text-base font-bold text-foreground">مهمة جديدة</div>
-            <div className="text-sm text-muted-foreground">الحالة الافتراضية: قيد الانتظار</div>
-          </div>
-        </div>
-
-        {/* Due date */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
-          <FormField label="تاريخ الاستحقاق" required error={errors.dueDate} htmlFor="task-due-date">
-            <input
-              id="task-due-date"
-              type="date"
-              value={dueDate}
-              onChange={(e) => {
-                setDueDate(e.target.value);
-                clearError("dueDate");
-              }}
-              className={errors.dueDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-            />
-          </FormField>
-        </div>
-
-        {/* Notes */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4">
-          <FormField label="ملاحظات" hint="اختياري" htmlFor="task-notes">
-            <textarea
-              id="task-notes"
-              placeholder="وصف المهمة، تذكير... مثال: تجديد التأمين"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={4}
-              className={`${inputClass} resize-none`}
-            />
-          </FormField>
-        </div>
-
-        {/* Save */}
-        <button
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          className={cn(
-            "w-full rounded-2xl py-4 text-base font-bold transition-all shadow-sm flex items-center justify-center gap-2",
-            isSubmitting
-              ? "bg-muted text-muted-foreground cursor-not-allowed"
-              : "bg-primary text-primary-foreground active:scale-[0.98]"
-          )}
-        >
-          {isSubmitting ? <Spinner /> : "إنشاء المهمة"}
-        </button>
-      </div>
-    </>
+        <div className="sticky bottom-3 z-10 flex flex-wrap justify-end gap-2 rounded-xl border border-card-border bg-card/95 p-3 shadow-sm backdrop-blur sm:px-4"><Button type="button" variant="outline" onClick={() => setLocation("/tasks")} disabled={isSubmitting}>إلغاء</Button><Button type="submit" disabled={isSubmitting}><ClipboardList className="size-4" aria-hidden="true" />{isSubmitting ? "جارٍ الحفظ" : "إنشاء المهمة"}</Button></div>
+      </form>
+    </div>
   );
 }

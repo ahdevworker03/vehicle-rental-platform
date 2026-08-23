@@ -2,12 +2,14 @@ import { useState, useMemo } from "react";
 import { useLocation, useSearchParams } from "wouter";
 import { Plus, Wallet } from "lucide-react";
 
+import { ExpensesDataList, ExpensesDataListSkeleton } from "@/components/expenses/ExpensesDataList";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { ErrorState } from "@/components/ui/FeedbackState";
 import { FilterChips } from "@/components/ui/FilterChips";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Spinner } from "@/components/ui/spinner";
-import { ExpenseCard } from "@/components/ui/ExpenseCard";
+import { SectionCard } from "@/components/ui/SectionCard";
 import { EXPENSE_CATEGORY_LABELS, EXPENSE_CATEGORY_FILTER_OPTIONS } from "@/lib/labels";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { useAuth } from "@/providers/AuthProvider";
@@ -28,7 +30,7 @@ export default function ExpensesPage() {
   const isOwner = user?.role === "OWNER";
   const filter = (searchParams.get("filter") as FilterValue) || "all";
 
-  const { data, isLoading, isError, error } = useExpenses();
+  const { data, isLoading, isError, error, refetch } = useExpenses();
   const { data: vehiclesData } = useListVehicles();
 
   const expenses = useMemo(() => data?.data ?? [], [data]);
@@ -53,6 +55,18 @@ export default function ExpensesPage() {
       ),
     [expenses, filter, debouncedSearch, vehicleById],
   );
+  const items = useMemo(
+    () => filtered.map((expense) => {
+      const vehicle = expense.vehicleId ? vehicleById.get(expense.vehicleId) : null;
+      return {
+        expense,
+        vehicleName: vehicle ? `${vehicle.make} ${vehicle.model}` : "",
+        vehiclePlate: vehicle?.plateNumber ?? "",
+      };
+    }),
+    [filtered, vehicleById],
+  );
+  const countLabel = `${items.length} ${items.length === 1 ? "مصروف" : "مصروفات"}`;
 
   return (
     <div className="min-h-full">
@@ -60,89 +74,42 @@ export default function ExpensesPage() {
         title="المصروفات"
         action={
           isOwner ? (
-            <button
-              onClick={() => setLocation("/expenses/add")}
-              aria-label="تسجيل مصروف جديد"
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm active:scale-95 transition-transform"
-            >
-              <Plus className="w-5 h-5" strokeWidth={2.5} />
-            </button>
+            <Button type="button" onClick={() => setLocation("/expenses/add")}>
+              <Plus className="size-4" aria-hidden="true" />
+              تسجيل مصروف
+            </Button>
           ) : undefined
         }
       />
 
-      <div className="px-4 pt-4 pb-2 space-y-3">
-        <FilterChips
-          options={EXPENSE_CATEGORY_FILTER_OPTIONS}
-          value={filter}
-          onChange={(v) => {
-            const val = v as FilterValue;
-            if (val === "all") {
-              setSearchParams({}, { replace: true });
-            } else {
-              setSearchParams({ filter: val }, { replace: true });
-            }
-          }}
-        />
-
-        <SearchBar
-          placeholder="ابحث بالسيارة أو الفئة أو الوصف..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onClear={() => setSearch("")}
-        />
-      </div>
-
-      <div className="px-4 pb-6 mt-3">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Spinner className="size-6" />
+      <div className="space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
+        <SectionCard title="سجل المصروفات" description="تابع مصروفات المنظمة والمركبات حسب الفئة والتاريخ." className="shadow-none">
+          <div className="space-y-3">
+            <SearchBar placeholder="ابحث بالمركبة أو الفئة أو الوصف..." value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch("")} />
+            <FilterChips
+              options={EXPENSE_CATEGORY_FILTER_OPTIONS}
+              value={filter}
+              onChange={(value) => {
+                const next = value as FilterValue;
+                setSearchParams(next === "all" ? {} : { filter: next }, { replace: true });
+              }}
+              className="-mb-1 [&_button]:px-3 [&_button]:text-xs"
+            />
           </div>
+        </SectionCard>
+
+        {isLoading ? (
+          <SectionCard className="overflow-hidden p-0 shadow-none"><ExpensesDataListSkeleton /></SectionCard>
         ) : isError ? (
-          <EmptyState
-            icon={Wallet}
-            title="حدث خطأ"
-            description={error ? getApiErrorMessage(error).title : "تعذر تحميل المصروفات"}
-            className="py-16"
-          />
-        ) : filtered.length === 0 ? (
+          <SectionCard className="shadow-none"><ErrorState title="تعذر تحميل المصروفات" description={error ? getApiErrorMessage(error).title : "تحقق من الاتصال ثم أعد المحاولة."} onRetry={() => void refetch()} /></SectionCard>
+        ) : items.length === 0 ? (
           search || filter !== "all" ? (
-            <EmptyState
-              icon={Wallet}
-              title="لا توجد نتائج"
-              description="جرّب تغيير كلمة البحث أو إزالة بعض الفلاتر"
-              className="py-16"
-            />
+            <SectionCard className="shadow-none"><EmptyState icon={Wallet} title="لا توجد نتائج مطابقة" description="جرّب تغيير كلمة البحث أو إزالة بعض عوامل التصفية." /></SectionCard>
           ) : (
-            <EmptyState
-              icon={Wallet}
-              title="لا توجد مصروفات"
-              description={isOwner ? "اضغط + لتسجيل مصروف جديد" : "لا توجد مصروفات في هذه المنظمة حالياً"}
-              action={
-                isOwner
-                  ? {
-                      label: "تسجيل مصروف",
-                      onClick: () => setLocation("/expenses/add"),
-                    }
-                  : undefined
-              }
-            />
+            <SectionCard className="shadow-none"><EmptyState icon={Wallet} title="لا توجد مصروفات" description={isOwner ? "سجّل أول مصروف لبدء متابعة تكاليف المنظمة والمركبات." : "لا توجد مصروفات في هذه المنظمة حالياً."} action={isOwner ? { label: "تسجيل مصروف", onClick: () => setLocation("/expenses/add") } : undefined} /></SectionCard>
           )
         ) : (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {filtered.map((expense) => {
-              const vehicle = expense.vehicleId ? vehicleById.get(expense.vehicleId) : null;
-              return (
-                <ExpenseCard
-                  key={expense.id}
-                  expense={expense}
-                  vehicleName={vehicle ? `${vehicle.make} ${vehicle.model}` : ""}
-                  vehiclePlate={vehicle?.plateNumber ?? ""}
-                  onClick={() => setLocation(`/expenses/${expense.id}`)}
-                />
-              );
-            })}
-          </div>
+          <SectionCard title="المصروفات" action={<span className="text-xs font-medium text-muted-foreground">{countLabel}</span>} className="overflow-hidden p-0 shadow-none"><ExpensesDataList items={items} onOpen={(expenseId) => setLocation(`/expenses/${expenseId}`)} /></SectionCard>
         )}
       </div>
     </div>
