@@ -1,21 +1,18 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Home, Car, Users, FileText, Wrench } from "lucide-react";
+import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NavigationDrawer } from "./NavigationDrawer";
+import {
+  MOBILE_PRIMARY_NAVIGATION,
+  type NavigationItem,
+  isMobileMoreRoute,
+  isNavigationRouteActive,
+} from "./navigation";
 
-const TABS = [
-  { label: "الرئيسية", icon: Home,     route: "/" },
-  { label: "السيارات",  icon: Car,      route: "/vehicles" },
-  { label: "العملاء",   icon: Users,    route: "/customers" },
-  { label: "الإيجارات", icon: FileText, route: "/rentals" },
-  { label: "الصيانة",   icon: Wrench,   route: "/maintenance" },
-] as const;
-
-/** Extracted so hooks are called at the top level of a component, not inside .map() */
-function NavTab({ tab }: { tab: (typeof TABS)[number] }) {
+function NavTab({ tab }: { tab: NavigationItem }) {
   const [location] = useLocation();
-  // Home is exact-match only; all other tabs match their prefix
-  const isActive =
-    tab.route === "/" ? location === "/" : location.startsWith(tab.route);
+  const isActive = isNavigationRouteActive(location, tab.route);
   const Icon = tab.icon;
 
   return (
@@ -24,16 +21,19 @@ function NavTab({ tab }: { tab: (typeof TABS)[number] }) {
       aria-current={isActive ? "page" : undefined}
       className="flex-1"
     >
-      <div className="flex flex-col items-center justify-center py-2 min-h-[56px] gap-1">
+      <div className="flex min-h-14 flex-col items-center justify-center gap-1 py-2">
         <Icon
-          className={cn("w-6 h-6", isActive ? "text-primary" : "text-muted-foreground")}
+          className={cn(
+            "size-5",
+            isActive ? "text-primary" : "text-muted-foreground",
+          )}
           strokeWidth={isActive ? 2.5 : 2}
-          style={isActive ? { fill: "currentColor", fillOpacity: 0.1 } : {}}
+          aria-hidden="true"
         />
         <span
           className={cn(
-            "text-[11px] font-medium",
-            isActive ? "text-primary" : "text-muted-foreground"
+            "text-[11px] font-medium leading-tight",
+            isActive ? "text-primary" : "text-muted-foreground",
           )}
         >
           {tab.label}
@@ -44,16 +44,40 @@ function NavTab({ tab }: { tab: (typeof TABS)[number] }) {
 }
 
 export function BottomNavigation() {
+  const [location] = useLocation();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreActive = isMobileMoreRoute(location);
+
   return (
-    <nav
-      aria-label="التنقل الرئيسي"
-      className="fixed bottom-0 left-0 right-0 w-full bg-background border-t border-border z-50 lg:hidden"
-    >
-      <div className="max-w-[480px] mx-auto flex justify-between items-center px-2">
-        {TABS.map((tab) => (
-          <NavTab key={tab.route} tab={tab} />
-        ))}
-      </div>
-    </nav>
+    <>
+      <nav
+        aria-label="التنقل الرئيسي"
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm md:hidden"
+      >
+        <div className="mx-auto grid max-w-xl grid-cols-5 px-1">
+          {MOBILE_PRIMARY_NAVIGATION.map((tab) => (
+            <NavTab key={tab.route} tab={tab} />
+          ))}
+          <button
+            type="button"
+            onClick={() => setMoreOpen(true)}
+            aria-label="المزيد من وحدات النظام"
+            aria-expanded={moreOpen}
+            className={cn(
+              "flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium leading-tight transition-colors",
+              moreActive ? "text-primary" : "text-muted-foreground",
+            )}
+          >
+            <Menu
+              className="size-5"
+              strokeWidth={moreActive ? 2.5 : 2}
+              aria-hidden="true"
+            />
+            <span>المزيد</span>
+          </button>
+        </div>
+      </nav>
+      <NavigationDrawer open={moreOpen} onOpenChange={setMoreOpen} />
+    </>
   );
 }

@@ -8,7 +8,12 @@ interface PageHeaderProps {
   action?: ReactNode;
 }
 
-export function PageHeader({ title, showBack, onBack, action }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  showBack,
+  onBack,
+  action,
+}: PageHeaderProps) {
   const handleBack = () => {
     if (onBack) {
       onBack();
@@ -18,8 +23,8 @@ export function PageHeader({ title, showBack, onBack, action }: PageHeaderProps)
   };
 
   return (
-    <header className="sticky top-0 z-40 flex min-h-16 items-center justify-between border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm sm:px-6">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-40 flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm sm:px-6">
+      <div className="flex min-w-0 items-center gap-3">
         {showBack && (
           <button
             onClick={handleBack}
@@ -29,13 +34,9 @@ export function PageHeader({ title, showBack, onBack, action }: PageHeaderProps)
             <ChevronRight className="w-6 h-6 text-foreground" strokeWidth={2} />
           </button>
         )}
-        <h1 className="ui-page-title m-0 text-xl">{title}</h1>
+        <h1 className="ui-page-title m-0 truncate text-xl">{title}</h1>
       </div>
-      {action && (
-        <div className="flex items-center">
-          {action}
-        </div>
-      )}
+      {action && <div className="flex shrink-0 items-center">{action}</div>}
     </header>
   );
 }

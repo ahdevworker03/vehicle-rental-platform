@@ -1,0 +1,1130 @@
+[1mdiff --git a/apps/web/index.html b/apps/web/index.html[m
+[1mindex 1170ba6..4c5816f 100644[m
+[1m--- a/apps/web/index.html[m
+[1m+++ b/apps/web/index.html[m
+[36m@@ -9,10 +9,10 @@[m
+     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />[m
+     <link rel="preconnect" href="https://fonts.googleapis.com">[m
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>[m
+[31m-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">[m
+[32m+[m[32m    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">[m
+   </head>[m
+   <body>[m
+     <div id="root"></div>[m
+     <script type="module" src="/src/main.tsx"></script>[m
+   </body>[m
+[31m-</html>[m
+\ No newline at end of file[m
+[32m+[m[32m</html>[m
+[1mdiff --git a/apps/web/src/components/layout/AppSidebar.tsx b/apps/web/src/components/layout/AppSidebar.tsx[m
+[1mindex 41fca10..718964e 100644[m
+[1m--- a/apps/web/src/components/layout/AppSidebar.tsx[m
+[1m+++ b/apps/web/src/components/layout/AppSidebar.tsx[m
+[36m@@ -1,5 +1,5 @@[m
+ import { Link, useLocation } from "wouter";[m
+[31m-import { Home, Car, Users, FileText, Wrench } from "lucide-react";[m
+[32m+[m[32mimport { BarChart3, Car, ClipboardList, FileText, Home, ReceiptText, Users, Wrench } from "lucide-react";[m
+ import { LogoutButton } from "./LogoutButton";[m
+ import {[m
+   Sidebar,[m
+[36m@@ -15,11 +15,15 @@[m [mimport {[m
+ } from "@/components/ui/sidebar";[m
+ [m
+ const NAV_ITEMS = [[m
+[31m-  { label: "الرئيسية", icon: Home, route: "/" },[m
+[31m-  { label: "السيارات", icon: Car, route: "/vehicles" },[m
+[32m+[m[32m  { label: "لوحة التحكم", icon: Home, route: "/" },[m
+[32m+[m[32m  { label: "المركبات", icon: Car, route: "/vehicles" },[m
+   { label: "العملاء", icon: Users, route: "/customers" },[m
+   { label: "الإيجارات", icon: FileText, route: "/rentals" },[m
+   { label: "الصيانة", icon: Wrench, route: "/maintenance" },[m
+[32m+[m[32m  { label: "المصاريف", icon: ReceiptText, route: "/expenses" },[m
+[32m+[m[32m  { label: "المهام", icon: ClipboardList, route: "/tasks" },[m
+[32m+[m[32m  { label: "التحليلات", icon: BarChart3, route: "/analytics" },[m
+[32m+[m[32m  { label: "التقارير", icon: FileText, route: "/reports" },[m
+ ] as const;[m
+ [m
+ function isActiveRoute(location: string, route: string): boolean {[m
+[36m@@ -50,13 +54,13 @@[m [mfunction AppSidebarLink({ item }: { item: (typeof NAV_ITEMS)[number] }) {[m
+  */[m
+ export function AppSidebar() {[m
+   return ([m
+[31m-    <Sidebar collapsible="none" className="hidden lg:flex">[m
+[32m+[m[32m    <Sidebar side="right" collapsible="none" className="hidden lg:flex">[m
+       <SidebarHeader>[m
+         <div className="flex items-center gap-2 px-2 py-1">[m
+[31m-          <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">[m
+[32m+[m[32m          <div className="flex size-8 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-sm font-bold text-white">[m
+             ن[m
+           </div>[m
+[31m-          <span className="text-sm font-bold text-foreground">نظام التأجير</span>[m
+[32m+[m[32m          <span className="text-sm font-bold text-sidebar-foreground">نظام التأجير</span>[m
+         </div>[m
+       </SidebarHeader>[m
+ [m
+[36m@@ -75,7 +79,7 @@[m [mexport function AppSidebar() {[m
+ [m
+       <SidebarFooter>[m
+         <div className="px-2">[m
+[31m-          <LogoutButton />[m
+[32m+[m[32m          <LogoutButton className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" />[m
+         </div>[m
+       </SidebarFooter>[m
+     </Sidebar>[m
+[1mdiff --git a/apps/web/src/components/layout/PageContainer.tsx b/apps/web/src/components/layout/PageContainer.tsx[m
+[1mindex 436cd64..9753bb0 100644[m
+[1m--- a/apps/web/src/components/layout/PageContainer.tsx[m
+[1m+++ b/apps/web/src/components/layout/PageContainer.tsx[m
+[36m@@ -17,7 +17,7 @@[m [minterface PageContainerProps {[m
+  */[m
+ export function PageContainer({ children, className }: PageContainerProps) {[m
+   return ([m
+[31m-    <div className={cn("mx-auto w-full max-w-6xl min-h-full", className)}>[m
+[32m+[m[32m    <div className={cn("mx-auto min-h-full w-full max-w-[1600px]", className)}>[m
+       {children}[m
+     </div>[m
+   );[m
+[1mdiff --git a/apps/web/src/components/layout/PageHeader.tsx b/apps/web/src/components/layout/PageHeader.tsx[m
+[1mindex db203cf..f1af161 100644[m
+[1m--- a/apps/web/src/components/layout/PageHeader.tsx[m
+[1m+++ b/apps/web/src/components/layout/PageHeader.tsx[m
+[36m@@ -18,18 +18,18 @@[m [mexport function PageHeader({ title, showBack, onBack, action }: PageHeaderProps)[m
+   };[m
+ [m
+   return ([m
+[31m-    <header className="sticky top-0 z-40 bg-background border-b border-border px-4 py-3 flex items-center justify-between min-h-[60px]">[m
+[32m+[m[32m    <header className="sticky top-0 z-40 flex min-h-16 items-center justify-between border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm sm:px-6">[m
+       <div className="flex items-center gap-3">[m
+         {showBack && ([m
+           <button[m
+             onClick={handleBack}[m
+             aria-label="رجوع"[m
+[31m-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted/50 active:bg-muted transition-colors -mr-2"[m
+[32m+[m[32m            className="-me-2 flex size-10 items-center justify-center rounded-lg transition-colors hover:bg-muted active:bg-muted"[m
+           >[m
+             <ChevronRight className="w-6 h-6 text-foreground" strokeWidth={2} />[m
+           </button>[m
+         )}[m
+[31m-        <h1 className="text-lg font-bold text-foreground m-0">{title}</h1>[m
+[32m+[m[32m        <h1 className="ui-page-title m-0 text-xl">{title}</h1>[m
+       </div>[m
+       {action && ([m
+         <div className="flex items-center">[m
+[1mdiff --git a/apps/web/src/components/ui/EmptyState.tsx b/apps/web/src/components/ui/EmptyState.tsx[m
+[1mindex 495f9a8..61a2bc6 100644[m
+[1m--- a/apps/web/src/components/ui/EmptyState.tsx[m
+[1m+++ b/apps/web/src/components/ui/EmptyState.tsx[m
+[36m@@ -1,5 +1,6 @@[m
+ import { LucideIcon } from "lucide-react";[m
+ import { cn } from "@/lib/utils";[m
+[32m+[m[32mimport { Button } from "./button";[m
+ [m
+ interface EmptyStateProps {[m
+   icon: LucideIcon;[m
+[36m@@ -14,9 +15,9 @@[m [minterface EmptyStateProps {[m
+ [m
+ export function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {[m
+   return ([m
+[31m-    <div className={cn("flex flex-col items-center justify-center py-16 px-6 text-center", className)}>[m
+[31m-      <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">[m
+[31m-        <Icon className="w-8 h-8 text-muted-foreground" strokeWidth={1.5} />[m
+[32m+[m[32m    <div className={cn("flex flex-col items-center justify-center px-6 py-14 text-center", className)}>[m
+[32m+[m[32m      <div className="mb-4 flex size-14 items-center justify-center rounded-xl bg-muted">[m
+[32m+[m[32m        <Icon className="size-7 text-muted-foreground" aria-hidden="true" strokeWidth={1.5} />[m
+       </div>[m
+       <h3 className="text-lg font-bold text-foreground mb-2">{title}</h3>[m
+       {description && ([m
+[36m@@ -25,12 +26,11 @@[m [mexport function EmptyState({ icon: Icon, title, description, action, className }[m
+         </p>[m
+       )}[m
+       {action && ([m
+[31m-        <button[m
+[32m+[m[32m        <Button[m
+           onClick={action.onClick}[m
+[31m-          className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors"[m
+         >[m
+           {action.label}[m
+[31m-        </button>[m
+[32m+[m[32m        </Button>[m
+       )}[m
+     </div>[m
+   );[m
+[1mdiff --git a/apps/web/src/components/ui/ExpenseCard.test.tsx b/apps/web/src/components/ui/ExpenseCard.test.tsx[m
+[1mindex cdc79c3..9b71199 100644[m
+[1m--- a/apps/web/src/components/ui/ExpenseCard.test.tsx[m
+[1m+++ b/apps/web/src/components/ui/ExpenseCard.test.tsx[m
+[36m@@ -28,7 +28,7 @@[m [mdescribe("ExpenseCard", () => {[m
+     );[m
+ [m
+     expect(screen.getByText("وقود")).toBeInTheDocument();[m
+[31m-    expect(screen.getByText("$50")).toBeInTheDocument();[m
+[32m+[m[32m    expect(screen.getByText("USD 50")).toBeInTheDocument();[m
+   });[m
+ [m
+   it("renders the associated vehicle when present", () => {[m
+[1mdiff --git a/apps/web/src/components/ui/FormField.tsx b/apps/web/src/components/ui/FormField.tsx[m
+[1mindex 10102db..b1bbd32 100644[m
+[1m--- a/apps/web/src/components/ui/FormField.tsx[m
+[1m+++ b/apps/web/src/components/ui/FormField.tsx[m
+[36m@@ -26,15 +26,15 @@[m [mexport function FormField({[m
+ }: FormFieldProps) {[m
+   return ([m
+     <div className={cn("flex flex-col gap-1.5", className)}>[m
+[31m-      <label htmlFor={htmlFor} className="text-sm font-semibold text-foreground">[m
+[32m+[m[32m      <label htmlFor={htmlFor} className="ui-label font-semibold">[m
+         {label}[m
+[31m-        {required && <span className="text-destructive mr-1">*</span>}[m
+[32m+[m[32m        {required && <span className="ms-1 text-destructive">*</span>}[m
+       </label>[m
+       {children}[m
+       {hint && !error && ([m
+         <p className="text-xs text-muted-foreground">{hint}</p>[m
+       )}[m
+[31m-      {error && <p className="text-xs text-destructive">{error}</p>}[m
+[32m+[m[32m      {error && <p role="alert" className="text-xs text-destructive">{error}</p>}[m
+     </div>[m
+   );[m
+ }[m
+[36m@@ -43,4 +43,4 @@[m [mexport function FormField({[m
+  * Shared input class — import and apply wherever you render a text input inside FormField.[m
+  */[m
+ export const inputClass =[m
+[31m-  "w-full bg-card border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[48px] transition-all";[m
+[32m+[m[32m  "w-full min-h-11 rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50";[m
+[1mdiff --git a/apps/web/src/components/ui/MaintenanceCard.test.tsx b/apps/web/src/components/ui/MaintenanceCard.test.tsx[m
+[1mindex 4db1941..ba20879 100644[m
+[1m--- a/apps/web/src/components/ui/MaintenanceCard.test.tsx[m
+[1m+++ b/apps/web/src/components/ui/MaintenanceCard.test.tsx[m
+[36m@@ -59,7 +59,7 @@[m [mdescribe("MaintenanceCard", () => {[m
+       {},[m
+       true,[m
+     );[m
+[31m-    expect(screen.getByText("$150")).toBeInTheDocument();[m
+[32m+[m[32m    expect(screen.getByText("USD 150")).toBeInTheDocument();[m
+     expect(screen.getByText("ورشة النور")).toBeInTheDocument();[m
+   });[m
+ [m
+[1mdiff --git a/apps/web/src/components/ui/MaintenanceCard.tsx b/apps/web/src/components/ui/MaintenanceCard.tsx[m
+[1mindex c5a401d..fed913e 100644[m
+[1m--- a/apps/web/src/components/ui/MaintenanceCard.tsx[m
+[1m+++ b/apps/web/src/components/ui/MaintenanceCard.tsx[m
+[36m@@ -10,8 +10,9 @@[m [mimport {[m
+ } from "lucide-react";[m
+ import { cn } from "@/lib/utils";[m
+ import { formatCurrency, formatDateAr } from "@/lib/format";[m
+[31m-import { MAINTENANCE_TYPES, MAINTENANCE_STATUS_LABELS } from "@/lib/labels";[m
+[32m+[m[32mimport { MAINTENANCE_TYPES } from "@/lib/labels";[m
+ import type { MaintenanceResponse } from "@workspace/api-client-react";[m
+[32m+[m[32mimport { StatusBadge } from "./StatusBadge";[m
+ [m
+ // ── Status colours (derived display state) ───────────────────────────────────[m
+ [m
+[36m@@ -169,9 +170,7 @@[m [mexport function MaintenanceCard({[m
+ [m
+           {/* Status */}[m
+           <div className="flex items-center justify-between">[m
+[31m-            <span className={cn("text-xs font-semibold px-2.5 py-0.5 rounded-full", styles.badge)}>[m
+[31m-              {MAINTENANCE_STATUS_LABELS[record.status] ?? record.status}[m
+[31m-            </span>[m
+[32m+[m[32m            <StatusBadge status={record.status} />[m
+             <span className="text-sm text-muted-foreground">الحالة</span>[m
+           </div>[m
+ [m
+[1mdiff --git a/apps/web/src/components/ui/PaymentSection.test.tsx b/apps/web/src/components/ui/PaymentSection.test.tsx[m
+[1mindex 72dd5d4..0112116 100644[m
+[1m--- a/apps/web/src/components/ui/PaymentSection.test.tsx[m
+[1m+++ b/apps/web/src/components/ui/PaymentSection.test.tsx[m
+[36m@@ -109,7 +109,7 @@[m [mdescribe("PaymentSection", () => {[m
+     render(<PaymentSection rentalId="r1" />);[m
+ [m
+     expect(screen.getByText("الرصيد المتبقي")).toBeInTheDocument();[m
+[31m-    expect(screen.getByText("$120")).toBeInTheDocument();[m
+[32m+[m[32m    expect(screen.getByText("USD 120")).toBeInTheDocument();[m
+     expect(screen.getByText("لا توجد مدفوعات مسجّلة بعد")).toBeInTheDocument();[m
+   });[m
+ [m
+[36m@@ -124,8 +124,8 @@[m [mdescribe("PaymentSection", () => {[m
+ [m
+     render(<PaymentSection rentalId="r1" />);[m
+ [m
+[31m-    expect(screen.getByText("$50")).toBeInTheDocument();[m
+[31m-    expect(screen.getByText("$70")).toBeInTheDocument();[m
+[32m+[m[32m    expect(screen.getByText("USD 50")).toBeInTheDocument();[m
+[32m+[m[32m    expect(screen.getByText("USD 70")).toBeInTheDocument();[m
+     expect(screen.getAllByText("نقداً")).toHaveLength(1);[m
+     expect(screen.getByText("تحويل بنكي")).toBeInTheDocument();[m
+   });[m
+[1mdiff --git a/apps/web/src/components/ui/RentalCard.tsx b/apps/web/src/components/ui/RentalCard.tsx[m
+[1mindex 5d13a6c..7004bcd 100644[m
+[1m--- a/apps/web/src/components/ui/RentalCard.tsx[m
+[1m+++ b/apps/web/src/components/ui/RentalCard.tsx[m
+[36m@@ -1,7 +1,7 @@[m
+ import { Car, Calendar, ChevronLeft } from "lucide-react";[m
+ import { cn } from "@/lib/utils";[m
+ import { formatCurrency, formatDateShort } from "@/lib/format";[m
+[31m-import { RENTAL_STATUS_LABELS } from "@/lib/rental-labels";[m
+[32m+[m[32mimport { StatusBadge } from "./StatusBadge";[m
+ import type { RentalResponse } from "@workspace/api-client-react";[m
+ [m
+ interface RentalCardProps {[m
+[36m@@ -13,13 +13,6 @@[m [minterface RentalCardProps {[m
+   className?: string;[m
+ }[m
+ [m
+[31m-const statusBadgeClass: Record<RentalResponse["status"], string> = {[m
+[31m-  RESERVED: "bg-[hsl(var(--status-maintenance-bg))] text-[hsl(var(--status-maintenance))]",[m
+[31m-  ACTIVE: "bg-[hsl(var(--status-rented-bg))] text-[hsl(var(--status-rented))]",[m
+[31m-  RETURNED: "bg-[hsl(var(--status-available-bg))] text-[hsl(var(--status-available))]",[m
+[31m-  CANCELLED: "bg-[hsl(var(--status-danger-bg))] text-[hsl(var(--status-danger))]",[m
+[31m-};[m
+[31m-[m
+ export function RentalCard({[m
+   rental,[m
+   customerName,[m
+[36m@@ -39,14 +32,7 @@[m [mexport function RentalCard({[m
+     >[m
+       {/* Row 1: Status badge (right) + Customer name (left) */}[m
+       <div className="flex items-center justify-between mb-2">[m
+[31m-        <span[m
+[31m-          className={cn([m
+[31m-            "text-xs font-semibold px-2.5 py-0.5 rounded-full",[m
+[31m-            statusBadgeClass[rental.status][m
+[31m-          )}[m
+[31m-        >[m
+[31m-          {RENTAL_STATUS_LABELS[rental.status]}[m
+[31m-        </span>[m
+[32m+[m[32m        <StatusBadge status={rental.status} />[m
+         <span className="text-base font-bold text-foreground">{customerName}</span>[m
+       </div>[m
+ [m
+[1mdiff --git a/apps/web/src/components/ui/StatusBadge.test.tsx b/apps/web/src/components/ui/StatusBadge.test.tsx[m
+[1mindex 2445270..3870434 100644[m
+[1m--- a/apps/web/src/components/ui/StatusBadge.test.tsx[m
+[1m+++ b/apps/web/src/components/ui/StatusBadge.test.tsx[m
+[36m@@ -15,15 +15,31 @@[m [mdescribe("StatusBadge status mapping", () => {[m
+     );[m
+     expect(screen.getByText("متاحة")).toBeInTheDocument();[m
+     expect(screen.getByText("مؤجرة")).toBeInTheDocument();[m
+[31m-    expect(screen.getByText("صيانة")).toBeInTheDocument();[m
+[32m+[m[32m    expect(screen.getByText("في الصيانة")).toBeInTheDocument();[m
+     expect(screen.getByText("قادمة")).toBeInTheDocument();[m
+     expect(screen.getByText("متأخرة")).toBeInTheDocument();[m
+   });[m
+ [m
+[31m-  it("styles upcoming with the maintenance (amber) token, not the rented (blue) token", () => {[m
+[32m+[m[32m  it("styles upcoming with the shared warning token, not the information token", () => {[m
+     render(<StatusBadge status="upcoming" />);[m
+     const badge = screen.getByText("قادمة");[m
+[31m-    expect(badge.className).toContain("status-maintenance-bg");[m
+[31m-    expect(badge.className).not.toContain("status-rented-bg");[m
+[32m+[m[32m    expect(badge.className).toContain("status-warning-bg");[m
+[32m+[m[32m    expect(badge.className).not.toContain("status-info-bg");[m
+[32m+[m[32m  });[m
+[32m+[m
+[32m+[m[32m  it("uses the approved light semantic treatment for vehicle statuses", () => {[m
+[32m+[m[32m    render([m
+[32m+[m[32m      <>[m
+[32m+[m[32m        <StatusBadge status="AVAILABLE" />[m
+[32m+[m[32m        <StatusBadge status="RENTED" />[m
+[32m+[m[32m        <StatusBadge status="MAINTENANCE" />[m
+[32m+[m[32m        <StatusBadge status="OUT_OF_SERVICE" />[m
+[32m+[m[32m      </>,[m
+[32m+[m[32m    );[m
+[32m+[m
+[32m+[m[32m    expect(screen.getByText("متاحة").className).toContain("status-positive-bg");[m
+[32m+[m[32m    expect(screen.getByText("مؤجرة").className).toContain("status-info-bg");[m
+[32m+[m[32m    expect(screen.getByText("في الصيانة").className).toContain("status-warning-bg");[m
+[32m+[m[32m    expect(screen.getByText("خارج الخدمة").className).toContain("status-danger-bg");[m
+   });[m
+ });[m
+[1mdiff --git a/apps/web/src/components/ui/StatusBadge.tsx b/apps/web/src/components/ui/StatusBadge.tsx[m
+[1mindex 9f38da7..e59005f 100644[m
+[1m--- a/apps/web/src/components/ui/StatusBadge.tsx[m
+[1m+++ b/apps/web/src/components/ui/StatusBadge.tsx[m
+[36m@@ -1,35 +1,86 @@[m
+ import { cn } from "@/lib/utils";[m
+[31m-import { VEHICLE_STATUS_LABELS } from "@/lib/labels";[m
+[32m+[m[32mimport { VEHICLE_STATUS_LABELS } from "@/lib/vehicle-labels";[m
+ [m
+[31m-type StatusType = "available" | "rented" | "maintenance" | "completed" | "upcoming" | "overdue";[m
+[32m+[m[32mexport type StatusTone = "positive" | "info" | "warning" | "danger" | "neutral";[m
+[32m+[m
+[32m+[m[32mexport type StatusType =[m
+[32m+[m[32m  | "available"[m
+[32m+[m[32m  | "rented"[m
+[32m+[m[32m  | "maintenance"[m
+[32m+[m[32m  | "completed"[m
+[32m+[m[32m  | "upcoming"[m
+[32m+[m[32m  | "overdue"[m
+[32m+[m[32m  | "AVAILABLE"[m
+[32m+[m[32m  | "RESERVED"[m
+[32m+[m[32m  | "RENTED"[m
+[32m+[m[32m  | "MAINTENANCE"[m
+[32m+[m[32m  | "OUT_OF_SERVICE"[m
+[32m+[m[32m  | "ARCHIVED"[m
+[32m+[m[32m  | "ACTIVE"[m
+[32m+[m[32m  | "RETURNED"[m
+[32m+[m[32m  | "CANCELLED"[m
+[32m+[m[32m  | "SCHEDULED"[m
+[32m+[m[32m  | "IN_PROGRESS"[m
+[32m+[m[32m  | "COMPLETED"[m
+[32m+[m[32m  | "PENDING"[m
+[32m+[m[32m  | "PAID"[m
+[32m+[m[32m  | "PARTIAL"[m
+[32m+[m[32m  | "OUTSTANDING"[m
+[32m+[m[32m  | "OVERDUE";[m
+ [m
+ interface StatusBadgeProps {[m
+   status: StatusType;[m
+[32m+[m[32m  label?: string;[m
+   className?: string;[m
+ }[m
+ [m
+[31m-const statusMap: Record<StatusType, { label: string; bgClass: string; textClass: string }> = {[m
+[31m-  available: { label: VEHICLE_STATUS_LABELS.available, bgClass: "bg-[hsl(var(--status-available-bg))]", textClass: "text-[hsl(var(--status-available))]" },[m
+[31m-  rented: { label: VEHICLE_STATUS_LABELS.rented, bgClass: "bg-[hsl(var(--status-rented-bg))]", textClass: "text-[hsl(var(--status-rented))]" },[m
+[31m-  maintenance: { label: VEHICLE_STATUS_LABELS.maintenance, bgClass: "bg-[hsl(var(--status-maintenance-bg))]", textClass: "text-[hsl(var(--status-maintenance))]" },[m
+[31m-  completed: { label: "مكتملة", bgClass: "bg-[hsl(var(--status-available-bg))]", textClass: "text-[hsl(var(--status-available))]" },[m
+[31m-  upcoming: { label: "قادمة", bgClass: "bg-[hsl(var(--status-maintenance-bg))]", textClass: "text-[hsl(var(--status-maintenance))]" },[m
+[31m-  overdue: { label: "متأخرة", bgClass: "bg-[hsl(var(--status-danger-bg))]", textClass: "text-[hsl(var(--status-danger))]" },[m
+[32m+[m[32mconst toneClass: Record<StatusTone, string> = {[m
+[32m+[m[32m  positive: "border-status-positive/25 bg-status-positive-bg text-status-positive",[m
+[32m+[m[32m  info: "border-status-info/25 bg-status-info-bg text-status-info",[m
+[32m+[m[32m  warning: "border-status-warning/25 bg-status-warning-bg text-status-warning",[m
+[32m+[m[32m  danger: "border-status-danger/25 bg-status-danger-bg text-status-danger",[m
+[32m+[m[32m  neutral: "border-status-neutral/20 bg-status-neutral-bg text-status-neutral",[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32mconst statusMap: Record<StatusType, { label: string; tone: StatusTone }> = {[m
+[32m+[m[32m  available: { label: "متاحة", tone: "positive" },[m
+[32m+[m[32m  rented: { label: "مؤجرة", tone: "info" },[m
+[32m+[m[32m  maintenance: { label: "في الصيانة", tone: "warning" },[m
+[32m+[m[32m  completed: { label: "مكتملة", tone: "positive" },[m
+[32m+[m[32m  upcoming: { label: "قادمة", tone: "warning" },[m
+[32m+[m[32m  overdue: { label: "متأخرة", tone: "danger" },[m
+[32m+[m[32m  AVAILABLE: { label: VEHICLE_STATUS_LABELS.AVAILABLE, tone: "positive" },[m
+[32m+[m[32m  RESERVED: { label: "محجوز", tone: "info" },[m
+[32m+[m[32m  RENTED: { label: VEHICLE_STATUS_LABELS.RENTED, tone: "info" },[m
+[32m+[m[32m  MAINTENANCE: { label: VEHICLE_STATUS_LABELS.MAINTENANCE, tone: "warning" },[m
+[32m+[m[32m  OUT_OF_SERVICE: { label: VEHICLE_STATUS_LABELS.OUT_OF_SERVICE, tone: "danger" },[m
+[32m+[m[32m  ARCHIVED: { label: VEHICLE_STATUS_LABELS.ARCHIVED, tone: "neutral" },[m
+[32m+[m[32m  ACTIVE: { label: "نشط", tone: "info" },[m
+[32m+[m[32m  RETURNED: { label: "مُعاد", tone: "positive" },[m
+[32m+[m[32m  CANCELLED: { label: "ملغي", tone: "danger" },[m
+[32m+[m[32m  SCHEDULED: { label: "مجدولة", tone: "warning" },[m
+[32m+[m[32m  IN_PROGRESS: { label: "قيد التنفيذ", tone: "info" },[m
+[32m+[m[32m  COMPLETED: { label: "مكتملة", tone: "positive" },[m
+[32m+[m[32m  PENDING: { label: "قيد الانتظار", tone: "warning" },[m
+[32m+[m[32m  PAID: { label: "مدفوع بالكامل", tone: "positive" },[m
+[32m+[m[32m  PARTIAL: { label: "دفعة جزئية", tone: "warning" },[m
+[32m+[m[32m  OUTSTANDING: { label: "رصيد مستحق", tone: "danger" },[m
+[32m+[m[32m  OVERDUE: { label: "متأخر", tone: "danger" },[m
+ };[m
+ [m
+[31m-export function StatusBadge({ status, className }: StatusBadgeProps) {[m
+[32m+[m[32mexport function StatusBadge({ status, label, className }: StatusBadgeProps) {[m
+   const config = statusMap[status];[m
+ [m
+   return ([m
+[31m-    <span [m
+[32m+[m[32m    <span[m
+[32m+[m[32m      data-status={status}[m
+       className={cn([m
+[31m-        "inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap",[m
+[31m-        config.bgClass,[m
+[31m-        config.textClass,[m
+[32m+[m[32m        "ui-badge-text inline-flex min-h-6 shrink-0 items-center justify-center rounded-md border px-2 py-0.5 whitespace-nowrap",[m
+[32m+[m[32m        toneClass[config.tone],[m
+         className[m
+       )}[m
+     >[m
+[31m-      {config.label}[m
+[32m+[m[32m      {label ?? config.label}[m
+     </span>[m
+   );[m
+ }[m
+[1mdiff --git a/apps/web/src/components/ui/TaskCard.tsx b/apps/web/src/components/ui/TaskCard.tsx[m
+[1mindex 6934ca2..371a312 100644[m
+[1m--- a/apps/web/src/components/ui/TaskCard.tsx[m
+[1m+++ b/apps/web/src/components/ui/TaskCard.tsx[m
+[36m@@ -7,9 +7,9 @@[m [mimport {[m
+ } from "lucide-react";[m
+ import { cn } from "@/lib/utils";[m
+ import { formatDateAr } from "@/lib/format";[m
+[31m-import { TASK_STATUS_LABELS } from "@/lib/labels";[m
+ import { isTaskOverdue } from "@/features/tasks/selectors";[m
+ import type { TaskResponse } from "@workspace/api-client-react";[m
+[32m+[m[32mimport { StatusBadge } from "./StatusBadge";[m
+ [m
+ const PENDING_STYLES = {[m
+   iconBg: "bg-[hsl(var(--status-maintenance-bg))]",[m
+[36m@@ -65,14 +65,7 @@[m [mexport function TaskCard({ task, onClick }: TaskCardProps) {[m
+           <span className="text-sm font-bold text-foreground truncate">[m
+             {task.notes ? task.notes : "مهمة بدون ملاحظات"}[m
+           </span>[m
+[31m-          <span[m
+[31m-            className={cn([m
+[31m-              "text-xs font-semibold px-2.5 py-0.5 rounded-full flex-shrink-0",[m
+[31m-              styles.badge,[m
+[31m-            )}[m
+[31m-          >[m
+[31m-            {TASK_STATUS_LABELS[task.status] ?? task.status}[m
+[31m-          </span>[m
+[32m+[m[32m          <StatusBadge status={overdue ? "OVERDUE" : task.status} />[m
+         </div>[m
+ [m
+         <div className="flex items-center justify-between gap-2">[m
+[1mdiff --git a/apps/web/src/components/ui/VehicleStatusBadge.tsx b/apps/web/src/components/ui/VehicleStatusBadge.tsx[m
+[1mindex 84aef60..4405b25 100644[m
+[1m--- a/apps/web/src/components/ui/VehicleStatusBadge.tsx[m
+[1m+++ b/apps/web/src/components/ui/VehicleStatusBadge.tsx[m
+[36m@@ -1,34 +1,11 @@[m
+[31m-import { cn } from "@/lib/utils";[m
+ import type { VehicleResponseStatus } from "@workspace/api-client-react";[m
+[31m-import { VEHICLE_STATUS_LABELS } from "@/lib/vehicle-labels";[m
+[32m+[m[32mimport { StatusBadge } from "./StatusBadge";[m
+ [m
+ interface VehicleStatusBadgeProps {[m
+   status: VehicleResponseStatus;[m
+   className?: string;[m
+ }[m
+ [m
+[31m-const statusMap: Record<VehicleResponseStatus, { bgClass: string; textClass: string }> = {[m
+[31m-  AVAILABLE: { bgClass: "bg-[hsl(var(--status-available-bg))]", textClass: "text-[hsl(var(--status-available))]" },[m
+[31m-  RENTED: { bgClass: "bg-[hsl(var(--status-rented-bg))]", textClass: "text-[hsl(var(--status-rented))]" },[m
+[31m-  MAINTENANCE: { bgClass: "bg-[hsl(var(--status-maintenance-bg))]", textClass: "text-[hsl(var(--status-maintenance))]" },[m
+[31m-  RESERVED: { bgClass: "bg-[hsl(var(--status-rented-bg))]", textClass: "text-[hsl(var(--status-rented))]" },[m
+[31m-  OUT_OF_SERVICE: { bgClass: "bg-[hsl(var(--status-danger-bg))]", textClass: "text-[hsl(var(--status-danger))]" },[m
+[31m-  ARCHIVED: { bgClass: "bg-[hsl(var(--status-maintenance-bg))]", textClass: "text-[hsl(var(--status-maintenance))]" },[m
+[31m-};[m
+[31m-[m
+ export function VehicleStatusBadge({ status, className }: VehicleStatusBadgeProps) {[m
+[31m-  const config = statusMap[status] ?? statusMap.AVAILABLE;[m
+[31m-[m
+[31m-  return ([m
+[31m-    <span[m
+[31m-      className={cn([m
+[31m-        "inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap",[m
+[31m-        config.bgClass,[m
+[31m-        config.textClass,[m
+[31m-        className,[m
+[31m-      )}[m
+[31m-    >[m
+[31m-      {VEHICLE_STATUS_LABELS[status]}[m
+[31m-    </span>[m
+[31m-  );[m
+[32m+[m[32m  return <StatusBadge status={status} className={className} />;[m
+ }[m
+[1mdiff --git a/apps/web/src/components/ui/button.tsx b/apps/web/src/components/ui/button.tsx[m
+[1mindex cd03428..725284d 100644[m
+[1m--- a/apps/web/src/components/ui/button.tsx[m
+[1m+++ b/apps/web/src/components/ui/button.tsx[m
+[36m@@ -4,7 +4,7 @@[m [mimport { cn } from '@/lib/utils';[m
+ import { cva, type VariantProps } from 'class-variance-authority';[m
+ [m
+ const buttonVariants = cva([m
+[31m-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0' +[m
+[32m+[m[32m  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0' +[m
+     ' hover-elevate active-elevate-2',[m
+   {[m
+     variants: {[m
+[36m@@ -28,10 +28,10 @@[m [mconst buttonVariants = cva([m
+       },[m
+       size: {[m
+         // Custom sizes[m
+[31m-        default: 'min-h-9 px-4 py-2',[m
+[31m-        sm: 'min-h-8 rounded-md px-3 text-xs',[m
+[31m-        lg: 'min-h-10 rounded-md px-8',[m
+[31m-        icon: 'h-9 w-9',[m
+[32m+[m[32m        default: 'min-h-10 px-4 py-2',[m
+[32m+[m[32m        sm: 'min-h-9 px-3 text-xs',[m
+[32m+[m[32m        lg: 'min-h-11 px-6',[m
+[32m+[m[32m        icon: 'size-10',[m
+       },[m
+     },[m
+     defaultVariants: {[m
+[1mdiff --git a/apps/web/src/components/ui/card.tsx b/apps/web/src/components/ui/card.tsx[m
+[1mindex bc1c974..c4a8bd5 100644[m
+[1m--- a/apps/web/src/components/ui/card.tsx[m
+[1m+++ b/apps/web/src/components/ui/card.tsx[m
+[36m@@ -8,7 +8,7 @@[m [mconst Card = React.forwardRef<[m
+   <div[m
+     ref={ref}[m
+     className={cn([m
+[31m-      'rounded-xl border bg-card text-card-foreground shadow',[m
+[32m+[m[32m      'rounded-xl border border-card-border bg-card text-card-foreground shadow-sm',[m
+       className,[m
+     )}[m
+     {...props}[m
+[1mdiff --git a/apps/web/src/components/ui/input.tsx b/apps/web/src/components/ui/input.tsx[m
+[1mindex e1b9850..306358d 100644[m
+[1m--- a/apps/web/src/components/ui/input.tsx[m
+[1m+++ b/apps/web/src/components/ui/input.tsx[m
+[36m@@ -7,7 +7,7 @@[m [mconst Input = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>([m
+       <input[m
+         type={type}[m
+         className={cn([m
+[31m-          'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',[m
+[32m+[m[32m          'flex min-h-11 w-full rounded-lg border border-input bg-card px-3 py-2 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',[m
+           className,[m
+         )}[m
+         ref={ref}[m
+[1mdiff --git a/apps/web/src/components/ui/table.tsx b/apps/web/src/components/ui/table.tsx[m
+[1mindex bcdac4a..89b6571 100644[m
+[1m--- a/apps/web/src/components/ui/table.tsx[m
+[1m+++ b/apps/web/src/components/ui/table.tsx[m
+[36m@@ -5,7 +5,7 @@[m [mconst Table = React.forwardRef<[m
+   HTMLTableElement,[m
+   React.HTMLAttributes<HTMLTableElement>[m
+ >(({ className, ...props }, ref) => ([m
+[31m-  <div className="relative w-full overflow-auto">[m
+[32m+[m[32m  <div className="relative w-full overflow-x-auto">[m
+     <table[m
+       ref={ref}[m
+       className={cn('w-full caption-bottom text-sm', className)}[m
+[36m@@ -72,7 +72,7 @@[m [mconst TableHead = React.forwardRef<[m
+   <th[m
+     ref={ref}[m
+     className={cn([m
+[31m-      'h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',[m
+[32m+[m[32m      'h-11 px-4 text-start align-middle text-xs font-semibold text-muted-foreground [&:has([role=checkbox])]:pe-0 [&>[role=checkbox]]:translate-y-[2px]',[m
+       className,[m
+     )}[m
+     {...props}[m
+[36m@@ -87,7 +87,7 @@[m [mconst TableCell = React.forwardRef<[m
+   <td[m
+     ref={ref}[m
+     className={cn([m
+[31m-      'p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',[m
+[32m+[m[32m      'px-4 py-3 align-middle text-sm [&:has([role=checkbox])]:pe-0 [&>[role=checkbox]]:translate-y-[2px]',[m
+       className,[m
+     )}[m
+     {...props}[m
+[1mdiff --git a/apps/web/src/index.css b/apps/web/src/index.css[m
+[1mindex dbaa662..479e13f 100644[m
+[1m--- a/apps/web/src/index.css[m
+[1m+++ b/apps/web/src/index.css[m
+[36m@@ -37,6 +37,17 @@[m
+   --color-destructive-foreground: hsl(var(--destructive-foreground));[m
+   --color-destructive-border: var(--destructive-border);[m
+ [m
+[32m+[m[32m  --color-status-positive: hsl(var(--status-positive));[m
+[32m+[m[32m  --color-status-positive-bg: hsl(var(--status-positive-bg));[m
+[32m+[m[32m  --color-status-info: hsl(var(--status-info));[m
+[32m+[m[32m  --color-status-info-bg: hsl(var(--status-info-bg));[m
+[32m+[m[32m  --color-status-warning: hsl(var(--status-warning));[m
+[32m+[m[32m  --color-status-warning-bg: hsl(var(--status-warning-bg));[m
+[32m+[m[32m  --color-status-danger: hsl(var(--status-danger));[m
+[32m+[m[32m  --color-status-danger-bg: hsl(var(--status-danger-bg));[m
+[32m+[m[32m  --color-status-neutral: hsl(var(--status-neutral));[m
+[32m+[m[32m  --color-status-neutral-bg: hsl(var(--status-neutral-bg));[m
+[32m+[m
+   --color-sidebar: hsl(var(--sidebar));[m
+   --color-sidebar-foreground: hsl(var(--sidebar-foreground));[m
+   --color-sidebar-border: hsl(var(--sidebar-border));[m
+[36m@@ -66,55 +77,65 @@[m
+   --elevate-1: rgba(0, 0, 0, 0.03);[m
+   --elevate-2: rgba(0, 0, 0, 0.08);[m
+ [m
+[31m-  --background: 210 20% 98%;[m
+[31m-  --foreground: 220 15% 20%;[m
+[31m-  --border: 220 13% 91%;[m
+[32m+[m[32m  --background: 220 20% 98%;[m
+[32m+[m[32m  --foreground: 222 47% 11%;[m
+[32m+[m[32m  --border: 220 16% 90%;[m
+   --card: 0 0% 100%;[m
+[31m-  --card-foreground: 220 15% 20%;[m
+[31m-  --card-border: 220 13% 91%;[m
+[31m-  --sidebar: 0 0% 100%;[m
+[31m-  --sidebar-foreground: 220 15% 20%;[m
+[31m-  --sidebar-border: 220 13% 91%;[m
+[31m-  --sidebar-primary: 199 89% 38%;[m
+[31m-  --sidebar-primary-foreground: 0 0% 100%;[m
+[31m-  --sidebar-accent: 199 30% 94%;[m
+[31m-  --sidebar-accent-foreground: 199 89% 28%;[m
+[31m-  --sidebar-ring: 199 89% 38%;[m
+[32m+[m[32m  --card-foreground: 222 47% 11%;[m
+[32m+[m[32m  --card-border: 220 16% 90%;[m
+[32m+[m[32m  --sidebar: 220 47% 27%;[m
+[32m+[m[32m  --sidebar-foreground: 214 100% 96%;[m
+[32m+[m[32m  --sidebar-border: 219 39% 35%;[m
+[32m+[m[32m  --sidebar-primary: 0 0% 100%;[m
+[32m+[m[32m  --sidebar-primary-foreground: 221 83% 53%;[m
+[32m+[m[32m  --sidebar-accent: 220 39% 38%;[m
+[32m+[m[32m  --sidebar-accent-foreground: 0 0% 100%;[m
+[32m+[m[32m  --sidebar-ring: 213 94% 68%;[m
+   --popover: 0 0% 100%;[m
+[31m-  --popover-foreground: 220 15% 20%;[m
+[31m-  --popover-border: 220 13% 91%;[m
+[31m-  --primary: 199 89% 38%;[m
+[32m+[m[32m  --popover-foreground: 222 47% 11%;[m
+[32m+[m[32m  --popover-border: 220 16% 90%;[m
+[32m+[m[32m  --primary: 221 83% 53%;[m
+   --primary-foreground: 0 0% 100%;[m
+[31m-  --secondary: 199 30% 94%;[m
+[31m-  --secondary-foreground: 199 89% 28%;[m
+[31m-  --muted: 220 14% 96%;[m
+[31m-  --muted-foreground: 220 10% 46%;[m
+[31m-  --accent: 199 30% 94%;[m
+[31m-  --accent-foreground: 199 89% 28%;[m
+[31m-  --destructive: 0 84% 50%;[m
+[32m+[m[32m  --secondary: 214 95% 96%;[m
+[32m+[m[32m  --secondary-foreground: 221 83% 35%;[m
+[32m+[m[32m  --muted: 220 18% 96%;[m
+[32m+[m[32m  --muted-foreground: 215 16% 47%;[m
+[32m+[m[32m  --accent: 214 95% 96%;[m
+[32m+[m[32m  --accent-foreground: 221 83% 35%;[m
+[32m+[m[32m  --destructive: 0 72% 51%;[m
+   --destructive-foreground: 0 0% 100%;[m
+[31m-  --input: 220 13% 91%;[m
+[31m-  --ring: 199 89% 38%;[m
+[32m+[m[32m  --input: 220 16% 86%;[m
+[32m+[m[32m  --ring: 221 83% 53%;[m
+   [m
+[31m-  --status-available: 142 76% 36%;[m
+[31m-  --status-available-bg: 142 76% 94%;[m
+[31m-  --status-rented: 199 89% 38%;[m
+[31m-  --status-rented-bg: 199 89% 94%;[m
+[31m-  --status-maintenance: 38 92% 45%;[m
+[31m-  --status-maintenance-bg: 38 92% 94%;[m
+[31m-  --status-danger: 0 84% 50%;[m
+[31m-  --status-danger-bg: 0 84% 95%;[m
+[31m-[m
+[31m-  --app-font-sans: 'Cairo', sans-serif;[m
+[32m+[m[32m  --status-positive: 142 61% 30%;[m
+[32m+[m[32m  --status-positive-bg: 138 76% 96%;[m
+[32m+[m[32m  --status-info: 221 83% 42%;[m
+[32m+[m[32m  --status-info-bg: 214 95% 96%;[m
+[32m+[m[32m  --status-warning: 32 87% 35%;[m
+[32m+[m[32m  --status-warning-bg: 48 100% 95%;[m
+[32m+[m[32m  --status-danger: 0 72% 43%;[m
+[32m+[m[32m  --status-danger-bg: 0 86% 97%;[m
+[32m+[m[32m  --status-neutral: 215 16% 36%;[m
+[32m+[m[32m  --status-neutral-bg: 220 14% 96%;[m
+[32m+[m
+[32m+[m[32m  /* Compatibility aliases for existing screens. New UI should use the semantic tokens above. */[m
+[32m+[m[32m  --status-available: var(--status-positive);[m
+[32m+[m[32m  --status-available-bg: var(--status-positive-bg);[m
+[32m+[m[32m  --status-rented: var(--status-info);[m
+[32m+[m[32m  --status-rented-bg: var(--status-info-bg);[m
+[32m+[m[32m  --status-maintenance: var(--status-warning);[m
+[32m+[m[32m  --status-maintenance-bg: var(--status-warning-bg);[m
+[32m+[m
+[32m+[m[32m  --app-font-sans: 'IBM Plex Sans Arabic', sans-serif;[m
+   --app-font-serif: Georgia, serif;[m
+   --app-font-mono: Menlo, monospace;[m
+[31m-  --radius: 0.625rem;[m
+[32m+[m[32m  --radius: 0.75rem;[m
+   [m
+   --shadow-2xs: 0 1px 2px 0 rgba(0,0,0,0.05);[m
+   --shadow-xs: 0 1px 2px 0 rgba(0,0,0,0.05);[m
+[31m-  --shadow-sm: 0 1px 3px 0 rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.06);[m
+[31m-  --shadow: 0 2px 8px 0 rgba(0,0,0,0.10), 0 1px 3px -1px rgba(0,0,0,0.08);[m
+[31m-  --shadow-md: 0 4px 16px 0 rgba(0,0,0,0.12), 0 2px 6px -2px rgba(0,0,0,0.08);[m
+[32m+[m[32m  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.06);[m
+[32m+[m[32m  --shadow: 0 2px 6px 0 rgba(15, 23, 42, 0.06), 0 1px 2px 0 rgba(15, 23, 42, 0.04);[m
+[32m+[m[32m  --shadow-md: 0 8px 20px -10px rgba(15, 23, 42, 0.18), 0 2px 6px -3px rgba(15, 23, 42, 0.1);[m
+   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);[m
+   --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);[m
+   --shadow-2xl: 0 25px 50px -12px rgba(0,0,0,0.25);[m
+[36m@@ -138,9 +159,26 @@[m
+   body {[m
+     @apply font-sans antialiased bg-background text-foreground;[m
+   }[m
+[32m+[m
+[32m+[m[32m  :where(button, a, input, select, textarea, [tabindex]):focus-visible {[m
+[32m+[m[32m    outline: 2px solid hsl(var(--ring));[m
+[32m+[m[32m    outline-offset: 2px;[m
+[32m+[m[32m  }[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m@layer components {[m
+[32m+[m[32m  .ui-page-title { @apply text-xl font-bold tracking-tight text-foreground sm:text-2xl; }[m
+[32m+[m[32m  .ui-section-title { @apply text-base font-bold text-foreground; }[m
+[32m+[m[32m  .ui-label { @apply text-sm font-medium text-foreground; }[m
+[32m+[m[32m  .ui-secondary-text { @apply text-sm text-muted-foreground; }[m
+[32m+[m[32m  .ui-kpi-value { @apply text-2xl font-bold tracking-tight text-foreground sm:text-3xl; }[m
+[32m+[m[32m  .ui-table-text { @apply text-sm text-foreground; }[m
+[32m+[m[32m  .ui-button-text { @apply text-sm font-semibold; }[m
+[32m+[m[32m  .ui-badge-text { @apply text-xs font-semibold leading-4; }[m
+ }[m
+ [m
+ @layer utilities {[m
+[32m+[m[32m  .number-ltr { direction: ltr; unicode-bidi: plaintext; }[m
+   input[type='search']::-webkit-search-cancel-button { @apply hidden; }[m
+   [contenteditable][data-placeholder]:empty::before {[m
+     content: attr(data-placeholder);[m
+[36m@@ -203,4 +241,4 @@[m
+   .scrollbar-hide::-webkit-scrollbar {[m
+     display: none;[m
+   }[m
+[31m-}[m
+\ No newline at end of file[m
+[32m+[m[32m}[m
+[1mdiff --git a/apps/web/src/lib/format.test.ts b/apps/web/src/lib/format.test.ts[m
+[1mindex 98113c6..2910531 100644[m
+[1m--- a/apps/web/src/lib/format.test.ts[m
+[1m+++ b/apps/web/src/lib/format.test.ts[m
+[36m@@ -1,36 +1,39 @@[m
+ import { describe, it, expect } from "vitest";[m
+ import {[m
+   formatCurrency,[m
+[32m+[m[32m  formatDate,[m
+   formatDateAr,[m
+   formatDateShort,[m
+[32m+[m[32m  formatDateTime,[m
+   formatInitials,[m
+[32m+[m[32m  formatNumber,[m
+[32m+[m[32m  formatUsd,[m
+ } from "./format";[m
+ [m
+[31m-describe("formatCurrency", () => {[m
+[31m-  it("formats with a dollar sign and thousands grouping", () => {[m
+[31m-    expect(formatCurrency(1500000)).toBe("$1,500,000");[m
+[32m+[m[32mdescribe("money and number formatting", () => {[m
+[32m+[m[32m  it("formats USD amounts with Western numerals and grouping", () => {[m
+[32m+[m[32m    expect(formatCurrency(1500000)).toBe("USD 1,500,000");[m
+[32m+[m[32m    expect(formatUsd(25.5)).toBe("USD 25.5");[m
+   });[m
+ [m
+[31m-  it("formats small amounts without grouping", () => {[m
+[31m-    expect(formatCurrency(50)).toBe("$50");[m
+[32m+[m[32m  it("keeps Western numerals for Arabic RTL presentation", () => {[m
+[32m+[m[32m    expect(formatNumber(1234567.89)).toBe("1,234,567.89");[m
+   });[m
+ });[m
+ [m
+[31m-describe("formatDateAr", () => {[m
+[31m-  it("renders day, Lebanese month name, and year", () => {[m
+[31m-    // 2025-01-15 → كانون الثاني (January)[m
+[31m-    expect(formatDateAr("2025-01-15T12:00:00.000Z")).toBe("15 كانون الثاني 2025");[m
+[32m+[m[32mdescribe("date formatting", () => {[m
+[32m+[m[32m  it("renders a business date as DD-MM-YYYY", () => {[m
+[32m+[m[32m    const date = new Date(2025, 0, 15, 12);[m
+[32m+[m[32m    expect(formatDate(date)).toBe("15-01-2025");[m
+[32m+[m[32m    expect(formatDateAr(date)).toBe("15-01-2025");[m
+   });[m
+ [m
+[31m-  it("uses the correct month for a different month", () => {[m
+[31m-    // 2025-02-... → شباط (February)[m
+[31m-    expect(formatDateAr("2025-02-03T12:00:00.000Z")).toBe("3 شباط 2025");[m
+[32m+[m[32m  it("renders the agreed date and time format", () => {[m
+[32m+[m[32m    expect(formatDateTime(new Date(2025, 1, 3, 13, 5))).toBe("03-02-2025 — 1:05 PM");[m
+   });[m
+[31m-});[m
+ [m
+[31m-describe("formatDateShort", () => {[m
+[31m-  it("omits the year", () => {[m
+[31m-    expect(formatDateShort("2025-01-15T12:00:00.000Z")).toBe("15 كانون الثاني");[m
+[32m+[m[32m  it("keeps compact dates in Western digits", () => {[m
+[32m+[m[32m    expect(formatDateShort(new Date(2025, 0, 15, 12))).toBe("15-01");[m
+   });[m
+ });[m
+ [m
+[1mdiff --git a/apps/web/src/lib/format.ts b/apps/web/src/lib/format.ts[m
+[1mindex 8cb9958..e8dac4f 100644[m
+[1m--- a/apps/web/src/lib/format.ts[m
+[1m+++ b/apps/web/src/lib/format.ts[m
+[36m@@ -3,36 +3,68 @@[m
+  * Import these instead of redefining per-page.[m
+  */[m
+ [m
+[31m-const LEBANESE_MONTHS = [[m
+[31m-  "كانون الثاني",[m
+[31m-  "شباط",[m
+[31m-  "آذار",[m
+[31m-  "نيسان",[m
+[31m-  "أيار",[m
+[31m-  "حزيران",[m
+[31m-  "تموز",[m
+[31m-  "آب",[m
+[31m-  "أيلول",[m
+[31m-  "تشرين الأول",[m
+[31m-  "تشرين الثاني",[m
+[31m-  "كانون الأول",[m
+[31m-];[m
+[31m-[m
+[31m-/** Format a number as dollars: $1,500,000 */[m
+[31m-export function formatCurrency(n: number): string {[m
+[31m-  return "$" + new Intl.NumberFormat("en-US").format(n);[m
+[31m-}[m
+[31m-[m
+[31m-/** Full date with Western numerals and Lebanese month names: 15 كانون الثاني 2025 */[m
+[31m-export function formatDateAr(dateStr: string): string {[m
+[31m-  const d = new Date(dateStr);[m
+[31m-  return `${d.getDate()} ${LEBANESE_MONTHS[d.getMonth()]} ${d.getFullYear()}`;[m
+[31m-}[m
+[31m-[m
+[31m-/** Short date without year: 15 كانون الثاني */[m
+[31m-export function formatDateShort(dateStr: string): string {[m
+[31m-  const d = new Date(dateStr);[m
+[31m-  return `${d.getDate()} ${LEBANESE_MONTHS[d.getMonth()]}`;[m
+[32m+[m[32mtype FormatNumberOptions = Intl.NumberFormatOptions;[m
+[32m+[m
+[32m+[m[32mfunction toDate(value: string | Date): Date {[m
+[32m+[m[32m  return value instanceof Date ? value : new Date(value);[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunction dateParts(value: string | Date): { day: string; month: string; year: string } {[m
+[32m+[m[32m  const date = toDate(value);[m
+[32m+[m[32m  const parts = new Intl.DateTimeFormat("en-GB", {[m
+[32m+[m[32m    day: "2-digit",[m
+[32m+[m[32m    month: "2-digit",[m
+[32m+[m[32m    year: "numeric",[m
+[32m+[m[32m    numberingSystem: "latn",[m
+[32m+[m[32m  }).formatToParts(date);[m
+[32m+[m
+[32m+[m[32m  const part = (type: Intl.DateTimeFormatPartTypes) =>[m
+[32m+[m[32m    parts.find((item) => item.type === type)?.value ?? "";[m
+[32m+[m
+[32m+[m[32m  return { day: part("day"), month: part("month"), year: part("year") };[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m/** Format a number with Western digits for Arabic RTL interfaces. */[m
+[32m+[m[32mexport function formatNumber(value: number, options: FormatNumberOptions = {}): string {[m
+[32m+[m[32m  return new Intl.NumberFormat("en-US", {[m
+[32m+[m[32m    maximumFractionDigits: 2,[m
+[32m+[m[32m    ...options,[m
+[32m+[m[32m  }).format(value);[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m/** Format a USD amount consistently across the product: USD 1,500. */[m
+[32m+[m[32mexport function formatUsd(value: number): string {[m
+[32m+[m[32m  return `USD ${formatNumber(value)}`;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m/** Backwards-compatible shared name used by existing screens. */[m
+[32m+[m[32mexport const formatCurrency = formatUsd;[m
+[32m+[m
+[32m+[m[32m/** Full business date with Western digits: DD-MM-YYYY. */[m
+[32m+[m[32mexport function formatDate(value: string | Date): string {[m
+[32m+[m[32m  const { day, month, year } = dateParts(value);[m
+[32m+[m[32m  return `${day}-${month}-${year}`;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m/** Date and time for activity/history records: DD-MM-YYYY — HH:MM AM/PM. */[m
+[32m+[m[32mexport function formatDateTime(value: string | Date): string {[m
+[32m+[m[32m  const time = new Intl.DateTimeFormat("en-US", {[m
+[32m+[m[32m    hour: "numeric",[m
+[32m+[m[32m    minute: "2-digit",[m
+[32m+[m[32m    hour12: true,[m
+[32m+[m[32m    numberingSystem: "latn",[m
+[32m+[m[32m  }).format(toDate(value));[m
+[32m+[m
+[32m+[m[32m  return `${formatDate(value)} — ${time}`;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m/** Backwards-compatible shared name used by existing Arabic RTL screens. */[m
+[32m+[m[32mexport const formatDateAr = formatDate;[m
+[32m+[m
+[32m+[m[32m/** Compact date for cards and timeline rows: DD-MM. */[m
+[32m+[m[32mexport function formatDateShort(value: string | Date): string {[m
+[32m+[m[32m  const { day, month } = dateParts(value);[m
+[32m+[m[32m  return `${day}-${month}`;[m
+ }[m
+ [m
+ /** Two-letter initials from a name: "أحمد محمد" → "أم" */[m
+[1mdiff --git a/apps/web/src/lib/vehicle-labels.ts b/apps/web/src/lib/vehicle-labels.ts[m
+[1mindex 7905c70..c3cd8cc 100644[m
+[1m--- a/apps/web/src/lib/vehicle-labels.ts[m
+[1m+++ b/apps/web/src/lib/vehicle-labels.ts[m
+[36m@@ -4,7 +4,7 @@[m [mexport const VEHICLE_STATUS_LABELS: Record<VehicleResponseStatus, string> = {[m
+   AVAILABLE: "متاحة",[m
+   RESERVED: "محجوزة",[m
+   RENTED: "مؤجرة",[m
+[31m-  MAINTENANCE: "صيانة",[m
+[32m+[m[32m  MAINTENANCE: "في الصيانة",[m
+   OUT_OF_SERVICE: "خارج الخدمة",[m
+   ARCHIVED: "مؤرشفة",[m
+ };[m
+[36m@@ -14,7 +14,7 @@[m [mexport const VEHICLE_STATUS_FILTER_OPTIONS: { label: string; value: string }[] =[m
+   { label: "متاحة", value: "AVAILABLE" },[m
+   { label: "محجوزة", value: "RESERVED" },[m
+   { label: "مؤجرة", value: "RENTED" },[m
+[31m-  { label: "صيانة", value: "MAINTENANCE" },[m
+[32m+[m[32m  { label: "في الصيانة", value: "MAINTENANCE" },[m
+   { label: "خارج الخدمة", value: "OUT_OF_SERVICE" },[m
+   { label: "مؤرشفة", value: "ARCHIVED" },[m
+ ];[m
+[1mdiff --git a/apps/web/src/pages/DashboardPage.test.tsx b/apps/web/src/pages/DashboardPage.test.tsx[m
+[1mindex ec34fa7..1d99d9f 100644[m
+[1m--- a/apps/web/src/pages/DashboardPage.test.tsx[m
+[1m+++ b/apps/web/src/pages/DashboardPage.test.tsx[m
+[36m@@ -110,7 +110,7 @@[m [mdescribe("DashboardPage tasks surface", () => {[m
+     render(<DashboardPage />);[m
+ [m
+     expect(screen.getByRole("status")).toHaveTextContent("جارٍ تحميل المؤشر");[m
+[31m-    expect(screen.queryByText("$0", { selector: "p" })).not.toBeInTheDocument();[m
+[32m+[m[32m    expect(screen.queryByText("USD 0", { selector: "p" })).not.toBeInTheDocument();[m
+   });[m
+ [m
+   it("shows the pending task count", () => {[m
+[1mdiff --git a/apps/web/src/pages/MaintenanceDetailPage.tsx b/apps/web/src/pages/MaintenanceDetailPage.tsx[m
+[1mindex aa7b437..34a3513 100644[m
+[1m--- a/apps/web/src/pages/MaintenanceDetailPage.tsx[m
+[1m+++ b/apps/web/src/pages/MaintenanceDetailPage.tsx[m
+[36m@@ -7,25 +7,18 @@[m [mimport { InfoRow } from "@/components/ui/InfoRow";[m
+ import { FormField, inputClass } from "@/components/ui/FormField";[m
+ import { Spinner } from "@/components/ui/spinner";[m
+ import { EmptyState } from "@/components/ui/EmptyState";[m
+[31m-import { cn } from "@/lib/utils";[m
+[32m+[m[32mimport { StatusBadge } from "@/components/ui/StatusBadge";[m
+ import { formatCurrency, formatDateAr } from "@/lib/format";[m
+ import { MAINTENANCE_TYPES, MAINTENANCE_STATUS_LABELS } from "@/lib/labels";[m
+ import { getApiErrorMessage } from "@/lib/api-error";[m
+ import { useAuth } from "@/providers/AuthProvider";[m
+ import { useGetVehicle } from "@workspace/api-client-react";[m
+ import { useMaintenanceRecord, useMaintenanceMutations } from "@/features/maintenance/hooks";[m
+[31m-import type { MaintenanceResponse } from "@workspace/api-client-react";[m
+ [m
+ interface DetailPageParams {[m
+   params: { id: string };[m
+ }[m
+ [m
+[31m-const statusBadgeClass: Record<MaintenanceResponse["status"], string> = {[m
+[31m-  SCHEDULED: "bg-[hsl(var(--status-maintenance-bg))] text-[hsl(var(--status-maintenance))]",[m
+[31m-  IN_PROGRESS: "bg-[hsl(var(--status-rented-bg))] text-[hsl(var(--status-rented))]",[m
+[31m-  COMPLETED: "bg-[hsl(var(--status-available-bg))] text-[hsl(var(--status-available))]",[m
+[31m-};[m
+[31m-[m
+ export default function MaintenanceDetailPage({ params }: DetailPageParams) {[m
+   const id = params.id;[m
+   const [, setLocation] = useLocation();[m
+[36m@@ -112,14 +105,7 @@[m [mexport default function MaintenanceDetailPage({ params }: DetailPageParams) {[m
+               <span className="text-base font-bold text-foreground truncate">[m
+                 {typeConfig.label}[m
+               </span>[m
+[31m-              <span[m
+[31m-                className={cn([m
+[31m-                  "text-xs font-semibold px-2.5 py-0.5 rounded-full",[m
+[31m-                  statusBadgeClass[record.status],[m
+[31m-                )}[m
+[31m-              >[m
+[31m-                {MAINTENANCE_STATUS_LABELS[record.status]}[m
+[31m-              </span>[m
+[32m+[m[32m              <StatusBadge status={record.status} />[m
+             </div>[m
+             <div className="text-sm text-muted-foreground mt-0.5">[m
+               {record.id.slice(0, 8)}[m
+[1mdiff --git a/apps/web/src/pages/RentalDetailPage.tsx b/apps/web/src/pages/RentalDetailPage.tsx[m
+[1mindex df50d9b..bb1c3f3 100644[m
+[1m--- a/apps/web/src/pages/RentalDetailPage.tsx[m
+[1m+++ b/apps/web/src/pages/RentalDetailPage.tsx[m
+[36m@@ -19,7 +19,7 @@[m [mimport { Spinner } from "@/components/ui/spinner";[m
+ import { EmptyState } from "@/components/ui/EmptyState";[m
+ import { ContractSection } from "@/components/ui/ContractSection";[m
+ import { PaymentSection } from "@/components/ui/PaymentSection";[m
+[31m-import { RENTAL_STATUS_LABELS } from "@/lib/rental-labels";[m
+[32m+[m[32mimport { StatusBadge } from "@/components/ui/StatusBadge";[m
+ import { formatCurrency, formatDateAr } from "@/lib/format";[m
+ import {[m
+   useGetRental,[m
+[36m@@ -45,13 +45,6 @@[m [minterface Props {[m
+ [m
+ type Action = "pickup" | "return" | "extend" | "cancel";[m
+ [m
+[31m-const statusBadgeClass: Record<string, string> = {[m
+[31m-  RESERVED: "bg-[hsl(var(--status-maintenance-bg))] text-[hsl(var(--status-maintenance))]",[m
+[31m-  ACTIVE: "bg-[hsl(var(--status-rented-bg))] text-[hsl(var(--status-rented))]",[m
+[31m-  RETURNED: "bg-[hsl(var(--status-available-bg))] text-[hsl(var(--status-available))]",[m
+[31m-  CANCELLED: "bg-[hsl(var(--status-danger-bg))] text-[hsl(var(--status-danger))]",[m
+[31m-};[m
+[31m-[m
+ function toDateTimeLocal(d: Date): string {[m
+   const pad = (n: number) => String(n).padStart(2, "0");[m
+   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;[m
+[36m@@ -200,9 +193,7 @@[m [mexport default function RentalDetailPage({ params }: Props) {[m
+       <div className="px-4 pt-4 space-y-4">[m
+         {/* Status banner */}[m
+         <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 flex items-center justify-between">[m
+[31m-          <span className={cn("text-sm font-bold px-3 py-1 rounded-full", statusBadgeClass[rental.status])}>[m
+[31m-            {RENTAL_STATUS_LABELS[rental.status] ?? rental.status}[m
+[31m-          </span>[m
+[32m+[m[32m          <StatusBadge status={rental.status} />[m
+           <span className="text-xs text-muted-foreground">[m
+             #{rental.id.slice(0, 8)}[m
+           </span>[m
+[1mdiff --git a/apps/web/src/pages/ReportsPage.test.tsx b/apps/web/src/pages/ReportsPage.test.tsx[m
+[1mindex 3fc6208..4797efb 100644[m
+[1m--- a/apps/web/src/pages/ReportsPage.test.tsx[m
+[1m+++ b/apps/web/src/pages/ReportsPage.test.tsx[m
+[36m@@ -44,7 +44,7 @@[m [mdescribe("ReportsPage", () => {[m
+     expect(screen.getByText("المصروفات")).toBeInTheDocument();[m
+     expect(screen.getByText("صافي الربح")).toBeInTheDocument();[m
+     expect(screen.getByText("تكلفة الصيانة")).toBeInTheDocument();[m
+[31m-    expect(screen.getAllByText("$0").length).toBeGreaterThanOrEqual(3);[m
+[32m+[m[32m    expect(screen.getAllByText("USD 0").length).toBeGreaterThanOrEqual(3);[m
+   });[m
+ [m
+   it("renders summary cards with computed values from data", () => {[m
+[36m@@ -57,9 +57,9 @@[m [mdescribe("ReportsPage", () => {[m
+       ],[m
+     });[m
+     render(<ReportsPage />);[m
+[31m-    expect(screen.getByText("$100")).toBeInTheDocument();[m
+[31m-    expect(screen.getByText("$40")).toBeInTheDocument();[m
+[31m-    expect(screen.getByText("$60")).toBeInTheDocument(); // net profit[m
+[32m+[m[32m    expect(screen.getByText("USD 100")).toBeInTheDocument();[m
+[32m+[m[32m    expect(screen.getByText("USD 40")).toBeInTheDocument();[m
+[32m+[m[32m    expect(screen.getByText("USD 60")).toBeInTheDocument(); // net profit[m
+   });[m
+ [m
+   it("shows loading state while data is loading", () => {[m
+[1mdiff --git a/apps/web/src/pages/TaskDetailPage.tsx b/apps/web/src/pages/TaskDetailPage.tsx[m
+[1mindex ec9abf3..d50af18 100644[m
+[1m--- a/apps/web/src/pages/TaskDetailPage.tsx[m
+[1m+++ b/apps/web/src/pages/TaskDetailPage.tsx[m
+[36m@@ -5,6 +5,7 @@[m [mimport { PageHeader } from "@/components/layout/PageHeader";[m
+ import { InfoRow } from "@/components/ui/InfoRow";[m
+ import { Spinner } from "@/components/ui/spinner";[m
+ import { EmptyState } from "@/components/ui/EmptyState";[m
+[32m+[m[32mimport { StatusBadge } from "@/components/ui/StatusBadge";[m
+ import { cn } from "@/lib/utils";[m
+ import { formatDateAr } from "@/lib/format";[m
+ import { TASK_STATUS_LABELS } from "@/lib/labels";[m
+[36m@@ -12,17 +13,11 @@[m [mimport { getApiErrorMessage } from "@/lib/api-error";[m
+ import { useAuth } from "@/providers/AuthProvider";[m
+ import { useTask, useTaskMutations } from "@/features/tasks/hooks";[m
+ import { isTaskOverdue } from "@/features/tasks/selectors";[m
+[31m-import type { TaskResponse } from "@workspace/api-client-react";[m
+ [m
+ interface DetailPageParams {[m
+   params: { id: string };[m
+ }[m
+ [m
+[31m-const statusBadgeClass: Record<TaskResponse["status"], string> = {[m
+[31m-  PENDING: "bg-[hsl(var(--status-maintenance-bg))] text-[hsl(var(--status-maintenance))]",[m
+[31m-  COMPLETED: "bg-[hsl(var(--status-available-bg))] text-[hsl(var(--status-available))]",[m
+[31m-};[m
+[31m-[m
+ export default function TaskDetailPage({ params }: DetailPageParams) {[m
+   const id = params.id;[m
+   const { user } = useAuth();[m
+[36m@@ -109,14 +104,7 @@[m [mexport default function TaskDetailPage({ params }: DetailPageParams) {[m
+               <span className="text-base font-bold text-foreground truncate">[m
+                 {task.notes ? task.notes : "مهمة بدون ملاحظات"}[m
+               </span>[m
+[31m-              <span[m
+[31m-                className={cn([m
+[31m-                  "text-xs font-semibold px-2.5 py-0.5 rounded-full",[m
+[31m-                  statusBadgeClass[task.status],[m
+[31m-                )}[m
+[31m-              >[m
+[31m-                {TASK_STATUS_LABELS[task.status] ?? task.status}[m
+[31m-              </span>[m
+[32m+[m[32m              <StatusBadge status={overdue ? "OVERDUE" : task.status} />[m
+             </div>[m
+             <div className="text-sm text-muted-foreground mt-0.5">{task.id.slice(0, 8)}</div>[m
+           </div>[m
+[1mdiff --git a/eslint.config.mjs b/eslint.config.mjs[m
+[1mindex fdce93e..a04482b 100644[m
+[1m--- a/eslint.config.mjs[m
+[1m+++ b/eslint.config.mjs[m
+[36m@@ -7,6 +7,7 @@[m [mexport default tseslint.config([m
+       "**/node_modules/**",[m
+       "**/.tsbuildinfo",[m
+       "**/generated/**",[m
+[32m+[m[32m      "docs/ui-reference/replit-approved-code/frontend-reference/**",[m
+       "**/pnpm-lock.yaml",[m
+       "**/*.mjs",[m
+     ],[m

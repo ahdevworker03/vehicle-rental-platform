@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { BarChart3, Car, ClipboardList, FileText, Home, ReceiptText, Users, Wrench } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { LogoutButton } from "./LogoutButton";
 import {
   Sidebar,
@@ -13,33 +13,33 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import {
+  NAVIGATION_GROUPS,
+  type NavigationItem,
+  isNavigationRouteActive,
+} from "./navigation";
 
-const NAV_ITEMS = [
-  { label: "لوحة التحكم", icon: Home, route: "/" },
-  { label: "المركبات", icon: Car, route: "/vehicles" },
-  { label: "العملاء", icon: Users, route: "/customers" },
-  { label: "الإيجارات", icon: FileText, route: "/rentals" },
-  { label: "الصيانة", icon: Wrench, route: "/maintenance" },
-  { label: "المصاريف", icon: ReceiptText, route: "/expenses" },
-  { label: "المهام", icon: ClipboardList, route: "/tasks" },
-  { label: "التحليلات", icon: BarChart3, route: "/analytics" },
-  { label: "التقارير", icon: FileText, route: "/reports" },
-] as const;
-
-function isActiveRoute(location: string, route: string): boolean {
-  return route === "/" ? location === "/" : location.startsWith(route);
-}
-
-function AppSidebarLink({ item }: { item: (typeof NAV_ITEMS)[number] }) {
+function AppSidebarLink({ item }: { item: NavigationItem }) {
   const [location] = useLocation();
-  const active = isActiveRoute(location, item.route);
+  const active = isNavigationRouteActive(location, item.route);
   const Icon = item.icon;
 
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={active}>
+    <SidebarMenuItem className="relative">
+      {active && (
+        <span
+          className="absolute inset-y-1 end-0 z-10 w-0.5 rounded-full bg-white"
+          aria-hidden="true"
+        />
+      )}
+      <SidebarMenuButton
+        asChild
+        isActive={active}
+        size="lg"
+        className="gap-3 rounded-lg px-3"
+      >
         <Link href={item.route} aria-current={active ? "page" : undefined}>
-          <Icon />
+          <Icon className="size-[18px]" aria-hidden="true" />
           <span>{item.label}</span>
         </Link>
       </SidebarMenuButton>
@@ -54,31 +54,46 @@ function AppSidebarLink({ item }: { item: (typeof NAV_ITEMS)[number] }) {
  */
 export function AppSidebar() {
   return (
-    <Sidebar side="right" collapsible="none" className="hidden lg:flex">
-      <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1">
-          <div className="flex size-8 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-sm font-bold text-white">
-            ن
+    <Sidebar
+      side="right"
+      collapsible="none"
+      className="hidden h-dvh w-64 border-s border-sidebar-border lg:flex"
+    >
+      <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-white/10 text-white">
+            <Building2 className="size-5" aria-hidden="true" />
           </div>
-          <span className="text-sm font-bold text-sidebar-foreground">نظام التأجير</span>
+          <div className="min-w-0 leading-tight">
+            <p className="truncate text-sm font-bold text-white">
+              نظام التأجير
+            </p>
+            <p className="mt-1 truncate text-xs text-sidebar-foreground/65">
+              إدارة تأجير المركبات
+            </p>
+          </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>القائمة الرئيسية</SidebarGroupLabel>
-          <SidebarMenu>
-            {NAV_ITEMS.map((item) => (
-              <AppSidebarLink key={item.route} item={item} />
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+      <SidebarContent className="scrollbar-hide overflow-y-auto px-3 py-4">
+        {NAVIGATION_GROUPS.map((group) => (
+          <SidebarGroup key={group.label} className="mb-4 p-0 last:mb-0">
+            <SidebarGroupLabel className="px-3 pb-2 text-[11px] font-semibold text-sidebar-foreground/55">
+              {group.label}
+            </SidebarGroupLabel>
+            <SidebarMenu>
+              {group.items.map((item) => (
+                <AppSidebarLink key={item.route} item={item} />
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarSeparator />
 
-      <SidebarFooter>
-        <div className="px-2">
+      <SidebarFooter className="p-3">
+        <div>
           <LogoutButton className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" />
         </div>
       </SidebarFooter>
