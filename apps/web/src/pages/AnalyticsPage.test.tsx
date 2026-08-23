@@ -16,24 +16,57 @@ vi.mock("@/features/customers/hooks", () => ({
 }));
 
 vi.mock("@/features/maintenance/hooks", () => ({
-  useMaintenance: vi.fn(() => ({ data: { data: [] }, isLoading: false, isError: false, error: null })),
+  useMaintenance: vi.fn(() => ({
+    data: { data: [] },
+    isLoading: false,
+    isError: false,
+    error: null,
+  })),
 }));
 
 vi.mock("@/features/expenses/hooks", () => ({
-  useExpenses: vi.fn(() => ({ data: { data: [] }, isLoading: false, isError: false, error: null })),
+  useExpenses: vi.fn(() => ({
+    data: { data: [] },
+    isLoading: false,
+    isError: false,
+    error: null,
+  })),
 }));
 
 vi.mock("@/features/payments/hooks", () => ({
-  usePayments: vi.fn(() => ({ data: { data: [] }, payments: [], isLoading: false, isError: false, error: null })),
-  useOrgOutstandingBalances: vi.fn(() => ({ balances: [], rentals: [], isLoading: false, isError: false, error: null })),
+  usePayments: vi.fn(() => ({
+    data: { data: [] },
+    payments: [],
+    isLoading: false,
+    isError: false,
+    error: null,
+  })),
+  useOrgOutstandingBalances: vi.fn(() => ({
+    balances: [],
+    rentals: [],
+    isLoading: false,
+    isError: false,
+    error: null,
+  })),
 }));
 
 vi.mock("@workspace/api-client-react", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@workspace/api-client-react")>();
+  const actual =
+    await importOriginal<typeof import("@workspace/api-client-react")>();
   return {
     ...actual,
-    useListVehicles: vi.fn(() => ({ data: { data: [] }, isLoading: false, isError: false, error: null })),
-    useListCustomers: vi.fn(() => ({ data: { data: [] }, isLoading: false, isError: false, error: null })),
+    useListVehicles: vi.fn(() => ({
+      data: { data: [] },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })),
+    useListCustomers: vi.fn(() => ({
+      data: { data: [] },
+      isLoading: false,
+      isError: false,
+      error: null,
+    })),
   };
 });
 
@@ -42,14 +75,18 @@ describe("AnalyticsPage insights", () => {
     vi.clearAllMocks();
   });
 
-  it("preserves the existing revenue section and renders trend and fleet insight sections", () => {
+  it("renders the financial overview, trend, and vehicle insight sections", () => {
     render(<AnalyticsPage />);
 
-    expect(screen.getAllByText("الإيرادات").length).toBeGreaterThan(0);
+    expect(screen.getByText("إجمالي الإيرادات")).toBeInTheDocument();
     expect(screen.getByText("اتجاه أداء الأعمال 2025")).toBeInTheDocument();
     expect(screen.getByText("رؤى السيارات")).toBeInTheDocument();
-    expect(screen.getByText("لا توجد بيانات أداء لهذه السنة")).toBeInTheDocument();
-    expect(screen.getByText("لا توجد بيانات كافية لرؤى السيارات")).toBeInTheDocument();
+    expect(
+      screen.getByText("لا توجد بيانات أداء لهذه السنة"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("لا توجد بيانات كافية لرؤى السيارات"),
+    ).toBeInTheDocument();
   });
 
   it("updates the trend period when the selected year changes", () => {
@@ -73,7 +110,11 @@ describe("AnalyticsPage insights", () => {
 
     render(<AnalyticsPage />);
 
-    expect(screen.getAllByRole("status").length).toBeGreaterThanOrEqual(2);
-    expect(screen.queryByText("لا توجد بيانات أداء لهذه السنة")).not.toBeInTheDocument();
+    expect(
+      screen.getAllByLabelText("جارٍ تحميل البيانات").length,
+    ).toBeGreaterThanOrEqual(2);
+    expect(
+      screen.queryByText("لا توجد بيانات أداء لهذه السنة"),
+    ).not.toBeInTheDocument();
   });
 });
