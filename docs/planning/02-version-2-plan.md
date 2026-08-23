@@ -276,6 +276,7 @@ Business owners gain visibility into business performance.
 
 Objectives:
 
+- Feature-Based Frontend Architecture Refactoring
 - Offline synchronization
 - Performance optimization
 - Bug fixing

@@ -21,16 +21,39 @@ vi.mock("@/features/rentals/hooks", () => ({
 }));
 
 vi.mock("@/features/maintenance/hooks", () => ({
-  useMaintenance: vi.fn(() => ({ data: { data: [] }, isLoading: false, isError: false, error: null })),
+  useMaintenance: vi.fn(() => ({
+    data: { data: [] },
+    isLoading: false,
+    isError: false,
+    error: null,
+  })),
 }));
 
 vi.mock("@/features/expenses/hooks", () => ({
-  useExpenses: vi.fn(() => ({ data: { data: [] }, isLoading: false, isError: false, error: null })),
+  useExpenses: vi.fn(() => ({
+    data: { data: [] },
+    isLoading: false,
+    isError: false,
+    error: null,
+  })),
 }));
 
 vi.mock("@/features/payments/hooks", () => ({
-  usePayments: vi.fn(() => ({ data: { data: [] }, payments: [], isLoading: false, isError: false, error: null })),
-  useOrgOutstandingBalances: vi.fn(() => ({ balances: [], totalOutstanding: 0, rentals: [], isLoading: false, isError: false, error: null })),
+  usePayments: vi.fn(() => ({
+    data: { data: [] },
+    payments: [],
+    isLoading: false,
+    isError: false,
+    error: null,
+  })),
+  useOrgOutstandingBalances: vi.fn(() => ({
+    balances: [],
+    totalOutstanding: 0,
+    rentals: [],
+    isLoading: false,
+    isError: false,
+    error: null,
+  })),
 }));
 
 vi.mock("@/features/customers/hooks", () => ({
@@ -42,7 +65,8 @@ vi.mock("@/features/tasks/hooks", () => ({
 }));
 
 vi.mock("@workspace/api-client-react", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@workspace/api-client-react")>();
+  const actual =
+    await importOriginal<typeof import("@workspace/api-client-react")>();
   return {
     ...actual,
     useListVehicles: vi.fn(() => ({ data: { data: [] } })),
@@ -67,7 +91,10 @@ function makeTask(overrides: Partial<TaskResponse>): TaskResponse {
   };
 }
 
-function mockTasks(tasks: TaskResponse[], overrides: Partial<ReturnType<typeof useTasks>> = {}) {
+function mockTasks(
+  tasks: TaskResponse[],
+  overrides: Partial<ReturnType<typeof useTasks>> = {},
+) {
   mockedUseTasks.mockReturnValue({
     data: { data: tasks },
     isLoading: false,
@@ -89,16 +116,21 @@ beforeEach(() => {
   } as ReturnType<typeof usePayments>);
 });
 
-describe("DashboardPage tasks surface", () => {
-  it("renders the business performance insight without replacing existing dashboard cards", () => {
+describe("DashboardPage operational dashboard", () => {
+  it("renders the operational, fleet, and financial dashboard sections", () => {
     render(<DashboardPage />);
 
-    expect(screen.getByRole("region", { name: "مؤشر أداء الأعمال" })).toBeInTheDocument();
-    expect(screen.getByText("حالة السيارات")).toBeInTheDocument();
-    expect(screen.getByText("الإجراءات الأساسية")).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "التنبيهات التشغيلية" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("حالة الأسطول")).toBeInTheDocument();
+    expect(screen.getByText("الملخص المالي")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "إعادة مركبة" }),
+    ).toBeInTheDocument();
   });
 
-  it("does not show a misleading insight value while financial data is loading", () => {
+  it("does not show a misleading financial value while data is loading", () => {
     mockedUsePayments.mockReturnValue({
       data: undefined,
       payments: [],
@@ -109,8 +141,10 @@ describe("DashboardPage tasks surface", () => {
 
     render(<DashboardPage />);
 
-    expect(screen.getByRole("status")).toHaveTextContent("جارٍ تحميل المؤشر");
-    expect(screen.queryByText("USD 0", { selector: "p" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("جارٍ تحميل الإيرادات")).toBeInTheDocument();
+    expect(
+      screen.queryByText("USD 0", { selector: "p" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the pending task count", () => {
@@ -121,19 +155,23 @@ describe("DashboardPage tasks surface", () => {
 
     render(<DashboardPage />);
 
-    const tasksButton = screen.getByRole("button", { name: /المهام/ });
+    const tasksButton = screen.getByRole("button", { name: /المهام المفتوحة/ });
     expect(tasksButton).toBeInTheDocument();
     expect(tasksButton.textContent).toContain("1");
   });
 
   it("shows an overdue indicator when a pending task is overdue", () => {
     mockTasks([
-      makeTask({ id: "t1", status: "PENDING", dueDate: "2026-01-01T12:00:00Z" }),
+      makeTask({
+        id: "t1",
+        status: "PENDING",
+        dueDate: "2026-01-01T12:00:00Z",
+      }),
     ]);
 
     render(<DashboardPage />);
 
-    const tasksButton = screen.getByRole("button", { name: /المهام/ });
+    const tasksButton = screen.getByRole("button", { name: /المهام المفتوحة/ });
     expect(tasksButton.textContent).toContain("متأخرة");
   });
 
@@ -142,8 +180,9 @@ describe("DashboardPage tasks surface", () => {
 
     render(<DashboardPage />);
 
-    const tasksButton = screen.getByRole("button", { name: /المهام/ });
-    expect(tasksButton.textContent).toContain("جارٍ التحميل");
+    expect(
+      screen.getByLabelText("جارٍ تحميل المهام المفتوحة"),
+    ).toBeInTheDocument();
   });
 
   it("navigates to the tasks view when clicked", () => {
@@ -157,7 +196,7 @@ describe("DashboardPage tasks surface", () => {
       </Router>,
     );
 
-    const tasksButton = screen.getByRole("button", { name: /المهام/ });
+    const tasksButton = screen.getByRole("button", { name: /المهام المفتوحة/ });
     fireEvent.click(tasksButton);
 
     expect(locations[locations.length - 1]).toBe("/tasks");
