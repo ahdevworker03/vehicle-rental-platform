@@ -1,52 +1,40 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { FormField, inputClass } from "@/components/ui/FormField";
-import { Spinner } from "@/components/ui/spinner";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { Users } from "lucide-react";
-import { useGetCustomer, useUpdateCustomer, getListCustomersQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getApiErrorMessage } from "@/lib/api-error";
-import { cn } from "@/lib/utils";
+import { getListCustomersQueryKey, useGetCustomer, useUpdateCustomer } from "@workspace/api-client-react";
 
-interface FormState {
-  first_name: string;
-  last_name: string;
-  phone: string;
-  address: string;
-  national_id: string;
-  license_number: string;
-  license_expiry_date: string;
-}
+import { CustomerFormFields, type CustomerFormState } from "@/components/customers/CustomerFormFields";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { InlineError, LoadingState } from "@/components/ui/FeedbackState";
+import { getApiErrorMessage } from "@/lib/api-error";
 
 interface DetailPageParams {
   params: { id: string };
 }
 
 function toDateInputValue(iso: string): string {
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return "";
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${month}-${day}`;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
 }
 
 function isValidDate(value: string): boolean {
-  if (!value) return false;
-  return !isNaN(new Date(value).getTime());
+  return Boolean(value) && !Number.isNaN(new Date(value).getTime());
 }
 
 export default function EditCustomerPage({ params }: DetailPageParams) {
-  const id = params.id;
+  const { id } = params;
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const [form, setForm] = useState<FormState | null>(null);
-  const [errors, setErrors] = useState<Partial<FormState>>({});
+  const [form, setForm] = useState<CustomerFormState | null>(null);
+  const [errors, setErrors] = useState<Partial<Record<keyof CustomerFormState, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
-
-  const { data, isLoading, isError, error } = useGetCustomer(id);
-
+  const customerQuery = useGetCustomer(id);
   const updateMutation = useUpdateCustomer({
     mutation: {
       onSuccess: () => {
@@ -57,196 +45,65 @@ export default function EditCustomerPage({ params }: DetailPageParams) {
   });
 
   useEffect(() => {
-    if (data?.data && !form) {
-      const c = data.data;
-      setForm({
-        first_name: c.firstName,
-        last_name: c.lastName,
-        phone: c.phone,
-        address: c.address,
-        national_id: c.nationalId,
-        license_number: c.licenseNumber,
-        license_expiry_date: toDateInputValue(c.licenseExpiryDate),
-      });
-    }
-  }, [data, form]);
+    if (!customerQuery.data?.data || form) return;
+    const customer = customerQuery.data.data;
+    setForm({
+      first_name: customer.firstName, last_name: customer.lastName, phone: customer.phone, address: customer.address,
+      national_id: customer.nationalId, license_number: customer.licenseNumber, license_expiry_date: toDateInputValue(customer.licenseExpiryDate),
+    });
+  }, [customerQuery.data, form]);
 
-  function set(field: keyof FormState, value: string) {
-    setForm((prev) => (prev ? { ...prev, [field]: value } : prev));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+  function set<K extends keyof CustomerFormState>(field: K, value: CustomerFormState[K]) {
+    setForm((current) => current ? { ...current, [field]: value } : current);
+    if (errors[field]) setErrors((current) => ({ ...current, [field]: undefined }));
   }
 
   function validate(): boolean {
     if (!form) return false;
-    const e: Partial<FormState> = {};
-    if (!form.first_name.trim()) e.first_name = "هذا الحقل مطلوب";
-    if (!form.last_name.trim()) e.last_name = "هذا الحقل مطلوب";
-    if (!form.phone.trim()) e.phone = "هذا الحقل مطلوب";
-    if (!form.address.trim()) e.address = "هذا الحقل مطلوب";
-    if (!form.national_id.trim()) e.national_id = "هذا الحقل مطلوب";
-    if (!form.license_number.trim()) e.license_number = "هذا الحقل مطلوب";
-    if (!isValidDate(form.license_expiry_date)) e.license_expiry_date = "أدخل تاريخاً صحيحاً";
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    const nextErrors: Partial<Record<keyof CustomerFormState, string>> = {};
+    if (!form.first_name.trim()) nextErrors.first_name = "هذا الحقل مطلوب.";
+    if (!form.last_name.trim()) nextErrors.last_name = "هذا الحقل مطلوب.";
+    if (!form.phone.trim()) nextErrors.phone = "هذا الحقل مطلوب.";
+    if (!form.address.trim()) nextErrors.address = "هذا الحقل مطلوب.";
+    if (!form.national_id.trim()) nextErrors.national_id = "هذا الحقل مطلوب.";
+    if (!form.license_number.trim()) nextErrors.license_number = "هذا الحقل مطلوب.";
+    if (!isValidDate(form.license_expiry_date)) nextErrors.license_expiry_date = "أدخل تاريخاً صحيحاً.";
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   }
 
   async function handleSubmit() {
-    if (!form || updateMutation.isPending) return;
-    if (!validate()) return;
-
+    if (!form || updateMutation.isPending || !validate()) return;
     setFormError(null);
-
     try {
       await updateMutation.mutateAsync({
         id,
         data: {
-          first_name: form.first_name.trim(),
-          last_name: form.last_name.trim(),
-          phone: form.phone.trim(),
-          address: form.address.trim(),
-          national_id: form.national_id.trim(),
-          license_number: form.license_number.trim(),
-          license_expiry_date: new Date(form.license_expiry_date).toISOString(),
+          first_name: form.first_name.trim(), last_name: form.last_name.trim(), phone: form.phone.trim(), address: form.address.trim(),
+          national_id: form.national_id.trim(), license_number: form.license_number.trim(), license_expiry_date: new Date(form.license_expiry_date).toISOString(),
         },
       });
-    } catch (err) {
-      setFormError(getApiErrorMessage(err).title);
+    } catch (error) {
+      setFormError(getApiErrorMessage(error).title);
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="min-h-full flex items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
+  if (customerQuery.isLoading || (!form && !customerQuery.isError)) return <div className="min-h-full"><PageHeader title="تعديل العميل" showBack /><div className="px-4 py-6 sm:px-6"><LoadingState rows={4} /></div></div>;
+  if (customerQuery.isError || !form) return <div className="min-h-full"><PageHeader title="تعديل العميل" showBack /><EmptyState icon={Users} title="تعذر العثور على العميل" description={customerQuery.error ? getApiErrorMessage(customerQuery.error).title : "لم يتم العثور على هذا العميل."} className="py-16" /></div>;
 
-  if (isError || !form) {
-    return (
-      <div className="min-h-full">
-        <PageHeader title="تعديل العميل" showBack />
-        <EmptyState
-          icon={Users}
-          title="لا توجد بيانات"
-          description={error ? getApiErrorMessage(error).title : "لم يتم العثور على هذا العميل"}
-          className="py-16"
-        />
-      </div>
-    );
-  }
-
-  const isFormFilled =
-    form.first_name.trim().length > 0 &&
-    form.last_name.trim().length > 0 &&
-    form.phone.trim().length > 0 &&
-    form.address.trim().length > 0 &&
-    form.national_id.trim().length > 0 &&
-    form.license_number.trim().length > 0 &&
-    form.license_expiry_date.length > 0;
+  const canSave = Boolean(form.first_name.trim() && form.last_name.trim() && form.phone.trim() && form.address.trim() && form.national_id.trim() && form.license_number.trim() && form.license_expiry_date);
 
   return (
-    <div className="min-h-full pb-8">
+    <div className="min-h-full pb-6">
       <PageHeader title="تعديل العميل" showBack />
-
-      <div className="px-4 pt-5 pb-8 mx-auto w-full max-w-3xl space-y-5">
-        {formError && (
-          <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3 text-sm text-destructive">
-            {formError}
-          </div>
-        )}
-
-        {/* ── Customer Info ─────────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">
-          <h3 className="text-sm font-bold text-foreground">معلومات العميل</h3>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <FormField label="الاسم الأول" required error={errors.first_name}>
-              <input
-                className={errors.first_name ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                value={form.first_name}
-                onChange={(e) => set("first_name", e.target.value)}
-                autoComplete="given-name"
-              />
-            </FormField>
-            <FormField label="اسم العائلة" required error={errors.last_name}>
-              <input
-                className={errors.last_name ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                value={form.last_name}
-                onChange={(e) => set("last_name", e.target.value)}
-                autoComplete="family-name"
-              />
-            </FormField>
-          </div>
-
-          <FormField label="رقم الهاتف" required error={errors.phone}>
-            <input
-              className={errors.phone ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-              inputMode="tel"
-              dir="ltr"
-              value={form.phone}
-              onChange={(e) => set("phone", e.target.value)}
-              autoComplete="tel"
-            />
-          </FormField>
-
-          <FormField label="العنوان" required error={errors.address}>
-            <input
-              className={errors.address ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-              value={form.address}
-              onChange={(e) => set("address", e.target.value)}
-            />
-          </FormField>
+      <div className="mx-auto max-w-5xl space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
+        <div><h2 className="ui-page-title">بيانات العميل</h2><p className="ui-secondary-text mt-1">حدّث معلومات التواصل والهوية ورخصة القيادة.</p></div>
+        {formError && <InlineError className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3">{formError}</InlineError>}
+        <CustomerFormFields form={form} errors={errors} onChange={set} />
+        <div className="sticky bottom-0 flex flex-wrap justify-end gap-2 border-t border-border bg-background/95 py-3 backdrop-blur-sm">
+          <Button type="button" variant="outline" onClick={() => setLocation(`/customers/${id}`)}>إلغاء</Button>
+          <Button type="button" onClick={handleSubmit} disabled={!canSave || updateMutation.isPending}>{updateMutation.isPending ? "جارٍ الحفظ" : "حفظ التعديلات"}</Button>
         </div>
-
-        {/* ── Identity & License ────────────────────────────────────── */}
-        <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">
-          <h3 className="text-sm font-bold text-foreground">الهوية والرخصة</h3>
-
-          <FormField label="رقم الهوية" required error={errors.national_id}>
-            <input
-              className={errors.national_id ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-              dir="ltr"
-              value={form.national_id}
-              onChange={(e) => set("national_id", e.target.value)}
-              autoComplete="off"
-            />
-          </FormField>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <FormField label="رقم الرخصة" required error={errors.license_number}>
-              <input
-                className={errors.license_number ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                dir="ltr"
-                value={form.license_number}
-                onChange={(e) => set("license_number", e.target.value)}
-                autoComplete="off"
-              />
-            </FormField>
-            <FormField label="تاريخ انتهاء الرخصة" required error={errors.license_expiry_date}>
-              <input
-                type="date"
-                className={errors.license_expiry_date ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
-                value={form.license_expiry_date}
-                onChange={(e) => set("license_expiry_date", e.target.value)}
-              />
-            </FormField>
-          </div>
-        </div>
-
-        {/* ── Save Button ───────────────────────────────────────────── */}
-        <button
-          onClick={handleSubmit}
-          disabled={!isFormFilled || updateMutation.isPending}
-          className={cn(
-            "w-full rounded-2xl py-4 text-base font-bold transition-all shadow-sm flex items-center justify-center gap-2",
-            isFormFilled && !updateMutation.isPending
-              ? "bg-primary text-primary-foreground active:scale-[0.98]"
-              : "bg-muted text-muted-foreground cursor-not-allowed",
-          )}
-        >
-          {updateMutation.isPending ? <Spinner /> : "حفظ التعديلات"}
-        </button>
       </div>
     </div>
   );

@@ -1,15 +1,18 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { Plus, Users } from "lucide-react";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { SearchBar } from "@/components/ui/SearchBar";
-import { CustomerCard } from "@/components/ui/CustomerCard";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Spinner } from "@/components/ui/spinner";
 import { useListCustomers } from "@workspace/api-client-react";
+
+import { CustomersDataList, CustomersDataListSkeleton } from "@/components/customers/CustomersDataList";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/FeedbackState";
+import { SearchBar } from "@/components/ui/SearchBar";
+import { SectionCard } from "@/components/ui/SectionCard";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { useAuth } from "@/providers/AuthProvider";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 export default function CustomersPage() {
   const [, setLocation] = useLocation();
@@ -17,90 +20,39 @@ export default function CustomersPage() {
   const { user } = useAuth();
   const isOwner = user?.role === "OWNER";
   const debouncedSearch = useDebouncedValue(search.trim(), 300);
-
-  const { data, isLoading, isError, error } = useListCustomers(
-    debouncedSearch ? { search: debouncedSearch } : undefined,
-  );
-
-  const customers = useMemo(() => data?.data ?? [], [data]);
+  const customersQuery = useListCustomers(debouncedSearch ? { search: debouncedSearch } : undefined);
+  const customers = useMemo(() => customersQuery.data?.data ?? [], [customersQuery.data]);
+  const countLabel = `${customers.length} ${customers.length === 1 ? "عميل" : "عملاء"}`;
 
   return (
     <div className="min-h-full">
       <PageHeader
         title="العملاء"
-        action={
-          isOwner ? (
-            <button
-              onClick={() => setLocation("/customers/add")}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-primary-foreground active:scale-95 transition-transform"
-              aria-label="إضافة عميل"
-            >
-              <Plus className="w-5 h-5" strokeWidth={2.5} />
-            </button>
-          ) : undefined
-        }
+        action={isOwner ? <Button type="button" onClick={() => setLocation("/customers/add")}><Plus className="size-4" aria-hidden="true" />إضافة عميل</Button> : undefined}
       />
 
-      <div className="px-4 pt-4 pb-3">
-        <SearchBar
-          placeholder="ابحث بالاسم أو الهوية أو رقم الرخصة أو الهاتف..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onClear={() => setSearch("")}
-        />
-        {search && customers.length > 0 && (
-          <p className="text-xs text-muted-foreground text-right mt-2">
-            عرض {customers.length} نتيجة بحث
-          </p>
-        )}
-      </div>
+      <div className="space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
+        <SectionCard title="قائمة العملاء" description="ابحث عن المستأجرين وراجع بيانات الهوية والرخصة بسرعة." className="shadow-none">
+          <SearchBar placeholder="ابحث بالاسم أو الهوية أو رقم الرخصة أو الهاتف..." value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch("")} />
+        </SectionCard>
 
-      <div className="px-4 pb-6">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <Spinner className="size-6" />
-          </div>
-        ) : isError ? (
-          <EmptyState
-            icon={Users}
-            title="حدث خطأ"
-            description={getApiErrorMessage(error).title}
-            className="py-16"
-          />
+        {customersQuery.isLoading ? (
+          <SectionCard className="overflow-hidden p-0 shadow-none"><CustomersDataListSkeleton /></SectionCard>
+        ) : customersQuery.isError ? (
+          <SectionCard className="shadow-none"><ErrorState title="تعذر تحميل العملاء" description={getApiErrorMessage(customersQuery.error).title} onRetry={() => void customersQuery.refetch()} /></SectionCard>
         ) : customers.length === 0 ? (
-          search ? (
+          <SectionCard className="shadow-none">
             <EmptyState
               icon={Users}
-              title="لا توجد نتائج"
-              description="جرّب اسماً أو رقماً مختلف"
-              className="py-16"
+              title={search ? "لا توجد نتائج مطابقة" : "لا يوجد عملاء بعد"}
+              description={search ? "جرّب اسماً أو رقماً مختلفاً." : isOwner ? "أضف أول عميل لبدء إدارة بيانات المستأجرين." : "لا يوجد عملاء في هذه المنظمة حالياً."}
+              action={isOwner && !search ? { label: "إضافة عميل", onClick: () => setLocation("/customers/add") } : undefined}
             />
-          ) : (
-            <EmptyState
-              icon={Users}
-              title="لا يوجد عملاء بعد"
-              description="أضف أول عميل للبدء"
-              action={
-                isOwner
-                  ? {
-                      label: "إضافة عميل",
-                      onClick: () => setLocation("/customers/add"),
-                    }
-                  : undefined
-              }
-              className="py-16"
-            />
-          )
+          </SectionCard>
         ) : (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {customers.map((customer) => (
-              <CustomerCard
-                key={customer.id}
-                customer={customer}
-                onClick={() => setLocation(`/customers/${customer.id}`)}
-              />
-            ))}
-          </div>
+          <SectionCard title="العملاء" action={<span className="text-xs font-medium text-muted-foreground">{countLabel}</span>} className="overflow-hidden p-0 shadow-none">
+            <CustomersDataList customers={customers} onOpen={(customerId) => setLocation(`/customers/${customerId}`)} />
+          </SectionCard>
         )}
       </div>
     </div>
