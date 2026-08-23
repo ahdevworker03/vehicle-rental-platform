@@ -110,7 +110,7 @@ describe("DashboardPage tasks surface", () => {
     render(<DashboardPage />);
 
     expect(screen.getByRole("status")).toHaveTextContent("جارٍ تحميل المؤشر");
-    expect(screen.queryByText("$0", { selector: "p" })).not.toBeInTheDocument();
+    expect(screen.queryByText("USD 0", { selector: "p" })).not.toBeInTheDocument();
   });
 
   it("shows the pending task count", () => {

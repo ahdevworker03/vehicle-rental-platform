@@ -26,15 +26,15 @@ export function FormField({
 }: FormFieldProps) {
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <label htmlFor={htmlFor} className="text-sm font-semibold text-foreground">
+      <label htmlFor={htmlFor} className="ui-label font-semibold">
         {label}
-        {required && <span className="text-destructive mr-1">*</span>}
+        {required && <span className="ms-1 text-destructive">*</span>}
       </label>
       {children}
       {hint && !error && (
         <p className="text-xs text-muted-foreground">{hint}</p>
       )}
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }
@@ -43,4 +43,4 @@ export function FormField({
  * Shared input class — import and apply wherever you render a text input inside FormField.
  */
 export const inputClass =
-  "w-full bg-card border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[48px] transition-all";
+  "w-full min-h-11 rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground shadow-sm placeholder:text-muted-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50";

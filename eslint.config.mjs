@@ -7,6 +7,7 @@ export default tseslint.config(
       "**/node_modules/**",
       "**/.tsbuildinfo",
       "**/generated/**",
+      "docs/ui-reference/replit-approved-code/frontend-reference/**",
       "**/pnpm-lock.yaml",
       "**/*.mjs",
     ],

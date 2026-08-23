@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Car, Users, FileText, Wrench } from "lucide-react";
+import { BarChart3, Car, ClipboardList, FileText, Home, ReceiptText, Users, Wrench } from "lucide-react";
 import { LogoutButton } from "./LogoutButton";
 import {
   Sidebar,
@@ -15,11 +15,15 @@ import {
 } from "@/components/ui/sidebar";
 
 const NAV_ITEMS = [
-  { label: "الرئيسية", icon: Home, route: "/" },
-  { label: "السيارات", icon: Car, route: "/vehicles" },
+  { label: "لوحة التحكم", icon: Home, route: "/" },
+  { label: "المركبات", icon: Car, route: "/vehicles" },
   { label: "العملاء", icon: Users, route: "/customers" },
   { label: "الإيجارات", icon: FileText, route: "/rentals" },
   { label: "الصيانة", icon: Wrench, route: "/maintenance" },
+  { label: "المصاريف", icon: ReceiptText, route: "/expenses" },
+  { label: "المهام", icon: ClipboardList, route: "/tasks" },
+  { label: "التحليلات", icon: BarChart3, route: "/analytics" },
+  { label: "التقارير", icon: FileText, route: "/reports" },
 ] as const;
 
 function isActiveRoute(location: string, route: string): boolean {
@@ -50,13 +54,13 @@ function AppSidebarLink({ item }: { item: (typeof NAV_ITEMS)[number] }) {
  */
 export function AppSidebar() {
   return (
-    <Sidebar collapsible="none" className="hidden lg:flex">
+    <Sidebar side="right" collapsible="none" className="hidden lg:flex">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1">
-          <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
+          <div className="flex size-8 items-center justify-center rounded-lg border border-white/10 bg-white/10 text-sm font-bold text-white">
             ن
           </div>
-          <span className="text-sm font-bold text-foreground">نظام التأجير</span>
+          <span className="text-sm font-bold text-sidebar-foreground">نظام التأجير</span>
         </div>
       </SidebarHeader>
 
@@ -75,7 +79,7 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <div className="px-2">
-          <LogoutButton />
+          <LogoutButton className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" />
         </div>
       </SidebarFooter>
     </Sidebar>

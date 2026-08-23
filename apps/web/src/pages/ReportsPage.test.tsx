@@ -44,7 +44,7 @@ describe("ReportsPage", () => {
     expect(screen.getByText("المصروفات")).toBeInTheDocument();
     expect(screen.getByText("صافي الربح")).toBeInTheDocument();
     expect(screen.getByText("تكلفة الصيانة")).toBeInTheDocument();
-    expect(screen.getAllByText("$0").length).toBeGreaterThanOrEqual(3);
+    expect(screen.getAllByText("USD 0").length).toBeGreaterThanOrEqual(3);
   });
 
   it("renders summary cards with computed values from data", () => {
@@ -57,9 +57,9 @@ describe("ReportsPage", () => {
       ],
     });
     render(<ReportsPage />);
-    expect(screen.getByText("$100")).toBeInTheDocument();
-    expect(screen.getByText("$40")).toBeInTheDocument();
-    expect(screen.getByText("$60")).toBeInTheDocument(); // net profit
+    expect(screen.getByText("USD 100")).toBeInTheDocument();
+    expect(screen.getByText("USD 40")).toBeInTheDocument();
+    expect(screen.getByText("USD 60")).toBeInTheDocument(); // net profit
   });
 
   it("shows loading state while data is loading", () => {

@@ -10,8 +10,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDateAr } from "@/lib/format";
-import { MAINTENANCE_TYPES, MAINTENANCE_STATUS_LABELS } from "@/lib/labels";
+import { MAINTENANCE_TYPES } from "@/lib/labels";
 import type { MaintenanceResponse } from "@workspace/api-client-react";
+import { StatusBadge } from "./StatusBadge";
 
 // ── Status colours (derived display state) ───────────────────────────────────
 
@@ -169,9 +170,7 @@ export function MaintenanceCard({
 
           {/* Status */}
           <div className="flex items-center justify-between">
-            <span className={cn("text-xs font-semibold px-2.5 py-0.5 rounded-full", styles.badge)}>
-              {MAINTENANCE_STATUS_LABELS[record.status] ?? record.status}
-            </span>
+            <StatusBadge status={record.status} />
             <span className="text-sm text-muted-foreground">الحالة</span>
           </div>
 

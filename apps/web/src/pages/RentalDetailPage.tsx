@@ -19,7 +19,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ContractSection } from "@/components/ui/ContractSection";
 import { PaymentSection } from "@/components/ui/PaymentSection";
-import { RENTAL_STATUS_LABELS } from "@/lib/rental-labels";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatCurrency, formatDateAr } from "@/lib/format";
 import {
   useGetRental,
@@ -44,13 +44,6 @@ interface Props {
 }
 
 type Action = "pickup" | "return" | "extend" | "cancel";
-
-const statusBadgeClass: Record<string, string> = {
-  RESERVED: "bg-[hsl(var(--status-maintenance-bg))] text-[hsl(var(--status-maintenance))]",
-  ACTIVE: "bg-[hsl(var(--status-rented-bg))] text-[hsl(var(--status-rented))]",
-  RETURNED: "bg-[hsl(var(--status-available-bg))] text-[hsl(var(--status-available))]",
-  CANCELLED: "bg-[hsl(var(--status-danger-bg))] text-[hsl(var(--status-danger))]",
-};
 
 function toDateTimeLocal(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -200,9 +193,7 @@ export default function RentalDetailPage({ params }: Props) {
       <div className="px-4 pt-4 space-y-4">
         {/* Status banner */}
         <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 flex items-center justify-between">
-          <span className={cn("text-sm font-bold px-3 py-1 rounded-full", statusBadgeClass[rental.status])}>
-            {RENTAL_STATUS_LABELS[rental.status] ?? rental.status}
-          </span>
+          <StatusBadge status={rental.status} />
           <span className="text-xs text-muted-foreground">
             #{rental.id.slice(0, 8)}
           </span>

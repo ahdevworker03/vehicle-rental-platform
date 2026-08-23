@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { InfoRow } from "@/components/ui/InfoRow";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { cn } from "@/lib/utils";
 import { formatDateAr } from "@/lib/format";
 import { TASK_STATUS_LABELS } from "@/lib/labels";
@@ -12,16 +13,10 @@ import { getApiErrorMessage } from "@/lib/api-error";
 import { useAuth } from "@/providers/AuthProvider";
 import { useTask, useTaskMutations } from "@/features/tasks/hooks";
 import { isTaskOverdue } from "@/features/tasks/selectors";
-import type { TaskResponse } from "@workspace/api-client-react";
 
 interface DetailPageParams {
   params: { id: string };
 }
-
-const statusBadgeClass: Record<TaskResponse["status"], string> = {
-  PENDING: "bg-[hsl(var(--status-maintenance-bg))] text-[hsl(var(--status-maintenance))]",
-  COMPLETED: "bg-[hsl(var(--status-available-bg))] text-[hsl(var(--status-available))]",
-};
 
 export default function TaskDetailPage({ params }: DetailPageParams) {
   const id = params.id;
@@ -109,14 +104,7 @@ export default function TaskDetailPage({ params }: DetailPageParams) {
               <span className="text-base font-bold text-foreground truncate">
                 {task.notes ? task.notes : "مهمة بدون ملاحظات"}
               </span>
-              <span
-                className={cn(
-                  "text-xs font-semibold px-2.5 py-0.5 rounded-full",
-                  statusBadgeClass[task.status],
-                )}
-              >
-                {TASK_STATUS_LABELS[task.status] ?? task.status}
-              </span>
+              <StatusBadge status={overdue ? "OVERDUE" : task.status} />
             </div>
             <div className="text-sm text-muted-foreground mt-0.5">{task.id.slice(0, 8)}</div>
           </div>

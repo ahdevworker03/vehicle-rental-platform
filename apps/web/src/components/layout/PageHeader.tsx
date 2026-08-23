@@ -18,18 +18,18 @@ export function PageHeader({ title, showBack, onBack, action }: PageHeaderProps)
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-background border-b border-border px-4 py-3 flex items-center justify-between min-h-[60px]">
+    <header className="sticky top-0 z-40 flex min-h-16 items-center justify-between border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm sm:px-6">
       <div className="flex items-center gap-3">
         {showBack && (
           <button
             onClick={handleBack}
             aria-label="رجوع"
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted/50 active:bg-muted transition-colors -mr-2"
+            className="-me-2 flex size-10 items-center justify-center rounded-lg transition-colors hover:bg-muted active:bg-muted"
           >
             <ChevronRight className="w-6 h-6 text-foreground" strokeWidth={2} />
           </button>
         )}
-        <h1 className="text-lg font-bold text-foreground m-0">{title}</h1>
+        <h1 className="ui-page-title m-0 text-xl">{title}</h1>
       </div>
       {action && (
         <div className="flex items-center">

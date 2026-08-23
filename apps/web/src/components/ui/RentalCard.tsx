@@ -1,7 +1,7 @@
 import { Car, Calendar, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDateShort } from "@/lib/format";
-import { RENTAL_STATUS_LABELS } from "@/lib/rental-labels";
+import { StatusBadge } from "./StatusBadge";
 import type { RentalResponse } from "@workspace/api-client-react";
 
 interface RentalCardProps {
@@ -12,13 +12,6 @@ interface RentalCardProps {
   onClick?: () => void;
   className?: string;
 }
-
-const statusBadgeClass: Record<RentalResponse["status"], string> = {
-  RESERVED: "bg-[hsl(var(--status-maintenance-bg))] text-[hsl(var(--status-maintenance))]",
-  ACTIVE: "bg-[hsl(var(--status-rented-bg))] text-[hsl(var(--status-rented))]",
-  RETURNED: "bg-[hsl(var(--status-available-bg))] text-[hsl(var(--status-available))]",
-  CANCELLED: "bg-[hsl(var(--status-danger-bg))] text-[hsl(var(--status-danger))]",
-};
 
 export function RentalCard({
   rental,
@@ -39,14 +32,7 @@ export function RentalCard({
     >
       {/* Row 1: Status badge (right) + Customer name (left) */}
       <div className="flex items-center justify-between mb-2">
-        <span
-          className={cn(
-            "text-xs font-semibold px-2.5 py-0.5 rounded-full",
-            statusBadgeClass[rental.status]
-          )}
-        >
-          {RENTAL_STATUS_LABELS[rental.status]}
-        </span>
+        <StatusBadge status={rental.status} />
         <span className="text-base font-bold text-foreground">{customerName}</span>
       </div>
 

@@ -59,7 +59,7 @@ describe("MaintenanceCard", () => {
       {},
       true,
     );
-    expect(screen.getByText("$150")).toBeInTheDocument();
+    expect(screen.getByText("USD 150")).toBeInTheDocument();
     expect(screen.getByText("ورشة النور")).toBeInTheDocument();
   });
 

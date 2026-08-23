@@ -28,7 +28,7 @@ describe("ExpenseCard", () => {
     );
 
     expect(screen.getByText("وقود")).toBeInTheDocument();
-    expect(screen.getByText("$50")).toBeInTheDocument();
+    expect(screen.getByText("USD 50")).toBeInTheDocument();
   });
 
   it("renders the associated vehicle when present", () => {

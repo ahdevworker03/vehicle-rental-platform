@@ -109,7 +109,7 @@ describe("PaymentSection", () => {
     render(<PaymentSection rentalId="r1" />);
 
     expect(screen.getByText("الرصيد المتبقي")).toBeInTheDocument();
-    expect(screen.getByText("$120")).toBeInTheDocument();
+    expect(screen.getByText("USD 120")).toBeInTheDocument();
     expect(screen.getByText("لا توجد مدفوعات مسجّلة بعد")).toBeInTheDocument();
   });
 
@@ -124,8 +124,8 @@ describe("PaymentSection", () => {
 
     render(<PaymentSection rentalId="r1" />);
 
-    expect(screen.getByText("$50")).toBeInTheDocument();
-    expect(screen.getByText("$70")).toBeInTheDocument();
+    expect(screen.getByText("USD 50")).toBeInTheDocument();
+    expect(screen.getByText("USD 70")).toBeInTheDocument();
     expect(screen.getAllByText("نقداً")).toHaveLength(1);
     expect(screen.getByText("تحويل بنكي")).toBeInTheDocument();
   });

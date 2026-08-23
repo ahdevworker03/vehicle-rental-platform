@@ -1,36 +1,39 @@
 import { describe, it, expect } from "vitest";
 import {
   formatCurrency,
+  formatDate,
   formatDateAr,
   formatDateShort,
+  formatDateTime,
   formatInitials,
+  formatNumber,
+  formatUsd,
 } from "./format";
 
-describe("formatCurrency", () => {
-  it("formats with a dollar sign and thousands grouping", () => {
-    expect(formatCurrency(1500000)).toBe("$1,500,000");
+describe("money and number formatting", () => {
+  it("formats USD amounts with Western numerals and grouping", () => {
+    expect(formatCurrency(1500000)).toBe("USD 1,500,000");
+    expect(formatUsd(25.5)).toBe("USD 25.5");
   });
 
-  it("formats small amounts without grouping", () => {
-    expect(formatCurrency(50)).toBe("$50");
-  });
-});
-
-describe("formatDateAr", () => {
-  it("renders day, Lebanese month name, and year", () => {
-    // 2025-01-15 → كانون الثاني (January)
-    expect(formatDateAr("2025-01-15T12:00:00.000Z")).toBe("15 كانون الثاني 2025");
-  });
-
-  it("uses the correct month for a different month", () => {
-    // 2025-02-... → شباط (February)
-    expect(formatDateAr("2025-02-03T12:00:00.000Z")).toBe("3 شباط 2025");
+  it("keeps Western numerals for Arabic RTL presentation", () => {
+    expect(formatNumber(1234567.89)).toBe("1,234,567.89");
   });
 });
 
-describe("formatDateShort", () => {
-  it("omits the year", () => {
-    expect(formatDateShort("2025-01-15T12:00:00.000Z")).toBe("15 كانون الثاني");
+describe("date formatting", () => {
+  it("renders a business date as DD-MM-YYYY", () => {
+    const date = new Date(2025, 0, 15, 12);
+    expect(formatDate(date)).toBe("15-01-2025");
+    expect(formatDateAr(date)).toBe("15-01-2025");
+  });
+
+  it("renders the agreed date and time format", () => {
+    expect(formatDateTime(new Date(2025, 1, 3, 13, 5))).toBe("03-02-2025 — 1:05 PM");
+  });
+
+  it("keeps compact dates in Western digits", () => {
+    expect(formatDateShort(new Date(2025, 0, 15, 12))).toBe("15-01");
   });
 });
 

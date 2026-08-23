@@ -4,7 +4,7 @@ export const VEHICLE_STATUS_LABELS: Record<VehicleResponseStatus, string> = {
   AVAILABLE: "متاحة",
   RESERVED: "محجوزة",
   RENTED: "مؤجرة",
-  MAINTENANCE: "صيانة",
+  MAINTENANCE: "في الصيانة",
   OUT_OF_SERVICE: "خارج الخدمة",
   ARCHIVED: "مؤرشفة",
 };
@@ -14,7 +14,7 @@ export const VEHICLE_STATUS_FILTER_OPTIONS: { label: string; value: string }[] =
   { label: "متاحة", value: "AVAILABLE" },
   { label: "محجوزة", value: "RESERVED" },
   { label: "مؤجرة", value: "RENTED" },
-  { label: "صيانة", value: "MAINTENANCE" },
+  { label: "في الصيانة", value: "MAINTENANCE" },
   { label: "خارج الخدمة", value: "OUT_OF_SERVICE" },
   { label: "مؤرشفة", value: "ARCHIVED" },
 ];

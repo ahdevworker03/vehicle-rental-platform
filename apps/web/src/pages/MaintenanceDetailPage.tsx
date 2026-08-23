@@ -7,24 +7,17 @@ import { InfoRow } from "@/components/ui/InfoRow";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { cn } from "@/lib/utils";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatCurrency, formatDateAr } from "@/lib/format";
 import { MAINTENANCE_TYPES, MAINTENANCE_STATUS_LABELS } from "@/lib/labels";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { useAuth } from "@/providers/AuthProvider";
 import { useGetVehicle } from "@workspace/api-client-react";
 import { useMaintenanceRecord, useMaintenanceMutations } from "@/features/maintenance/hooks";
-import type { MaintenanceResponse } from "@workspace/api-client-react";
 
 interface DetailPageParams {
   params: { id: string };
 }
-
-const statusBadgeClass: Record<MaintenanceResponse["status"], string> = {
-  SCHEDULED: "bg-[hsl(var(--status-maintenance-bg))] text-[hsl(var(--status-maintenance))]",
-  IN_PROGRESS: "bg-[hsl(var(--status-rented-bg))] text-[hsl(var(--status-rented))]",
-  COMPLETED: "bg-[hsl(var(--status-available-bg))] text-[hsl(var(--status-available))]",
-};
 
 export default function MaintenanceDetailPage({ params }: DetailPageParams) {
   const id = params.id;
@@ -112,14 +105,7 @@ export default function MaintenanceDetailPage({ params }: DetailPageParams) {
               <span className="text-base font-bold text-foreground truncate">
                 {typeConfig.label}
               </span>
-              <span
-                className={cn(
-                  "text-xs font-semibold px-2.5 py-0.5 rounded-full",
-                  statusBadgeClass[record.status],
-                )}
-              >
-                {MAINTENANCE_STATUS_LABELS[record.status]}
-              </span>
+              <StatusBadge status={record.status} />
             </div>
             <div className="text-sm text-muted-foreground mt-0.5">
               {record.id.slice(0, 8)}

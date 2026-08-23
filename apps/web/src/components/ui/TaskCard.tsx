@@ -7,9 +7,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDateAr } from "@/lib/format";
-import { TASK_STATUS_LABELS } from "@/lib/labels";
 import { isTaskOverdue } from "@/features/tasks/selectors";
 import type { TaskResponse } from "@workspace/api-client-react";
+import { StatusBadge } from "./StatusBadge";
 
 const PENDING_STYLES = {
   iconBg: "bg-[hsl(var(--status-maintenance-bg))]",
@@ -65,14 +65,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
           <span className="text-sm font-bold text-foreground truncate">
             {task.notes ? task.notes : "مهمة بدون ملاحظات"}
           </span>
-          <span
-            className={cn(
-              "text-xs font-semibold px-2.5 py-0.5 rounded-full flex-shrink-0",
-              styles.badge,
-            )}
-          >
-            {TASK_STATUS_LABELS[task.status] ?? task.status}
-          </span>
+          <StatusBadge status={overdue ? "OVERDUE" : task.status} />
         </div>
 
         <div className="flex items-center justify-between gap-2">

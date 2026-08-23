@@ -37,6 +37,17 @@
   --color-destructive-foreground: hsl(var(--destructive-foreground));
   --color-destructive-border: var(--destructive-border);
 
+  --color-status-positive: hsl(var(--status-positive));
+  --color-status-positive-bg: hsl(var(--status-positive-bg));
+  --color-status-info: hsl(var(--status-info));
+  --color-status-info-bg: hsl(var(--status-info-bg));
+  --color-status-warning: hsl(var(--status-warning));
+  --color-status-warning-bg: hsl(var(--status-warning-bg));
+  --color-status-danger: hsl(var(--status-danger));
+  --color-status-danger-bg: hsl(var(--status-danger-bg));
+  --color-status-neutral: hsl(var(--status-neutral));
+  --color-status-neutral-bg: hsl(var(--status-neutral-bg));
+
   --color-sidebar: hsl(var(--sidebar));
   --color-sidebar-foreground: hsl(var(--sidebar-foreground));
   --color-sidebar-border: hsl(var(--sidebar-border));
@@ -66,55 +77,65 @@
   --elevate-1: rgba(0, 0, 0, 0.03);
   --elevate-2: rgba(0, 0, 0, 0.08);
 
-  --background: 210 20% 98%;
-  --foreground: 220 15% 20%;
-  --border: 220 13% 91%;
+  --background: 220 20% 98%;
+  --foreground: 222 47% 11%;
+  --border: 220 16% 90%;
   --card: 0 0% 100%;
-  --card-foreground: 220 15% 20%;
-  --card-border: 220 13% 91%;
-  --sidebar: 0 0% 100%;
-  --sidebar-foreground: 220 15% 20%;
-  --sidebar-border: 220 13% 91%;
-  --sidebar-primary: 199 89% 38%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 199 30% 94%;
-  --sidebar-accent-foreground: 199 89% 28%;
-  --sidebar-ring: 199 89% 38%;
+  --card-foreground: 222 47% 11%;
+  --card-border: 220 16% 90%;
+  --sidebar: 220 47% 27%;
+  --sidebar-foreground: 214 100% 96%;
+  --sidebar-border: 219 39% 35%;
+  --sidebar-primary: 0 0% 100%;
+  --sidebar-primary-foreground: 221 83% 53%;
+  --sidebar-accent: 220 39% 38%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-ring: 213 94% 68%;
   --popover: 0 0% 100%;
-  --popover-foreground: 220 15% 20%;
-  --popover-border: 220 13% 91%;
-  --primary: 199 89% 38%;
+  --popover-foreground: 222 47% 11%;
+  --popover-border: 220 16% 90%;
+  --primary: 221 83% 53%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 199 30% 94%;
-  --secondary-foreground: 199 89% 28%;
-  --muted: 220 14% 96%;
-  --muted-foreground: 220 10% 46%;
-  --accent: 199 30% 94%;
-  --accent-foreground: 199 89% 28%;
-  --destructive: 0 84% 50%;
+  --secondary: 214 95% 96%;
+  --secondary-foreground: 221 83% 35%;
+  --muted: 220 18% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 214 95% 96%;
+  --accent-foreground: 221 83% 35%;
+  --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --input: 220 13% 91%;
-  --ring: 199 89% 38%;
+  --input: 220 16% 86%;
+  --ring: 221 83% 53%;
   
-  --status-available: 142 76% 36%;
-  --status-available-bg: 142 76% 94%;
-  --status-rented: 199 89% 38%;
-  --status-rented-bg: 199 89% 94%;
-  --status-maintenance: 38 92% 45%;
-  --status-maintenance-bg: 38 92% 94%;
-  --status-danger: 0 84% 50%;
-  --status-danger-bg: 0 84% 95%;
+  --status-positive: 142 61% 30%;
+  --status-positive-bg: 138 76% 96%;
+  --status-info: 221 83% 42%;
+  --status-info-bg: 214 95% 96%;
+  --status-warning: 32 87% 35%;
+  --status-warning-bg: 48 100% 95%;
+  --status-danger: 0 72% 43%;
+  --status-danger-bg: 0 86% 97%;
+  --status-neutral: 215 16% 36%;
+  --status-neutral-bg: 220 14% 96%;
 
-  --app-font-sans: 'Cairo', sans-serif;
+  /* Compatibility aliases for existing screens. New UI should use the semantic tokens above. */
+  --status-available: var(--status-positive);
+  --status-available-bg: var(--status-positive-bg);
+  --status-rented: var(--status-info);
+  --status-rented-bg: var(--status-info-bg);
+  --status-maintenance: var(--status-warning);
+  --status-maintenance-bg: var(--status-warning-bg);
+
+  --app-font-sans: 'IBM Plex Sans Arabic', sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: Menlo, monospace;
-  --radius: 0.625rem;
+  --radius: 0.75rem;
   
   --shadow-2xs: 0 1px 2px 0 rgba(0,0,0,0.05);
   --shadow-xs: 0 1px 2px 0 rgba(0,0,0,0.05);
-  --shadow-sm: 0 1px 3px 0 rgba(0,0,0,0.08), 0 1px 2px -1px rgba(0,0,0,0.06);
-  --shadow: 0 2px 8px 0 rgba(0,0,0,0.10), 0 1px 3px -1px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 16px 0 rgba(0,0,0,0.12), 0 2px 6px -2px rgba(0,0,0,0.08);
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.06);
+  --shadow: 0 2px 6px 0 rgba(15, 23, 42, 0.06), 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 8px 20px -10px rgba(15, 23, 42, 0.18), 0 2px 6px -3px rgba(15, 23, 42, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
   --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
   --shadow-2xl: 0 25px 50px -12px rgba(0,0,0,0.25);
@@ -138,9 +159,26 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+
+  :where(button, a, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .ui-page-title { @apply text-xl font-bold tracking-tight text-foreground sm:text-2xl; }
+  .ui-section-title { @apply text-base font-bold text-foreground; }
+  .ui-label { @apply text-sm font-medium text-foreground; }
+  .ui-secondary-text { @apply text-sm text-muted-foreground; }
+  .ui-kpi-value { @apply text-2xl font-bold tracking-tight text-foreground sm:text-3xl; }
+  .ui-table-text { @apply text-sm text-foreground; }
+  .ui-button-text { @apply text-sm font-semibold; }
+  .ui-badge-text { @apply text-xs font-semibold leading-4; }
 }
 
 @layer utilities {
+  .number-ltr { direction: ltr; unicode-bidi: plaintext; }
   input[type='search']::-webkit-search-cancel-button { @apply hidden; }
   [contenteditable][data-placeholder]:empty::before {
     content: attr(data-placeholder);
