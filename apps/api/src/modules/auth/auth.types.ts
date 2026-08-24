@@ -1,7 +1,9 @@
+import type { UserRole } from "../users/user.types";
+
 export interface AccessTokenPayload {
   sub: string;
   org: string;
-  role: string;
+  role: UserRole;
 }
 
 export interface AuthTokens {

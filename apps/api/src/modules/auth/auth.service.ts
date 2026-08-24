@@ -9,6 +9,7 @@ import {
 import { prisma } from "../../database";
 import { AppError } from "../../shared";
 import type { AuthTokens, AccessTokenPayload } from "./auth.types";
+import type { UserRole } from "../users/user.types";
 
 async function registerOrganization(
   email: string,
@@ -110,7 +111,7 @@ async function getCurrentUser(accessToken: string) {
 async function issueTokens(
   userId: string,
   organizationId: string,
-  role: string,
+  role: UserRole,
 ): Promise<AuthTokens> {
   const accessToken = generateAccessToken({
     sub: userId,

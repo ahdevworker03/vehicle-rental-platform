@@ -15,7 +15,7 @@ export const ListUsersResponse = zod.object({
   "data": zod.array(zod.object({
   "id": zod.string(),
   "email": zod.string(),
-  "role": zod.string(),
+  "role": zod.enum(['PLATFORM_OWNER', 'OWNER', 'EMPLOYEE']),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }))
@@ -31,14 +31,14 @@ export const createUserBodyPasswordMin = 8;
 export const CreateUserBody = zod.object({
   "email": zod.string().email(),
   "password": zod.string().min(createUserBodyPasswordMin),
-  "role": zod.enum(['MANAGER', 'EMPLOYEE'])
+  "role": zod.enum(['EMPLOYEE'])
 })
 
 export const CreateUserResponse = zod.object({
   "data": zod.union([zod.object({
   "id": zod.string(),
   "email": zod.string(),
-  "role": zod.string(),
+  "role": zod.enum(['PLATFORM_OWNER', 'OWNER', 'EMPLOYEE']),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),zod.null()])
@@ -55,7 +55,7 @@ export const GetUserResponse = zod.object({
   "data": zod.union([zod.object({
   "id": zod.string(),
   "email": zod.string(),
-  "role": zod.string(),
+  "role": zod.enum(['PLATFORM_OWNER', 'OWNER', 'EMPLOYEE']),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),zod.null()])
@@ -69,14 +69,14 @@ export const UpdateUserParams = zod.object({
 })
 
 export const UpdateUserBody = zod.object({
-  "role": zod.enum(['MANAGER', 'EMPLOYEE'])
+  "role": zod.enum(['EMPLOYEE'])
 })
 
 export const UpdateUserResponse = zod.object({
   "data": zod.union([zod.object({
   "id": zod.string(),
   "email": zod.string(),
-  "role": zod.string(),
+  "role": zod.enum(['PLATFORM_OWNER', 'OWNER', 'EMPLOYEE']),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 }),zod.null()])

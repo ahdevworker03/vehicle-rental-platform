@@ -97,9 +97,9 @@ Enum values are defined in UPPER_SNAKE_CASE and map to the Prisma enum definitio
 
 | Value      | Purpose                         | Status                                                  |
 | ---------- | ------------------------------- | ------------------------------------------------------- |
-| `OWNER`    | Organization owner, full access | Implemented (approved in `10-authentication-policy.md`) |
-| `MANAGER`  | Management access               | Implemented (defined in Prisma schema)                  |
-| `EMPLOYEE` | Employee access                 | Implemented (defined in Prisma schema)                  |
+| `PLATFORM_OWNER` | SaaS/platform owner; future platform administration | Implemented role; not granted tenant routes by default |
+| `OWNER`    | Organization owner, full tenant access | Implemented (approved in `10-authentication-policy.md`) |
+| `EMPLOYEE` | Tenant employee, limited access | Implemented (defined in Prisma schema)                  |
 
 Notes: The `User.role` field defaults to `OWNER`. Permissions per role for specific modules are not fully documented — see model notes.
 
@@ -337,7 +337,7 @@ Represents an employee who can access the platform.
 | id              | id              | UUID      | ✅       | uuid()     | PK                     |
 | email           | email           | String    | ✅       | —          | Login identifier       |
 | password_hash   | password_hash   | String    | ✅       | —          | Argon2id hash          |
-| role            | role            | UserRole  | ✅       | OWNER      | OWNER/MANAGER/EMPLOYEE |
+| role            | role            | UserRole  | ✅       | OWNER      | PLATFORM_OWNER/OWNER/EMPLOYEE |
 | organization_id | organization_id | UUID      | ✅       | —          | FK → Organization.id   |
 | created_at      | created_at      | DateTime  | ✅       | now()      | Audit                  |
 | updated_at      | updated_at      | DateTime  | ✅       | @updatedAt | Audit                  |

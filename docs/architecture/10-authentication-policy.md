@@ -100,15 +100,11 @@ The specific hashing implementation is an implementation detail and is not presc
 
 Authorization uses Role-Based Access Control (RBAC).
 
-Current supported role:
+Current supported roles:
 
-- `OWNER`
-
-Future roles:
-
-- `MANAGER`
-- `EMPLOYEE`
-
+- `PLATFORM_OWNER` — reserved for future secure platform administration; it has no tenant-route grant by default.
+- `OWNER` — rental-business owner with owner-only tenant permissions.
+- `EMPLOYEE` — rental-business staff with the current limited permissions.
 Permissions are determined by the user's assigned role. The backend is responsible for enforcing all authorization rules.
 
 ---

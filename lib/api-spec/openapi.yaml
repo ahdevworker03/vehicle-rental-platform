@@ -3335,7 +3335,7 @@ components:
         email:
           type: string
         role:
-          type: string
+          $ref: "#/components/schemas/UserRole"
         createdAt:
           type: string
           format: date-time
@@ -3357,7 +3357,7 @@ components:
         email:
           type: string
         role:
-          type: string
+          $ref: "#/components/schemas/UserRole"
         organizationId:
           type: string
         createdAt:
@@ -3400,6 +3400,10 @@ components:
       required:
         - data
 
+    UserRole:
+      type: string
+      enum: [PLATFORM_OWNER, OWNER, EMPLOYEE]
+
     CreateUserRequest:
       type: object
       properties:
@@ -3411,7 +3415,7 @@ components:
           minLength: 8
         role:
           type: string
-          enum: [MANAGER, EMPLOYEE]
+          enum: [EMPLOYEE]
       required:
         - email
         - password
@@ -3422,7 +3426,7 @@ components:
       properties:
         role:
           type: string
-          enum: [MANAGER, EMPLOYEE]
+          enum: [EMPLOYEE]
       required:
         - role
 

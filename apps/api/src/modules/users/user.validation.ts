@@ -6,9 +6,9 @@ export const updateUserSchema = UpdateUserBody;
 export type CreateUserInput = {
   email: string;
   password: string;
-  role: "MANAGER" | "EMPLOYEE";
+  role: "EMPLOYEE";
 };
 
 export type UpdateUserInput = {
-  role: "MANAGER" | "EMPLOYEE";
+  role: "EMPLOYEE";
 };

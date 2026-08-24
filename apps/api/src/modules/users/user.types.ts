@@ -1,8 +1,10 @@
+export type UserRole = "PLATFORM_OWNER" | "OWNER" | "EMPLOYEE";
+
 export interface UserRecord {
   id: string;
   email: string;
   password_hash: string;
-  role: "OWNER" | "MANAGER" | "EMPLOYEE";
+  role: UserRole;
   organization_id: string;
   created_at: Date;
   updated_at: Date;
@@ -12,7 +14,7 @@ export interface UserRecord {
 export interface UserResponse {
   id: string;
   email: string;
-  role: string;
+  role: UserRole;
   createdAt: string;
   updatedAt: string;
 }
@@ -20,9 +22,9 @@ export interface UserResponse {
 export interface CreateUserInput {
   email: string;
   password: string;
-  role: "MANAGER" | "EMPLOYEE";
+  role: "EMPLOYEE";
 }
 
 export interface UpdateUserInput {
-  role: "MANAGER" | "EMPLOYEE";
+  role: "EMPLOYEE";
 }

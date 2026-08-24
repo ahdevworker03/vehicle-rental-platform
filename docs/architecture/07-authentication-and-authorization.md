@@ -60,17 +60,18 @@ Additional providers should integrate with the existing authentication system wi
 
 The platform is designed exclusively for internal business users. Customers do not authenticate into the system.
 
-| Role | Current behavior |
-| --- | --- |
-| `OWNER` | First user of an organization. Creates, updates, and deletes users; current business mutations are generally owner-only. |
-| `MANAGER` | Implemented role that can be created by an owner. It can authenticate and use authenticated read endpoints; it has no separate mutation grant today. |
-| `EMPLOYEE` | Implemented role that can be created by an owner. It can authenticate and use authenticated read endpoints; it has no separate mutation grant today. |
+| Role             | Current behavior                                                                                                                                               |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PLATFORM_OWNER` | SaaS/platform owner. This role is reserved for a future secure bootstrap or platform-admin process; it is not granted tenant-route access by the current API.  |
+| `OWNER`          | Rental-business owner. The first user of an organization; creates, updates, and deletes tenant employees. Current business mutations are generally owner-only. |
+| `EMPLOYEE`       | Staff user under an `OWNER`. It can authenticate and use authenticated read endpoints; it has no separate mutation grant today.                                |
 
 User creation follows these current rules:
 
 - `POST /api/auth/register` creates a new organization and its first `OWNER` user.
-- `POST /api/users` lets an authenticated `OWNER` create `MANAGER` or `EMPLOYEE` users in the same organization.
+- `POST /api/users` lets an authenticated `OWNER` create an `EMPLOYEE` user in the same organization.
 - There is no API path to create or promote another `OWNER`.
+- `PLATFORM_OWNER` creation is not available through registration or tenant user-management endpoints.
 - The current database seed creates no users.
 
 ## Manual QA Accounts
@@ -209,6 +210,7 @@ Revokes the provided refresh token, ending the authenticated session.
 Returns the current authenticated user. This endpoint is used by clients to restore the current authenticated session, for example when the application loads.
 
 The endpoint:
+
 - Returns the authenticated user information when a valid access token is provided.
 - Returns `{ "data": null }` when no authenticated user exists.
 - Returns `401` when an authentication attempt is made with an invalid or malformed token.
@@ -272,17 +274,15 @@ The authentication architecture should support future enhancements without major
 
 ## Approved SaaS Role Model
 
-The approved target model for platform administration is:
+The implemented and approved role model is:
 
-| Role | Responsibility |
-| --- | --- |
-| `PLATFORM_ADMIN` | Platform owner/admin who manages tenant organizations, subscriptions, support visibility, and platform-level operations. |
-| `OWNER` | Rental-business owner who buys the service and manages their own organization. |
-| `EMPLOYEE` | Staff user working under a rental-business owner. |
+| Role             | Responsibility                                                                                                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PLATFORM_OWNER` | SaaS/platform owner who will manage tenant organizations, subscriptions, support visibility, and platform-level operations. This is not a car-rental business owner.                              |
+| `OWNER`          | Rental-business owner/client who buys the service and manages their own organization, including its vehicles, customers, rentals, maintenance, expenses, payments, tasks, analytics, and reports. |
+| `EMPLOYEE`       | Staff user belonging to one rental-business organization, with permissions limited by the current backend authorization rules.                                                                    |
 
 `CLIENT` must not be used as a backend role. It is ambiguous because the product already has Customers: people who rent vehicles from a rental business. `OWNER` is the correct backend role name for the business owner/client who buys the SaaS.
-
-`MANAGER` is implemented today but is not part of this approved target model. Milestone 5.6 / Milestone 6 planning must decide its transition or retention, as well as tenant/platform boundaries, before implementing the platform-admin dashboard or changing schema, API contracts, or permissions.
 
 Possible future additions include:
 

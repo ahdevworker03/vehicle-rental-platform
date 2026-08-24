@@ -43,10 +43,19 @@ export interface AuthTokensResponse {
   data: AuthTokens;
 }
 
+export type UserRole = typeof UserRole[keyof typeof UserRole];
+
+
+export const UserRole = {
+  PLATFORM_OWNER: 'PLATFORM_OWNER',
+  OWNER: 'OWNER',
+  EMPLOYEE: 'EMPLOYEE',
+} as const;
+
 export interface UserResponse {
   id: string;
   email: string;
-  role: string;
+  role: UserRole;
   createdAt: string;
   updatedAt: string;
 }
@@ -54,7 +63,7 @@ export interface UserResponse {
 export interface CurrentUserResponse {
   id: string;
   email: string;
-  role: string;
+  role: UserRole;
   organizationId: string;
   createdAt: string;
 }
@@ -75,7 +84,6 @@ export type CreateUserRequestRole = typeof CreateUserRequestRole[keyof typeof Cr
 
 
 export const CreateUserRequestRole = {
-  MANAGER: 'MANAGER',
   EMPLOYEE: 'EMPLOYEE',
 } as const;
 
@@ -90,7 +98,6 @@ export type UpdateUserRequestRole = typeof UpdateUserRequestRole[keyof typeof Up
 
 
 export const UpdateUserRequestRole = {
-  MANAGER: 'MANAGER',
   EMPLOYEE: 'EMPLOYEE',
 } as const;
 

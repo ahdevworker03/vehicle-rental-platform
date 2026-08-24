@@ -29,8 +29,8 @@ model Organization {
 }
 
 enum Role {
+  PLATFORM_OWNER
   OWNER
-  MANAGER
   EMPLOYEE
 }
 

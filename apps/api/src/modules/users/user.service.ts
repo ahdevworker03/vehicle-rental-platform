@@ -5,12 +5,13 @@ import type {
   UserResponse,
   CreateUserInput,
   UpdateUserInput,
+  UserRole,
 } from "./user.types";
 
 function toResponse(record: {
   id: string;
   email: string;
-  role: string;
+  role: UserRole;
   created_at: Date;
   updated_at: Date;
 }): UserResponse {
