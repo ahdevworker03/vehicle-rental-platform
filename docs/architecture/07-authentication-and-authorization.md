@@ -56,20 +56,28 @@ Additional providers should integrate with the existing authentication system wi
 
 ---
 
-# User Types
+# Current Roles and User Creation
 
-The platform is designed exclusively for internal business users.
+The platform is designed exclusively for internal business users. Customers do not authenticate into the system.
 
-Current users include:
+| Role | Current behavior |
+| --- | --- |
+| `OWNER` | First user of an organization. Creates, updates, and deletes users; current business mutations are generally owner-only. |
+| `MANAGER` | Implemented role that can be created by an owner. It can authenticate and use authenticated read endpoints; it has no separate mutation grant today. |
+| `EMPLOYEE` | Implemented role that can be created by an owner. It can authenticate and use authenticated read endpoints; it has no separate mutation grant today. |
 
-- Business Owner
+User creation follows these current rules:
 
-Future versions may introduce additional users such as:
+- `POST /api/auth/register` creates a new organization and its first `OWNER` user.
+- `POST /api/users` lets an authenticated `OWNER` create `MANAGER` or `EMPLOYEE` users in the same organization.
+- There is no API path to create or promote another `OWNER`.
+- The current database seed creates no users.
 
-- Manager
-- Employee
+## Manual QA Accounts
 
-Customers do not authenticate into the system.
+When `owner@test.com` is confirmed as an `OWNER`, create QA employee accounts through `POST /api/users` with that owner's access token. This preserves tenant ownership and password hashing.
+
+Do not create QA users through direct SQL unless repairing broken data. Do not register `owner@test.com` again: email is globally unique, and registration creates a separate organization when the email is unused.
 
 ---
 
@@ -262,10 +270,23 @@ Security should be built into every authentication decision rather than added la
 
 The authentication architecture should support future enhancements without major redesign.
 
+## Approved SaaS Role Model
+
+The approved target model for platform administration is:
+
+| Role | Responsibility |
+| --- | --- |
+| `PLATFORM_ADMIN` | Platform owner/admin who manages tenant organizations, subscriptions, support visibility, and platform-level operations. |
+| `OWNER` | Rental-business owner who buys the service and manages their own organization. |
+| `EMPLOYEE` | Staff user working under a rental-business owner. |
+
+`CLIENT` must not be used as a backend role. It is ambiguous because the product already has Customers: people who rent vehicles from a rental business. `OWNER` is the correct backend role name for the business owner/client who buys the SaaS.
+
+`MANAGER` is implemented today but is not part of this approved target model. Milestone 5.6 / Milestone 6 planning must decide its transition or retention, as well as tenant/platform boundaries, before implementing the platform-admin dashboard or changing schema, API contracts, or permissions.
+
 Possible future additions include:
 
 - Google Sign-In
-- Additional user roles
 - Granular permissions
 - Multi-factor authentication
 - Password reset improvements
