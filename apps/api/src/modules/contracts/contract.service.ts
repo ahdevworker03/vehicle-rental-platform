@@ -1,18 +1,21 @@
 import { randomUUID } from "node:crypto";
 import { AppError } from "../../shared";
 import {
-  isTransactionConflictError,
   isUniqueConstraintError,
+  retrySerializable,
   transaction,
 } from "../../database";
 import { storageProvider } from "../../config/storage";
 import { retrieveStoredFile, storeWithMetadata } from "../../storage";
 import * as repo from "./contract.repository";
 import { renderContractHtml, renderContractPdf } from "./contract.pdf";
+import {
+  toContractDocumentResponse,
+  toContractResponse,
+} from "./contract.mapper";
 import type {
   ContractResponse,
   ContractDocumentResponse,
-  DocumentCategory,
 } from "./contract.types";
 
 const GENERATABLE_RENTAL_STATUSES = ["RESERVED", "ACTIVE"];
@@ -41,70 +44,6 @@ function sanitizeFilename(filename: string): string {
   return withoutPath.trim();
 }
 
-function toDocumentResponse(
-  record: {
-    id: string;
-    contract_id: string | null;
-    category: DocumentCategory;
-    original_filename: string;
-    mime_type: string;
-    file_size: number;
-    storage_key: string;
-    created_at: Date;
-    updated_at: Date;
-  },
-  rentalId: string,
-): ContractDocumentResponse {
-  return {
-    id: record.id,
-    contractId: record.contract_id ?? "",
-    rentalId,
-    category: record.category,
-    originalFilename: record.original_filename,
-    mimeType: record.mime_type,
-    fileSize: record.file_size,
-    url: record.storage_key,
-    createdAt: record.created_at.toISOString(),
-    updatedAt: record.updated_at.toISOString(),
-  };
-}
-
-function toResponse(record: {
-  id: string;
-  rental_id: string;
-  pickup_date: Date;
-  expected_return_date: Date;
-  daily_rate: { toString(): string };
-  total_amount: { toString(): string };
-  deposit_amount: { toString(): string };
-  customer_first_name: string;
-  customer_last_name: string;
-  customer_national_id: string;
-  vehicle_make: string;
-  vehicle_model: string;
-  vehicle_plate_number: string;
-  created_at: Date;
-  updated_at: Date;
-}): ContractResponse {
-  return {
-    id: record.id,
-    rentalId: record.rental_id,
-    pickupDate: record.pickup_date.toISOString(),
-    expectedReturnDate: record.expected_return_date.toISOString(),
-    dailyRate: Number(record.daily_rate.toString()),
-    totalAmount: Number(record.total_amount.toString()),
-    depositAmount: Number(record.deposit_amount.toString()),
-    customerFirstName: record.customer_first_name,
-    customerLastName: record.customer_last_name,
-    customerNationalId: record.customer_national_id,
-    vehicleMake: record.vehicle_make,
-    vehicleModel: record.vehicle_model,
-    vehiclePlateNumber: record.vehicle_plate_number,
-    createdAt: record.created_at.toISOString(),
-    updatedAt: record.updated_at.toISOString(),
-  };
-}
-
 async function getContract(
   rentalId: string,
   orgId: string,
@@ -119,7 +58,7 @@ async function getContract(
     );
   }
 
-  return toResponse(contract);
+  return toContractResponse(contract);
 }
 
 async function generateContract(
@@ -197,15 +136,12 @@ async function generateContract(
       { isolationLevel: "Serializable" },
     );
 
-    return toResponse(contract);
+    return toContractResponse(contract);
   }
 
   try {
-    return await run();
+    return await retrySerializable(run);
   } catch (error) {
-    if (isTransactionConflictError(error)) {
-      return run();
-    }
     if (isUniqueConstraintError(error)) {
       throw new AppError(
         409,
@@ -250,7 +186,7 @@ async function getPrintableContract(
   orgId: string,
 ): Promise<string> {
   const contract = await ensureActiveContract(rentalId, orgId);
-  return renderContractHtml(toResponse(contract));
+  return renderContractHtml(toContractResponse(contract));
 }
 
 async function exportContractPdf(
@@ -258,7 +194,7 @@ async function exportContractPdf(
   orgId: string,
 ): Promise<Buffer> {
   const contract = await ensureActiveContract(rentalId, orgId);
-  return renderContractPdf(toResponse(contract));
+  return renderContractPdf(toContractResponse(contract));
 }
 
 async function listSignedDocuments(
@@ -267,7 +203,7 @@ async function listSignedDocuments(
 ): Promise<ContractDocumentResponse[]> {
   const contract = await ensureActiveContract(rentalId, orgId);
   const documents = await repo.listDocuments(contract.id, orgId);
-  return documents.map((d) => toDocumentResponse(d, rentalId));
+  return documents.map((d) => toContractDocumentResponse(d, rentalId));
 }
 
 async function uploadSignedDocument(
@@ -317,7 +253,7 @@ async function uploadSignedDocument(
       }),
   );
 
-  return toDocumentResponse(record, rentalId);
+  return toContractDocumentResponse(record, rentalId);
 }
 
 async function getSignedDocument(
@@ -336,7 +272,7 @@ async function getSignedDocument(
     );
   }
 
-  return toDocumentResponse(document, rentalId);
+  return toContractDocumentResponse(document, rentalId);
 }
 
 async function downloadSignedDocument(

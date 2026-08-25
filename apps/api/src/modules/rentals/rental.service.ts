@@ -1,167 +1,23 @@
 import { AppError } from "../../shared";
-import { transaction, isTransactionConflictError } from "../../database";
+import { transaction, retrySerializable } from "../../database";
 import * as repo from "./rental.repository";
-import type { AvailableVehicleRow } from "./rental.repository";
 import type {
   RentalResponse,
   CreateRentalInput,
   UpdateRentalInput,
 } from "./rental.types";
-
-interface AvailableVehicleResponse {
-  id: string;
-  make: string;
-  model: string;
-  plateNumber: string;
-  year: number;
-  color: string;
-  vin: string | null;
-  engineNumber: string | null;
-  transmission: string;
-  fuelType: string;
-  seats: number;
-  currentMileage: number;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-function toVehicleResponse(
-  record: AvailableVehicleRow,
-): AvailableVehicleResponse {
-  return {
-    id: record.id,
-    make: record.make,
-    model: record.model,
-    plateNumber: record.plate_number,
-    year: record.year,
-    color: record.color,
-    vin: record.vin,
-    engineNumber: record.engine_number,
-    transmission: record.transmission,
-    fuelType: record.fuel_type,
-    seats: record.seats,
-    currentMileage: record.current_mileage,
-    status: record.status,
-    createdAt: record.created_at.toISOString(),
-    updatedAt: record.updated_at.toISOString(),
-  };
-}
-
-function toResponse(record: {
-  id: string;
-  customer_id: string;
-  vehicle_id: string;
-  pickup_date: Date;
-  expected_return_date: Date;
-  actual_pickup_date: Date | null;
-  actual_return_date: Date | null;
-  status: string;
-  daily_rate: { toString(): string };
-  total_amount: { toString(): string };
-  deposit_amount: { toString(): string };
-  created_at: Date;
-  updated_at: Date;
-}): RentalResponse {
-  return {
-    id: record.id,
-    customerId: record.customer_id,
-    vehicleId: record.vehicle_id,
-    pickupDate: record.pickup_date.toISOString(),
-    expectedReturnDate: record.expected_return_date.toISOString(),
-    actualPickupDate: record.actual_pickup_date
-      ? record.actual_pickup_date.toISOString()
-      : null,
-    actualReturnDate: record.actual_return_date
-      ? record.actual_return_date.toISOString()
-      : null,
-    status: record.status as RentalResponse["status"],
-    dailyRate: Number(record.daily_rate.toString()),
-    totalAmount: Number(record.total_amount.toString()),
-    depositAmount: Number(record.deposit_amount.toString()),
-    createdAt: record.created_at.toISOString(),
-    updatedAt: record.updated_at.toISOString(),
-  };
-}
-
-function assertValidPeriod(pickupDate: Date, expectedReturnDate: Date): void {
-  if (expectedReturnDate.getTime() <= pickupDate.getTime()) {
-    throw new AppError(
-      422,
-      "INVALID_RENTAL_PERIOD",
-      "Expected return date must be after the pickup date.",
-    );
-  }
-}
-
-function assertValidAmounts(
-  dailyRate: number,
-  totalAmount: number,
-  depositAmount: number,
-): void {
-  if (
-    !Number.isFinite(dailyRate) ||
-    !Number.isFinite(totalAmount) ||
-    !Number.isFinite(depositAmount) ||
-    dailyRate < 0 ||
-    totalAmount < 0 ||
-    depositAmount < 0 ||
-    depositAmount > totalAmount
-  ) {
-    throw new AppError(
-      422,
-      "INVALID_RENTAL_AMOUNTS",
-      "Rental amounts must be non-negative and the deposit cannot exceed the total amount.",
-    );
-  }
-}
-
-function assertRentalCanBeAmended(status: string): void {
-  if (status !== "RESERVED" && status !== "ACTIVE") {
-    throw new AppError(
-      409,
-      "INVALID_RENTAL_TRANSITION",
-      "Only a reserved or active rental can be amended.",
-    );
-  }
-}
-
-function assertPatchDoesNotChangeStatus(input: UpdateRentalInput): void {
-  if (input.status !== undefined) {
-    throw new AppError(
-      409,
-      "INVALID_RENTAL_TRANSITION",
-      "Rental status must be changed through its lifecycle endpoint.",
-    );
-  }
-}
-
-async function runSerializable<T>(
-  operation: () => Promise<T>,
-): Promise<T> {
-  try {
-    return await operation();
-  } catch (err) {
-    if (isTransactionConflictError(err)) {
-      return await operation();
-    }
-    throw err;
-  }
-}
-
-function assertVehicleOperationallyAvailable(vehicleStatus: string): void {
-  if (
-    vehicleStatus === "MAINTENANCE" ||
-    vehicleStatus === "OUT_OF_SERVICE" ||
-    vehicleStatus === "ARCHIVED"
-  ) {
-    throw new AppError(
-      409,
-      "VEHICLE_UNAVAILABLE",
-      "Vehicle is not available for rental.",
-    );
-  }
-}
+import {
+  toAvailableVehicleResponse,
+  toRentalResponse,
+  type AvailableVehicleResponse,
+} from "./rental.mapper";
+import {
+  assertPatchDoesNotChangeStatus,
+  assertRentalCanBeAmended,
+  assertValidAmounts,
+  assertValidPeriod,
+  assertVehicleOperationallyAvailable,
+} from "./rental.rules";
 
 async function listRentals(
   orgId: string,
@@ -170,7 +26,7 @@ async function listRentals(
   const rentals = search
     ? await repo.searchByOrg(orgId, search)
     : await repo.findByOrg(orgId);
-  return rentals.map(toResponse);
+  return rentals.map(toRentalResponse);
 }
 
 async function getRental(
@@ -183,7 +39,7 @@ async function getRental(
     throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
   }
 
-  return toResponse(rental);
+  return toRentalResponse(rental);
 }
 
 async function createRental(
@@ -268,10 +124,10 @@ async function createRental(
       { isolationLevel: "Serializable" },
     );
 
-    return toResponse(rental);
+    return toRentalResponse(rental);
   }
 
-  return runSerializable(run);
+  return retrySerializable(run);
 }
 
 async function updateRental(
@@ -346,7 +202,7 @@ async function updateRental(
       { isolationLevel: "Serializable" },
     );
 
-  return runSerializable(run).then(toResponse);
+  return retrySerializable(run).then(toRentalResponse);
 }
 
 async function pickupRental(
@@ -384,7 +240,7 @@ async function pickupRental(
       return updated;
     },
     { isolationLevel: "Serializable" },
-  ).then(toResponse);
+  ).then(toRentalResponse);
 }
 
 async function returnRental(
@@ -434,7 +290,7 @@ async function returnRental(
       return updated;
     },
     { isolationLevel: "Serializable" },
-  ).then(toResponse);
+  ).then(toRentalResponse);
 }
 
 async function extendRental(
@@ -502,7 +358,7 @@ async function extendRental(
       return updated;
     },
     { isolationLevel: "Serializable" },
-  ).then(toResponse);
+  ).then(toRentalResponse);
 }
 
 async function cancelRental(
@@ -548,7 +404,7 @@ async function cancelRental(
       return updated;
     },
     { isolationLevel: "Serializable" },
-  ).then(toResponse);
+  ).then(toRentalResponse);
 }
 
 async function deleteRental(rentalId: string, orgId: string): Promise<void> {
@@ -623,7 +479,7 @@ async function deleteRental(rentalId: string, orgId: string): Promise<void> {
       { isolationLevel: "Serializable" },
     );
 
-  await runSerializable(run);
+  await retrySerializable(run);
 }
 
 async function checkAvailability(
@@ -676,7 +532,7 @@ async function listAvailableVehicles(
     pickupDate,
     expectedReturnDate,
   );
-  return vehicles.map(toVehicleResponse);
+  return vehicles.map(toAvailableVehicleResponse);
 }
 
 export {

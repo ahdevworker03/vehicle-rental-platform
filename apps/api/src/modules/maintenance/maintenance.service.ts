@@ -1,5 +1,5 @@
 import { AppError } from "../../shared";
-import { transaction, isTransactionConflictError } from "../../database";
+import { transaction, retrySerializable } from "../../database";
 import * as repo from "./maintenance.repository";
 import type {
   MaintenanceResponse,
@@ -90,19 +90,6 @@ function assertCostValid(cost: number): void {
       "INVALID_MAINTENANCE_COST",
       "Maintenance cost must be a non-negative number.",
     );
-  }
-}
-
-async function runSerializable<T>(
-  operation: () => Promise<T>,
-): Promise<T> {
-  try {
-    return await operation();
-  } catch (err) {
-    if (isTransactionConflictError(err)) {
-      return await operation();
-    }
-    throw err;
   }
 }
 
@@ -306,7 +293,7 @@ async function updateMaintenance(
       { isolationLevel: "Serializable" },
     );
 
-  const updated = await runSerializable(run);
+  const updated = await retrySerializable(run);
 
   return toResponse(updated);
 }
@@ -366,7 +353,7 @@ async function completeMaintenance(
     return updated;
   }, { isolationLevel: "Serializable" });
 
-  const record = await runSerializable(run);
+  const record = await retrySerializable(run);
 
   return toResponse(record);
 }
@@ -421,7 +408,7 @@ async function deleteMaintenance(
       { isolationLevel: "Serializable" },
     );
 
-  await runSerializable(run);
+  await retrySerializable(run);
 }
 
 export {
