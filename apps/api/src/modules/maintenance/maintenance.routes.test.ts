@@ -6,6 +6,7 @@ import { generateAccessToken } from "../../modules/auth";
 import { cleanup } from "../../test/helpers";
 
 describe("maintenance routes", () => {
+  let orgId: string;
   let vehicleId: string;
   let token: string;
 
@@ -13,6 +14,7 @@ describe("maintenance routes", () => {
     await cleanup();
 
     const org = await prisma.organization.create({ data: { name: "Org A" } });
+    orgId = org.id;
 
     const user = await prisma.user.create({
       data: {
@@ -157,6 +159,54 @@ describe("maintenance routes", () => {
       .send({});
 
     expect(res.status).toBe(422);
+  });
+
+  it("returns a conflict when starting maintenance for a vehicle with a live rental", async () => {
+    const customer = await prisma.customer.create({
+      data: {
+        organization_id: orgId,
+        first_name: "Active",
+        last_name: "Renter",
+        phone: "03111111",
+        address: "Beirut",
+        national_id: `API-ACTIVE-NID-${Date.now()}`,
+        license_number: `API-ACTIVE-LICENSE-${Date.now()}`,
+        license_expiry_date: new Date("2030-09-30T00:00:00Z"),
+      },
+    });
+    await prisma.rental.create({
+      data: {
+        organization_id: orgId,
+        customer_id: customer.id,
+        vehicle_id: vehicleId,
+        pickup_date: new Date("2030-01-01T09:00:00Z"),
+        expected_return_date: new Date("2030-01-03T09:00:00Z"),
+        status: "ACTIVE",
+        daily_rate: 100,
+        total_amount: 200,
+        deposit_amount: 50,
+      },
+    });
+    await prisma.vehicle.update({
+      where: { id: vehicleId },
+      data: { status: "RENTED" },
+    });
+    const created = await request(app)
+      .post("/api/maintenance")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        vehicle_id: vehicleId,
+        type: "REPAIR",
+        maintenance_date: "2030-01-01T09:00:00Z",
+      });
+
+    const response = await request(app)
+      .patch(`/api/maintenance/${created.body.data.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ status: "IN_PROGRESS" });
+
+    expect(response.status).toBe(409);
+    expect(response.body.error.code).toBe("VEHICLE_UNAVAILABLE");
   });
 
   it("soft deletes a maintenance record via the API", async () => {

@@ -9,6 +9,8 @@ import {
   deleteMaintenance,
 } from "./maintenance.service";
 import { cleanup, seed, type SeedOrg } from "../../test/helpers";
+import { prisma } from "../../database";
+import { checkAvailability, createRental } from "../rentals";
 
 describe("maintenance service", () => {
   let ctx: SeedOrg;
@@ -182,6 +184,106 @@ describe("maintenance service", () => {
       });
 
       expect(updated.status).toBe("IN_PROGRESS");
+      const vehicle = await prisma.vehicle.findUnique({
+        where: { id: ctx.vehicleId },
+      });
+      expect(vehicle?.status).toBe("MAINTENANCE");
+    });
+
+    it("blocks rental availability and new reservations while maintenance is in progress", async () => {
+      const customer = await prisma.customer.create({
+        data: {
+          organization_id: ctx.orgId,
+          first_name: "Maintenance",
+          last_name: "Customer",
+          phone: "03000000",
+          address: "Beirut",
+          national_id: `MAINT-NID-${Date.now()}`,
+          license_number: `MAINT-LICENSE-${Date.now()}`,
+          license_expiry_date: new Date("2030-09-30T00:00:00Z"),
+        },
+      });
+      const maintenance = await createMaintenance(ctx.orgId, {
+        vehicle_id: ctx.vehicleId,
+        type: "REPAIR",
+        maintenance_date: new Date("2030-01-01T09:00:00Z"),
+      });
+
+      await updateMaintenance(maintenance.id, ctx.orgId, {
+        status: "IN_PROGRESS",
+      });
+
+      await expect(
+        createRental(ctx.orgId, {
+          customer_id: customer.id,
+          vehicle_id: ctx.vehicleId,
+          pickup_date: new Date("2030-01-02T09:00:00Z"),
+          expected_return_date: new Date("2030-01-03T09:00:00Z"),
+          daily_rate: 100,
+          total_amount: 100,
+          deposit_amount: 50,
+          status: "RESERVED",
+        }),
+      ).rejects.toThrow("Vehicle is not available");
+
+      await expect(
+        checkAvailability(
+          ctx.orgId,
+          ctx.vehicleId,
+          new Date("2030-01-02T09:00:00Z"),
+          new Date("2030-01-03T09:00:00Z"),
+        ),
+      ).resolves.toEqual({ available: false, conflictingRentalId: null });
+    });
+
+    it("rejects starting maintenance for a vehicle with a live rental", async () => {
+      const customer = await prisma.customer.create({
+        data: {
+          organization_id: ctx.orgId,
+          first_name: "Active",
+          last_name: "Renter",
+          phone: "03111111",
+          address: "Beirut",
+          national_id: `ACTIVE-NID-${Date.now()}`,
+          license_number: `ACTIVE-LICENSE-${Date.now()}`,
+          license_expiry_date: new Date("2030-09-30T00:00:00Z"),
+        },
+      });
+      await prisma.rental.create({
+        data: {
+          organization_id: ctx.orgId,
+          customer_id: customer.id,
+          vehicle_id: ctx.vehicleId,
+          pickup_date: new Date("2030-01-01T09:00:00Z"),
+          expected_return_date: new Date("2030-01-03T09:00:00Z"),
+          status: "ACTIVE",
+          daily_rate: 100,
+          total_amount: 200,
+          deposit_amount: 50,
+        },
+      });
+      await prisma.vehicle.update({
+        where: { id: ctx.vehicleId },
+        data: { status: "RENTED" },
+      });
+      const maintenance = await createMaintenance(ctx.orgId, {
+        vehicle_id: ctx.vehicleId,
+        type: "REPAIR",
+        maintenance_date: new Date("2030-01-01T09:00:00Z"),
+      });
+
+      await expect(
+        updateMaintenance(maintenance.id, ctx.orgId, {
+          status: "IN_PROGRESS",
+        }),
+      ).rejects.toThrow("Vehicle cannot enter maintenance");
+
+      const [record, vehicle] = await Promise.all([
+        prisma.maintenance.findUnique({ where: { id: maintenance.id } }),
+        prisma.vehicle.findUnique({ where: { id: ctx.vehicleId } }),
+      ]);
+      expect(record?.status).toBe("SCHEDULED");
+      expect(vehicle?.status).toBe("RENTED");
     });
 
     it("does not allow completing through the update operation", async () => {
@@ -248,6 +350,109 @@ describe("maintenance service", () => {
   });
 
   describe("complete", () => {
+    it("returns an otherwise free vehicle to available after the last in-progress maintenance completes", async () => {
+      const maintenance = await createMaintenance(ctx.orgId, {
+        vehicle_id: ctx.vehicleId,
+        type: "REPAIR",
+        maintenance_date: new Date("2026-08-20T09:00:00Z"),
+      });
+      await updateMaintenance(maintenance.id, ctx.orgId, {
+        status: "IN_PROGRESS",
+      });
+
+      await completeMaintenance(maintenance.id, ctx.orgId, { cost: 150 });
+
+      const vehicle = await prisma.vehicle.findUnique({
+        where: { id: ctx.vehicleId },
+      });
+      expect(vehicle?.status).toBe("AVAILABLE");
+    });
+
+    it("does not restore availability while another maintenance record remains in progress", async () => {
+      const first = await createMaintenance(ctx.orgId, {
+        vehicle_id: ctx.vehicleId,
+        type: "REPAIR",
+        maintenance_date: new Date("2026-08-20T09:00:00Z"),
+      });
+      const second = await createMaintenance(ctx.orgId, {
+        vehicle_id: ctx.vehicleId,
+        type: "INSPECTION",
+        maintenance_date: new Date("2026-08-21T09:00:00Z"),
+      });
+      await updateMaintenance(first.id, ctx.orgId, { status: "IN_PROGRESS" });
+      await updateMaintenance(second.id, ctx.orgId, { status: "IN_PROGRESS" });
+
+      await completeMaintenance(first.id, ctx.orgId, { cost: 100 });
+
+      const vehicle = await prisma.vehicle.findUnique({
+        where: { id: ctx.vehicleId },
+      });
+      expect(vehicle?.status).toBe("MAINTENANCE");
+
+      await deleteMaintenance(second.id, ctx.orgId);
+      const releasedVehicle = await prisma.vehicle.findUnique({
+        where: { id: ctx.vehicleId },
+      });
+      expect(releasedVehicle?.status).toBe("AVAILABLE");
+    });
+
+    it("restores a live rental state instead of availability when legacy data contains both states", async () => {
+      const customer = await prisma.customer.create({
+        data: {
+          organization_id: ctx.orgId,
+          first_name: "Legacy",
+          last_name: "Renter",
+          phone: "03222222",
+          address: "Beirut",
+          national_id: `LEGACY-NID-${Date.now()}`,
+          license_number: `LEGACY-LICENSE-${Date.now()}`,
+          license_expiry_date: new Date("2030-09-30T00:00:00Z"),
+        },
+      });
+      const maintenance = await prisma.maintenance.create({
+        data: {
+          organization_id: ctx.orgId,
+          vehicle_id: ctx.vehicleId,
+          type: "REPAIR",
+          status: "IN_PROGRESS",
+          maintenance_date: new Date("2026-08-20T09:00:00Z"),
+        },
+      });
+      await prisma.maintenance.create({
+        data: {
+          organization_id: ctx.orgId,
+          vehicle_id: ctx.vehicleId,
+          type: "INSPECTION",
+          status: "IN_PROGRESS",
+          maintenance_date: new Date("2026-08-21T09:00:00Z"),
+        },
+      });
+      await prisma.rental.create({
+        data: {
+          organization_id: ctx.orgId,
+          customer_id: customer.id,
+          vehicle_id: ctx.vehicleId,
+          pickup_date: new Date("2026-08-20T09:00:00Z"),
+          expected_return_date: new Date("2026-08-22T09:00:00Z"),
+          status: "ACTIVE",
+          daily_rate: 100,
+          total_amount: 200,
+          deposit_amount: 50,
+        },
+      });
+      await prisma.vehicle.update({
+        where: { id: ctx.vehicleId },
+        data: { status: "MAINTENANCE" },
+      });
+
+      await completeMaintenance(maintenance.id, ctx.orgId, { cost: 100 });
+
+      const vehicle = await prisma.vehicle.findUnique({
+        where: { id: ctx.vehicleId },
+      });
+      expect(vehicle?.status).toBe("RENTED");
+    });
+
     it("completes a scheduled record and sets status, completed_at, and cost", async () => {
       const created = await createMaintenance(ctx.orgId, {
         vehicle_id: ctx.vehicleId,

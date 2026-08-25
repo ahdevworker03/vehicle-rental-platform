@@ -1,5 +1,5 @@
 import { AppError } from "../../shared";
-import { transaction } from "../../database";
+import { transaction, isTransactionConflictError } from "../../database";
 import * as repo from "./maintenance.repository";
 import type {
   MaintenanceResponse,
@@ -93,6 +93,72 @@ function assertCostValid(cost: number): void {
   }
 }
 
+async function runSerializable<T>(
+  operation: () => Promise<T>,
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (err) {
+    if (isTransactionConflictError(err)) {
+      return await operation();
+    }
+    throw err;
+  }
+}
+
+function assertVehicleCanEnterMaintenance(
+  vehicleStatus: string,
+  liveRentals: { status: string }[],
+): void {
+  if (
+    liveRentals.length > 0 ||
+    vehicleStatus === "OUT_OF_SERVICE" ||
+    vehicleStatus === "ARCHIVED"
+  ) {
+    throw new AppError(
+      409,
+      "VEHICLE_UNAVAILABLE",
+      "Vehicle cannot enter maintenance while a live rental or non-operational status blocks it.",
+    );
+  }
+}
+
+async function synchronizeVehicleAvailability(
+  vehicleId: string,
+  orgId: string,
+  currentVehicleStatus: string,
+  tx: Parameters<typeof repo.findVehicleWithinTx>[2],
+): Promise<void> {
+  const [inProgressMaintenance, liveRentals] = await Promise.all([
+    repo.findInProgressByVehicleWithinTx(vehicleId, orgId, tx),
+    repo.findLiveRentalsByVehicleWithinTx(vehicleId, orgId, tx),
+  ]);
+
+  if (liveRentals.some((rental) => rental.status === "ACTIVE")) {
+    await repo.updateVehicleStatusWithinTx(vehicleId, "RENTED", tx);
+    return;
+  }
+
+  if (inProgressMaintenance.length > 0) {
+    if (
+      currentVehicleStatus !== "OUT_OF_SERVICE" &&
+      currentVehicleStatus !== "ARCHIVED"
+    ) {
+      await repo.updateVehicleStatusWithinTx(vehicleId, "MAINTENANCE", tx);
+    }
+    return;
+  }
+
+  if (liveRentals.some((rental) => rental.status === "RESERVED")) {
+    await repo.updateVehicleStatusWithinTx(vehicleId, "RESERVED", tx);
+    return;
+  }
+
+  if (currentVehicleStatus === "MAINTENANCE") {
+    await repo.updateVehicleStatusWithinTx(vehicleId, "AVAILABLE", tx);
+  }
+}
+
 async function listMaintenance(
   orgId: string,
   vehicleId?: string,
@@ -155,35 +221,6 @@ async function updateMaintenance(
   orgId: string,
   input: UpdateMaintenanceInput,
 ): Promise<MaintenanceResponse> {
-  const record = await repo.findById(maintenanceId, orgId);
-
-  if (!record || record.deleted_at) {
-    throw new AppError(
-      404,
-      "MAINTENANCE_NOT_FOUND",
-      "Maintenance record not found.",
-    );
-  }
-
-  if (isCompleted(record.status)) {
-    throw new AppError(
-      409,
-      "INVALID_MAINTENANCE_TRANSITION",
-      "A completed maintenance record cannot be updated.",
-    );
-  }
-
-  const nextStatus = input.status ?? record.status;
-  assertValidLifecycleTransition(record.status, nextStatus);
-
-  if (nextStatus === "COMPLETED") {
-    throw new AppError(
-      409,
-      "INVALID_MAINTENANCE_TRANSITION",
-      "Completion must be performed through the complete operation.",
-    );
-  }
-
   if (input.replaced_parts) {
     assertReplacedPartsValid(input.replaced_parts);
   }
@@ -191,19 +228,85 @@ async function updateMaintenance(
     assertCostValid(input.cost);
   }
 
-  const updated = await repo.update(maintenanceId, {
-    ...(input.type !== undefined ? { type: input.type } : {}),
-    ...(input.status !== undefined ? { status: nextStatus } : {}),
-    ...(input.maintenance_date !== undefined
-      ? { maintenance_date: input.maintenance_date }
-      : {}),
-    ...(input.cost !== undefined ? { cost: input.cost } : {}),
-    ...(input.vendor !== undefined ? { vendor: input.vendor } : {}),
-    ...(input.notes !== undefined ? { notes: input.notes } : {}),
-    ...(input.replaced_parts !== undefined
-      ? { replaced_parts: input.replaced_parts }
-      : {}),
-  });
+  const run = () =>
+    transaction(
+      async (tx) => {
+        const record = await repo.findByIdWithinTx(maintenanceId, orgId, tx);
+
+        if (!record || record.deleted_at) {
+          throw new AppError(
+            404,
+            "MAINTENANCE_NOT_FOUND",
+            "Maintenance record not found.",
+          );
+        }
+
+        if (isCompleted(record.status)) {
+          throw new AppError(
+            409,
+            "INVALID_MAINTENANCE_TRANSITION",
+            "A completed maintenance record cannot be updated.",
+          );
+        }
+
+        const nextStatus = input.status ?? record.status;
+        assertValidLifecycleTransition(record.status, nextStatus);
+
+        if (nextStatus === "COMPLETED") {
+          throw new AppError(
+            409,
+            "INVALID_MAINTENANCE_TRANSITION",
+            "Completion must be performed through the complete operation.",
+          );
+        }
+
+        if (nextStatus === "IN_PROGRESS") {
+          const vehicle = await repo.findVehicleWithinTx(
+            record.vehicle_id,
+            orgId,
+            tx,
+          );
+
+          if (!vehicle) {
+            throw new AppError(404, "VEHICLE_NOT_FOUND", "Vehicle not found.");
+          }
+
+          const liveRentals = await repo.findLiveRentalsByVehicleWithinTx(
+            record.vehicle_id,
+            orgId,
+            tx,
+          );
+          assertVehicleCanEnterMaintenance(vehicle.status, liveRentals);
+        }
+
+        const updated = await repo.updateWithinTx(
+          maintenanceId,
+          {
+            ...(input.type !== undefined ? { type: input.type } : {}),
+            ...(input.status !== undefined ? { status: nextStatus } : {}),
+            ...(input.maintenance_date !== undefined
+              ? { maintenance_date: input.maintenance_date }
+              : {}),
+            ...(input.cost !== undefined ? { cost: input.cost } : {}),
+            ...(input.vendor !== undefined ? { vendor: input.vendor } : {}),
+            ...(input.notes !== undefined ? { notes: input.notes } : {}),
+            ...(input.replaced_parts !== undefined
+              ? { replaced_parts: input.replaced_parts }
+              : {}),
+          },
+          tx,
+        );
+
+        if (nextStatus === "IN_PROGRESS") {
+          await repo.updateVehicleStatusWithinTx(record.vehicle_id, "MAINTENANCE", tx);
+        }
+
+        return updated;
+      },
+      { isolationLevel: "Serializable" },
+    );
+
+  const updated = await runSerializable(run);
 
   return toResponse(updated);
 }
@@ -215,7 +318,7 @@ async function completeMaintenance(
 ): Promise<MaintenanceResponse> {
   assertCostValid(input.cost);
 
-  const record = await transaction(async (tx) => {
+  const run = () => transaction(async (tx) => {
     const current = await repo.findByIdWithinTx(maintenanceId, orgId, tx);
 
     if (!current || current.deleted_at) {
@@ -236,7 +339,7 @@ async function completeMaintenance(
 
     assertValidLifecycleTransition(current.status, "COMPLETED");
 
-    return repo.updateWithinTx(
+    const updated = await repo.updateWithinTx(
       maintenanceId,
       {
         status: "COMPLETED",
@@ -245,7 +348,25 @@ async function completeMaintenance(
       },
       tx,
     );
-  });
+
+    const vehicle = await repo.findVehicleWithinTx(
+      current.vehicle_id,
+      orgId,
+      tx,
+    );
+    if (vehicle) {
+      await synchronizeVehicleAvailability(
+        current.vehicle_id,
+        orgId,
+        vehicle.status,
+        tx,
+      );
+    }
+
+    return updated;
+  }, { isolationLevel: "Serializable" });
+
+  const record = await runSerializable(run);
 
   return toResponse(record);
 }
@@ -268,17 +389,39 @@ async function deleteMaintenance(
   maintenanceId: string,
   orgId: string,
 ): Promise<void> {
-  const record = await repo.findById(maintenanceId, orgId);
+  const run = () =>
+    transaction(
+      async (tx) => {
+        const record = await repo.findByIdWithinTx(maintenanceId, orgId, tx);
 
-  if (!record || record.deleted_at) {
-    throw new AppError(
-      404,
-      "MAINTENANCE_NOT_FOUND",
-      "Maintenance record not found.",
+        if (!record || record.deleted_at) {
+          throw new AppError(
+            404,
+            "MAINTENANCE_NOT_FOUND",
+            "Maintenance record not found.",
+          );
+        }
+
+        await repo.softDeleteWithinTx(maintenanceId, tx);
+
+        const vehicle = await repo.findVehicleWithinTx(
+          record.vehicle_id,
+          orgId,
+          tx,
+        );
+        if (vehicle) {
+          await synchronizeVehicleAvailability(
+            record.vehicle_id,
+            orgId,
+            vehicle.status,
+            tx,
+          );
+        }
+      },
+      { isolationLevel: "Serializable" },
     );
-  }
 
-  await repo.softDelete(maintenanceId);
+  await runSerializable(run);
 }
 
 export {
