@@ -6,10 +6,18 @@ import {
   deleteRefreshToken,
   isTokenExpired,
 } from "./auth.refresh";
-import { prisma } from "../../database";
+import { prisma, transaction, isUniqueConstraintError } from "../../database";
 import { AppError } from "../../shared";
 import type { AuthTokens, AccessTokenPayload } from "./auth.types";
 import type { UserRole } from "../users/user.types";
+
+function emailAlreadyExistsError(): AppError {
+  return new AppError(
+    409,
+    "EMAIL_ALREADY_EXISTS",
+    "A user with this email already exists.",
+  );
+}
 
 async function registerOrganization(
   email: string,
@@ -22,29 +30,48 @@ async function registerOrganization(
   });
 
   if (existingUser) {
-    throw new AppError(
-      409,
-      "EMAIL_ALREADY_EXISTS",
-      "A user with this email already exists.",
-    );
+    throw emailAlreadyExistsError();
   }
 
   const passwordHash = await hashPassword(password);
 
-  const organization = await prisma.organization.create({
-    data: {
-      name: organizationName,
-    },
-  });
+  let user: { id: string; organization_id: string; role: UserRole };
 
-  const user = await prisma.user.create({
-    data: {
-      email,
-      password_hash: passwordHash,
-      role: "OWNER",
-      organization_id: organization.id,
-    },
-  });
+  try {
+    user = await transaction(async (tx) => {
+      const existingUser = await tx.user.findUnique({
+        where: { email },
+        select: { id: true },
+      });
+
+      if (existingUser) {
+        throw emailAlreadyExistsError();
+      }
+
+      const organization = await tx.organization.create({
+        data: { name: organizationName },
+      });
+
+      return tx.user.create({
+        data: {
+          email,
+          password_hash: passwordHash,
+          role: "OWNER",
+          organization_id: organization.id,
+        },
+        select: {
+          id: true,
+          organization_id: true,
+          role: true,
+        },
+      });
+    });
+  } catch (err) {
+    if (isUniqueConstraintError(err)) {
+      throw emailAlreadyExistsError();
+    }
+    throw err;
+  }
 
   return issueTokens(user.id, user.organization_id, user.role);
 }
