@@ -1,31 +1,56 @@
 import { prisma } from "../../database";
+import type { TxClient } from "../../database";
 import type {
   ContractRecord,
   ContractDocumentRecord,
   DocumentCategory,
 } from "./contract.types";
 
-async function findByRental(
+type DbClient = typeof prisma | TxClient;
+
+interface ContractSnapshotInput {
+  organization_id: string;
+  rental_id: string;
+  pickup_date: Date;
+  expected_return_date: Date;
+  daily_rate: number;
+  total_amount: number;
+  deposit_amount: number;
+  customer_first_name: string;
+  customer_last_name: string;
+  customer_national_id: string;
+  vehicle_make: string;
+  vehicle_model: string;
+  vehicle_plate_number: string;
+}
+
+async function findActiveByRental(
   rentalId: string,
   orgId: string,
 ): Promise<ContractRecord | null> {
   return prisma.contract.findFirst({
+    where: {
+      rental_id: rentalId,
+      organization_id: orgId,
+      deleted_at: null,
+    },
+  });
+}
+
+async function findByRentalWithinTx(
+  rentalId: string,
+  orgId: string,
+  tx: DbClient,
+): Promise<ContractRecord | null> {
+  return tx.contract.findFirst({
     where: { rental_id: rentalId, organization_id: orgId },
   });
 }
 
-async function findById(
-  contractId: string,
-  orgId: string,
-): Promise<ContractRecord | null> {
-  return prisma.contract.findFirst({
-    where: { id: contractId, organization_id: orgId },
-  });
-}
-
-async function findRentalWithRelations(
+async function findRentalWithRelationsWithinTx(
   rentalId: string,
   orgId: string,
+  tx: DbClient,
 ): Promise<{
   rental: {
     id: string;
@@ -44,7 +69,7 @@ async function findRentalWithRelations(
   } | null;
   vehicle: { make: string; model: string; plate_number: string } | null;
 }> {
-  const rental = await prisma.rental.findFirst({
+  const rental = await tx.rental.findFirst({
     where: { id: rentalId, organization_id: orgId, deleted_at: null },
     include: {
       customer: true,
@@ -84,22 +109,22 @@ async function findRentalWithRelations(
   };
 }
 
-async function create(data: {
-  organization_id: string;
-  rental_id: string;
-  pickup_date: Date;
-  expected_return_date: Date;
-  daily_rate: number;
-  total_amount: number;
-  deposit_amount: number;
-  customer_first_name: string;
-  customer_last_name: string;
-  customer_national_id: string;
-  vehicle_make: string;
-  vehicle_model: string;
-  vehicle_plate_number: string;
-}): Promise<ContractRecord> {
-  return prisma.contract.create({ data });
+async function createWithinTx(
+  data: ContractSnapshotInput,
+  tx: DbClient,
+): Promise<ContractRecord> {
+  return tx.contract.create({ data });
+}
+
+async function restoreAndReplaceWithinTx(
+  contractId: string,
+  data: ContractSnapshotInput,
+  tx: DbClient,
+): Promise<ContractRecord> {
+  return tx.contract.update({
+    where: { id: contractId },
+    data: { ...data, deleted_at: null },
+  });
 }
 
 async function softDelete(contractId: string): Promise<ContractRecord> {
@@ -107,6 +132,16 @@ async function softDelete(contractId: string): Promise<ContractRecord> {
     where: { id: contractId },
     data: { deleted_at: new Date() },
   });
+}
+
+async function hasDocumentsWithinTx(
+  contractId: string,
+  orgId: string,
+  tx: DbClient,
+): Promise<boolean> {
+  return (await tx.document.count({
+    where: { contract_id: contractId, organization_id: orgId },
+  })) > 0;
 }
 
 async function listDocuments(
@@ -155,11 +190,13 @@ async function softDeleteDocument(
 }
 
 export {
-  findByRental,
-  findById,
-  findRentalWithRelations,
-  create,
+  findActiveByRental,
+  findByRentalWithinTx,
+  findRentalWithRelationsWithinTx,
+  createWithinTx,
+  restoreAndReplaceWithinTx,
   softDelete,
+  hasDocumentsWithinTx,
   listDocuments,
   findDocument,
   createDocument,

@@ -1,5 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { AppError } from "../../shared";
+import {
+  isTransactionConflictError,
+  isUniqueConstraintError,
+  transaction,
+} from "../../database";
 import { storageProvider } from "../../config/storage";
 import { retrieveStoredFile, storeWithMetadata } from "../../storage";
 import * as repo from "./contract.repository";
@@ -104,9 +109,9 @@ async function getContract(
   rentalId: string,
   orgId: string,
 ): Promise<ContractResponse> {
-  const contract = await repo.findByRental(rentalId, orgId);
+  const contract = await repo.findActiveByRental(rentalId, orgId);
 
-  if (!contract || contract.deleted_at) {
+  if (!contract) {
     throw new AppError(
       404,
       "CONTRACT_NOT_FOUND",
@@ -121,61 +126,101 @@ async function generateContract(
   rentalId: string,
   orgId: string,
 ): Promise<ContractResponse> {
-  const existing = await repo.findByRental(rentalId, orgId);
+  async function run(): Promise<ContractResponse> {
+    const contract = await transaction(
+      async (tx) => {
+        const data = await repo.findRentalWithRelationsWithinTx(
+          rentalId,
+          orgId,
+          tx,
+        );
 
-  if (existing) {
-    throw new AppError(
-      409,
-      "CONTRACT_EXISTS",
-      "This rental already has a contract.",
+        if (!data.rental) {
+          throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
+        }
+
+        if (!GENERATABLE_RENTAL_STATUSES.includes(data.rental.status)) {
+          throw new AppError(
+            409,
+            "INVALID_RENTAL_STATE",
+            "Contract can only be generated for a reserved or active rental.",
+          );
+        }
+
+        if (!data.customer || !data.vehicle) {
+          throw new AppError(
+            409,
+            "RENTAL_MISSING_RELATIONS",
+            "Rental is missing customer or vehicle information.",
+          );
+        }
+
+        const snapshot = {
+          organization_id: data.rental.organization_id,
+          rental_id: rentalId,
+          pickup_date: data.rental.pickup_date,
+          expected_return_date: data.rental.expected_return_date,
+          daily_rate: Number(data.rental.daily_rate.toString()),
+          total_amount: Number(data.rental.total_amount.toString()),
+          deposit_amount: Number(data.rental.deposit_amount.toString()),
+          customer_first_name: data.customer.first_name,
+          customer_last_name: data.customer.last_name,
+          customer_national_id: data.customer.national_id,
+          vehicle_make: data.vehicle.make,
+          vehicle_model: data.vehicle.model,
+          vehicle_plate_number: data.vehicle.plate_number,
+        };
+        const existing = await repo.findByRentalWithinTx(rentalId, orgId, tx);
+
+        if (!existing) {
+          return repo.createWithinTx(snapshot, tx);
+        }
+
+        if (!existing.deleted_at) {
+          throw new AppError(
+            409,
+            "CONTRACT_EXISTS",
+            "This rental already has a contract.",
+          );
+        }
+
+        if (await repo.hasDocumentsWithinTx(existing.id, orgId, tx)) {
+          throw new AppError(
+            409,
+            "SIGNED_CONTRACT_EXISTS",
+            "A contract with signed documents cannot be regenerated.",
+          );
+        }
+
+        return repo.restoreAndReplaceWithinTx(existing.id, snapshot, tx);
+      },
+      { isolationLevel: "Serializable" },
     );
+
+    return toResponse(contract);
   }
 
-  const data = await repo.findRentalWithRelations(rentalId, orgId);
-
-  if (!data.rental) {
-    throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
+  try {
+    return await run();
+  } catch (error) {
+    if (isTransactionConflictError(error)) {
+      return run();
+    }
+    if (isUniqueConstraintError(error)) {
+      throw new AppError(
+        409,
+        "CONTRACT_EXISTS",
+        "This rental already has a contract.",
+      );
+    }
+    throw error;
   }
-
-  if (!GENERATABLE_RENTAL_STATUSES.includes(data.rental.status)) {
-    throw new AppError(
-      409,
-      "INVALID_RENTAL_STATE",
-      "Contract can only be generated for a reserved or active rental.",
-    );
-  }
-
-  if (!data.customer || !data.vehicle) {
-    throw new AppError(
-      409,
-      "RENTAL_MISSING_RELATIONS",
-      "Rental is missing customer or vehicle information.",
-    );
-  }
-
-  const contract = await repo.create({
-    organization_id: data.rental.organization_id,
-    rental_id: rentalId,
-    pickup_date: data.rental.pickup_date,
-    expected_return_date: data.rental.expected_return_date,
-    daily_rate: Number(data.rental.daily_rate.toString()),
-    total_amount: Number(data.rental.total_amount.toString()),
-    deposit_amount: Number(data.rental.deposit_amount.toString()),
-    customer_first_name: data.customer.first_name,
-    customer_last_name: data.customer.last_name,
-    customer_national_id: data.customer.national_id,
-    vehicle_make: data.vehicle.make,
-    vehicle_model: data.vehicle.model,
-    vehicle_plate_number: data.vehicle.plate_number,
-  });
-
-  return toResponse(contract);
 }
 
 async function deleteContract(rentalId: string, orgId: string): Promise<void> {
-  const contract = await repo.findByRental(rentalId, orgId);
+  const contract = await repo.findActiveByRental(rentalId, orgId);
 
-  if (!contract || contract.deleted_at) {
+  if (!contract) {
     throw new AppError(
       404,
       "CONTRACT_NOT_FOUND",
@@ -187,9 +232,9 @@ async function deleteContract(rentalId: string, orgId: string): Promise<void> {
 }
 
 async function ensureActiveContract(rentalId: string, orgId: string) {
-  const contract = await repo.findByRental(rentalId, orgId);
+  const contract = await repo.findActiveByRental(rentalId, orgId);
 
-  if (!contract || contract.deleted_at) {
+  if (!contract) {
     throw new AppError(
       404,
       "CONTRACT_NOT_FOUND",
