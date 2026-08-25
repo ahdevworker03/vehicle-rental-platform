@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { AppError } from "../../shared";
 import { storageProvider } from "../../config/storage";
+import { retrieveStoredFile, storeWithMetadata } from "../../storage";
 import * as repo from "./contract.repository";
 import { renderContractHtml, renderContractPdf } from "./contract.pdf";
 import type {
@@ -254,17 +255,22 @@ async function uploadSignedDocument(
 
   const extension = extensionForMimeType(file.mimetype);
   const storageKey = `${orgId}/contract/${randomUUID()}.${extension}`;
-  await storageProvider.store(storageKey, file.buffer, file.mimetype);
-
-  const record = await repo.createDocument({
-    organization_id: orgId,
-    contract_id: contract.id,
-    category: "OTHER",
-    original_filename: sanitizeFilename(file.originalname),
-    mime_type: file.mimetype,
-    file_size: file.size,
-    storage_key: storageKey,
-  });
+  const record = await storeWithMetadata(
+    storageProvider,
+    storageKey,
+    file.buffer,
+    file.mimetype,
+    () =>
+      repo.createDocument({
+        organization_id: orgId,
+        contract_id: contract.id,
+        category: "OTHER",
+        original_filename: sanitizeFilename(file.originalname),
+        mime_type: file.mimetype,
+        file_size: file.size,
+        storage_key: storageKey,
+      }),
+  );
 
   return toDocumentResponse(record, rentalId);
 }
@@ -309,7 +315,10 @@ async function downloadSignedDocument(
     );
   }
 
-  const buffer = await storageProvider.retrieve(document.storage_key);
+  const buffer = await retrieveStoredFile(
+    storageProvider,
+    document.storage_key,
+  );
 
   return {
     buffer,

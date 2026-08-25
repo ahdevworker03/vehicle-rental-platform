@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { AppError } from "../../shared";
 import { storageProvider } from "../../config/storage";
+import { retrieveStoredFile, storeWithMetadata } from "../../storage";
 import * as repo from "./media.repository";
 import {
   MAX_FILE_SIZE,
@@ -129,7 +130,7 @@ export async function serveVehiclePhoto(
     throw new AppError(404, "PHOTO_NOT_FOUND", "Photo not found.");
   }
 
-  const buffer = await storageProvider.retrieve(photo.storage_key);
+  const buffer = await retrieveStoredFile(storageProvider, photo.storage_key);
 
   return {
     buffer,
@@ -168,18 +169,23 @@ export async function uploadVehiclePhoto(
   }
 
   const storageKey = generateStorageKey(orgId, "vehicle", file.mimetype);
-  await storageProvider.store(storageKey, file.buffer, file.mimetype);
-
-  const record = await repo.createPhoto({
-    organization_id: orgId,
-    vehicle_id: vehicleId,
-    sort_order: input.sortOrder,
-    caption: input.caption ?? null,
-    original_filename: sanitizeFilename(file.originalname),
-    mime_type: file.mimetype,
-    file_size: file.size,
-    storage_key: storageKey,
-  });
+  const record = await storeWithMetadata(
+    storageProvider,
+    storageKey,
+    file.buffer,
+    file.mimetype,
+    () =>
+      repo.createPhoto({
+        organization_id: orgId,
+        vehicle_id: vehicleId,
+        sort_order: input.sortOrder,
+        caption: input.caption ?? null,
+        original_filename: sanitizeFilename(file.originalname),
+        mime_type: file.mimetype,
+        file_size: file.size,
+        storage_key: storageKey,
+      }),
+  );
 
   return toPhotoResponse(record);
 }
@@ -253,17 +259,22 @@ export async function uploadVehicleDocument(
   }
 
   const storageKey = generateStorageKey(orgId, "vehicle", file.mimetype);
-  await storageProvider.store(storageKey, file.buffer, file.mimetype);
-
-  const record = await repo.createDocument({
-    organization_id: orgId,
-    vehicle_id: vehicleId,
-    category: input.category,
-    original_filename: sanitizeFilename(file.originalname),
-    mime_type: file.mimetype,
-    file_size: file.size,
-    storage_key: storageKey,
-  });
+  const record = await storeWithMetadata(
+    storageProvider,
+    storageKey,
+    file.buffer,
+    file.mimetype,
+    () =>
+      repo.createDocument({
+        organization_id: orgId,
+        vehicle_id: vehicleId,
+        category: input.category,
+        original_filename: sanitizeFilename(file.originalname),
+        mime_type: file.mimetype,
+        file_size: file.size,
+        storage_key: storageKey,
+      }),
+  );
 
   return toDocumentResponse(record);
 }
@@ -352,17 +363,22 @@ export async function uploadCustomerDocument(
   }
 
   const storageKey = generateStorageKey(orgId, "customer", file.mimetype);
-  await storageProvider.store(storageKey, file.buffer, file.mimetype);
-
-  const record = await repo.createCustomerDocument({
-    organization_id: orgId,
-    customer_id: customerId,
-    category: input.category,
-    original_filename: sanitizeFilename(file.originalname),
-    mime_type: file.mimetype,
-    file_size: file.size,
-    storage_key: storageKey,
-  });
+  const record = await storeWithMetadata(
+    storageProvider,
+    storageKey,
+    file.buffer,
+    file.mimetype,
+    () =>
+      repo.createCustomerDocument({
+        organization_id: orgId,
+        customer_id: customerId,
+        category: input.category,
+        original_filename: sanitizeFilename(file.originalname),
+        mime_type: file.mimetype,
+        file_size: file.size,
+        storage_key: storageKey,
+      }),
+  );
 
   return toDocumentResponse(record);
 }
@@ -405,7 +421,10 @@ export async function downloadVehicleDocument(
     throw new AppError(404, "DOCUMENT_NOT_FOUND", "Document not found.");
   }
 
-  const buffer = await storageProvider.retrieve(document.storage_key);
+  const buffer = await retrieveStoredFile(
+    storageProvider,
+    document.storage_key,
+  );
 
   return {
     buffer,
@@ -431,7 +450,10 @@ export async function downloadCustomerDocument(
     throw new AppError(404, "DOCUMENT_NOT_FOUND", "Document not found.");
   }
 
-  const buffer = await storageProvider.retrieve(document.storage_key);
+  const buffer = await retrieveStoredFile(
+    storageProvider,
+    document.storage_key,
+  );
 
   return {
     buffer,

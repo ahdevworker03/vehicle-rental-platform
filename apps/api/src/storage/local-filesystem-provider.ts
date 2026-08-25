@@ -1,6 +1,7 @@
-import { mkdir, writeFile, readFile, unlink, access } from "node:fs/promises";
+import { mkdir, writeFile, readFile, unlink } from "node:fs/promises";
 import { resolve, normalize, sep } from "node:path";
 import type { StorageProvider } from "./storage-provider";
+import { StorageObjectNotFoundError } from "./storage-errors";
 
 export class LocalFilesystemProvider implements StorageProvider {
   private readonly root: string;
@@ -39,8 +40,15 @@ export class LocalFilesystemProvider implements StorageProvider {
 
   async retrieve(key: string): Promise<Buffer> {
     const filePath = this.resolvePath(key);
-    await access(filePath);
-    return readFile(filePath);
+    try {
+      return await readFile(filePath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        throw new StorageObjectNotFoundError();
+      }
+
+      throw error;
+    }
   }
 
   async delete(key: string): Promise<void> {
