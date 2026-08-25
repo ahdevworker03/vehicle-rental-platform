@@ -272,10 +272,29 @@ async function updateVehicleStatusWithinTx(
   });
 }
 
-async function softDelete(rentalId: string): Promise<RentalRecord> {
-  return prisma.rental.update({
+async function softDeleteWithinTx(
+  rentalId: string,
+  tx: DbClient,
+): Promise<RentalRecord> {
+  return tx.rental.update({
     where: { id: rentalId },
     data: { deleted_at: new Date() },
+  });
+}
+
+async function findLiveByVehicleWithinTx(
+  vehicleId: string,
+  orgId: string,
+  tx: DbClient,
+): Promise<Pick<RentalRecord, "status">[]> {
+  return tx.rental.findMany({
+    where: {
+      vehicle_id: vehicleId,
+      organization_id: orgId,
+      deleted_at: null,
+      status: { in: ["RESERVED", "ACTIVE"] },
+    },
+    select: { status: true },
   });
 }
 
@@ -297,5 +316,6 @@ export {
   updateWithinTx,
   updateVehicleStatus,
   updateVehicleStatusWithinTx,
-  softDelete,
+  softDeleteWithinTx,
+  findLiveByVehicleWithinTx,
 };

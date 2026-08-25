@@ -94,6 +94,61 @@ function assertValidPeriod(pickupDate: Date, expectedReturnDate: Date): void {
   }
 }
 
+function assertValidAmounts(
+  dailyRate: number,
+  totalAmount: number,
+  depositAmount: number,
+): void {
+  if (
+    !Number.isFinite(dailyRate) ||
+    !Number.isFinite(totalAmount) ||
+    !Number.isFinite(depositAmount) ||
+    dailyRate < 0 ||
+    totalAmount < 0 ||
+    depositAmount < 0 ||
+    depositAmount > totalAmount
+  ) {
+    throw new AppError(
+      422,
+      "INVALID_RENTAL_AMOUNTS",
+      "Rental amounts must be non-negative and the deposit cannot exceed the total amount.",
+    );
+  }
+}
+
+function assertRentalCanBeAmended(status: string): void {
+  if (status !== "RESERVED" && status !== "ACTIVE") {
+    throw new AppError(
+      409,
+      "INVALID_RENTAL_TRANSITION",
+      "Only a reserved or active rental can be amended.",
+    );
+  }
+}
+
+function assertPatchDoesNotChangeStatus(input: UpdateRentalInput): void {
+  if (input.status !== undefined) {
+    throw new AppError(
+      409,
+      "INVALID_RENTAL_TRANSITION",
+      "Rental status must be changed through its lifecycle endpoint.",
+    );
+  }
+}
+
+async function runSerializable<T>(
+  operation: () => Promise<T>,
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (err) {
+    if (isTransactionConflictError(err)) {
+      return await operation();
+    }
+    throw err;
+  }
+}
+
 function assertVehicleOperationallyAvailable(vehicleStatus: string): void {
   if (
     vehicleStatus === "MAINTENANCE" ||
@@ -139,6 +194,11 @@ async function createRental(
   const expectedReturnDate = new Date(input.expected_return_date);
 
   assertValidPeriod(pickupDate, expectedReturnDate);
+  assertValidAmounts(
+    input.daily_rate,
+    input.total_amount,
+    input.deposit_amount,
+  );
 
   async function run(): Promise<RentalResponse> {
     const rental = await transaction(
@@ -211,14 +271,7 @@ async function createRental(
     return toResponse(rental);
   }
 
-  try {
-    return await run();
-  } catch (err) {
-    if (isTransactionConflictError(err)) {
-      return await run();
-    }
-    throw err;
-  }
+  return runSerializable(run);
 }
 
 async function updateRental(
@@ -226,33 +279,74 @@ async function updateRental(
   orgId: string,
   input: UpdateRentalInput,
 ): Promise<RentalResponse> {
-  const rental = await repo.findById(rentalId, orgId);
+  assertPatchDoesNotChangeStatus(input);
 
-  if (!rental || rental.deleted_at) {
-    throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
-  }
+  const run = () =>
+    transaction(
+      async (tx) => {
+        const rental = await repo.findByIdWithinTx(rentalId, orgId, tx);
 
-  const updated = await repo.update(rentalId, {
-    pickup_date: input.pickup_date ? new Date(input.pickup_date) : undefined,
-    expected_return_date: input.expected_return_date
-      ? new Date(input.expected_return_date)
-      : undefined,
-    actual_pickup_date:
-      input.actual_pickup_date === null ||
-      input.actual_pickup_date === undefined
-        ? undefined
-        : new Date(input.actual_pickup_date),
-    actual_return_date:
-      input.actual_return_date === null ||
-      input.actual_return_date === undefined
-        ? undefined
-        : new Date(input.actual_return_date),
-    daily_rate: input.daily_rate,
-    total_amount: input.total_amount,
-    deposit_amount: input.deposit_amount,
-  });
+        if (!rental || rental.deleted_at) {
+          throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
+        }
 
-  return toResponse(updated);
+        assertRentalCanBeAmended(rental.status);
+
+        const pickupDate = input.pickup_date ?? rental.pickup_date;
+        const expectedReturnDate =
+          input.expected_return_date ?? rental.expected_return_date;
+        const dailyRate = input.daily_rate ?? Number(rental.daily_rate.toString());
+        const totalAmount =
+          input.total_amount ?? Number(rental.total_amount.toString());
+        const depositAmount =
+          input.deposit_amount ?? Number(rental.deposit_amount.toString());
+
+        assertValidPeriod(pickupDate, expectedReturnDate);
+        assertValidAmounts(dailyRate, totalAmount, depositAmount);
+
+        const overlapping = await repo.findOverlappingWithinTx(
+          rental.vehicle_id,
+          orgId,
+          pickupDate,
+          expectedReturnDate,
+          rental.id,
+          tx,
+        );
+
+        if (overlapping.length > 0) {
+          throw new AppError(
+            409,
+            "VEHICLE_UNAVAILABLE",
+            "Vehicle is already reserved for the requested period.",
+          );
+        }
+
+        return repo.updateWithinTx(
+          rentalId,
+          {
+            pickup_date: input.pickup_date,
+            expected_return_date: input.expected_return_date,
+            actual_pickup_date:
+              input.actual_pickup_date === null ||
+              input.actual_pickup_date === undefined
+                ? undefined
+                : input.actual_pickup_date,
+            actual_return_date:
+              input.actual_return_date === null ||
+              input.actual_return_date === undefined
+                ? undefined
+                : input.actual_return_date,
+            daily_rate: input.daily_rate,
+            total_amount: input.total_amount,
+            deposit_amount: input.deposit_amount,
+          },
+          tx,
+        );
+      },
+      { isolationLevel: "Serializable" },
+    );
+
+  return runSerializable(run).then(toResponse);
 }
 
 async function pickupRental(
@@ -458,13 +552,78 @@ async function cancelRental(
 }
 
 async function deleteRental(rentalId: string, orgId: string): Promise<void> {
-  const rental = await repo.findById(rentalId, orgId);
+  const run = () =>
+    transaction(
+      async (tx) => {
+        const rental = await repo.findByIdWithinTx(rentalId, orgId, tx);
 
-  if (!rental || rental.deleted_at) {
-    throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
-  }
+        if (!rental || rental.deleted_at) {
+          throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
+        }
 
-  await repo.softDelete(rentalId);
+        if (rental.status === "ACTIVE") {
+          throw new AppError(
+            409,
+            "ACTIVE_RENTAL_CANNOT_BE_DELETED",
+            "An active rental cannot be deleted. Return it through the rental lifecycle.",
+          );
+        }
+
+        if (rental.status !== "RESERVED") {
+          throw new AppError(
+            409,
+            "INVALID_RENTAL_TRANSITION",
+            "Only a reserved rental can be deleted. Cancel it to release the vehicle.",
+          );
+        }
+
+        await repo.softDeleteWithinTx(rentalId, tx);
+
+        const vehicle = await repo.findVehicleWithinTx(
+          rental.vehicle_id,
+          orgId,
+          tx,
+        );
+        const liveRentals = await repo.findLiveByVehicleWithinTx(
+          rental.vehicle_id,
+          orgId,
+          tx,
+        );
+
+        if (!vehicle) {
+          return;
+        }
+
+        if (liveRentals.some((liveRental) => liveRental.status === "ACTIVE")) {
+          await repo.updateVehicleStatusWithinTx(
+            rental.vehicle_id,
+            "RENTED",
+            tx,
+          );
+          return;
+        }
+
+        if (liveRentals.some((liveRental) => liveRental.status === "RESERVED")) {
+          await repo.updateVehicleStatusWithinTx(
+            rental.vehicle_id,
+            "RESERVED",
+            tx,
+          );
+          return;
+        }
+
+        if (vehicle.status === "RESERVED") {
+          await repo.updateVehicleStatusWithinTx(
+            rental.vehicle_id,
+            "AVAILABLE",
+            tx,
+          );
+        }
+      },
+      { isolationLevel: "Serializable" },
+    );
+
+  await runSerializable(run);
 }
 
 async function checkAvailability(

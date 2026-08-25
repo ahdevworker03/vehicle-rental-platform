@@ -1779,6 +1779,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Rental cannot be amended because of its lifecycle state or vehicle availability
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: Validation failed
           content:
@@ -1815,6 +1821,12 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Rental not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Rental cannot be deleted because of its lifecycle state
           content:
             application/json:
               schema:
