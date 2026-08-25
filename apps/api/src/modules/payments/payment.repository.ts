@@ -1,4 +1,5 @@
 import { prisma } from "../../database";
+import type { TxClient } from "../../database";
 import type { Decimal } from "@prisma/client/runtime/client";
 import type {
   PaymentRecord,
@@ -17,8 +18,9 @@ async function findById(
 async function findRental(
   rentalId: string,
   orgId: string,
+  client: TxClient = prisma,
 ): Promise<{ id: string; total_amount: Decimal } | null> {
-  return prisma.rental.findFirst({
+  return client.rental.findFirst({
     where: { id: rentalId, organization_id: orgId, deleted_at: null },
     select: { id: true, total_amount: true },
   });
@@ -27,8 +29,9 @@ async function findRental(
 async function findByRental(
   rentalId: string,
   orgId: string,
+  client: TxClient = prisma,
 ): Promise<PaymentRecord[]> {
-  return prisma.payment.findMany({
+  return client.payment.findMany({
     where: { rental_id: rentalId, organization_id: orgId, deleted_at: null },
     orderBy: { payment_date: "desc" },
   });
@@ -47,8 +50,8 @@ async function create(data: {
   amount: number;
   payment_date: Date;
   method: PaymentMethod;
-}): Promise<PaymentRecord> {
-  return prisma.payment.create({ data });
+}, client: TxClient = prisma): Promise<PaymentRecord> {
+  return client.payment.create({ data });
 }
 
 export {

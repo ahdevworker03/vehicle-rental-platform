@@ -235,7 +235,7 @@ describe("payment service", () => {
     it("does not include another organization's payments", async () => {
       const otherRental = await createRental(ctx.otherOrgId, 100);
       await createPayment(otherRental, ctx.otherOrgId, {
-        amount: 999,
+        amount: 99,
         payment_date: new Date("2026-08-02T09:00:00Z"),
         method: "CASH",
       });

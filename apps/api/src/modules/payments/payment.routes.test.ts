@@ -9,6 +9,13 @@ describe("payment routes", () => {
   let rentalId: string;
   let token: string;
 
+  function recordPayment(amount: number, paymentDate = "2026-08-02T09:00:00Z") {
+    return request(app)
+      .post(`/api/rentals/${rentalId}/payments`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ amount, payment_date: paymentDate, method: "CASH" });
+  }
+
   beforeEach(async () => {
     await cleanup();
 
@@ -112,6 +119,84 @@ describe("payment routes", () => {
     expect(res.status).toBe(200);
     expect(res.body.data.payments).toHaveLength(1);
     expect(res.body.data.outstandingBalance).toBe(400);
+  });
+
+  it("accepts a first partial payment", async () => {
+    const response = await recordPayment(125);
+
+    expect(response.status).toBe(201);
+    expect(response.body.data.amount).toBe(125);
+  });
+
+  it("includes multiple partial payments in the remaining balance", async () => {
+    expect((await recordPayment(125)).status).toBe(201);
+    expect((await recordPayment(175, "2026-08-03T09:00:00Z")).status).toBe(201);
+
+    const response = await request(app)
+      .get(`/api/rentals/${rentalId}/payments`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.outstandingBalance).toBe(200);
+  });
+
+  it("accepts an exact final payment", async () => {
+    expect((await recordPayment(400)).status).toBe(201);
+
+    const finalPayment = await recordPayment(100, "2026-08-03T09:00:00Z");
+
+    expect(finalPayment.status).toBe(201);
+    const balance = await request(app)
+      .get(`/api/rentals/${rentalId}/payments`)
+      .set("Authorization", `Bearer ${token}`);
+    expect(balance.body.data.outstandingBalance).toBe(0);
+  });
+
+  it("rejects a direct overpayment", async () => {
+    const response = await recordPayment(501);
+
+    expect(response.status).toBe(409);
+    expect(response.body.error.code).toBe(
+      "PAYMENT_EXCEEDS_OUTSTANDING_BALANCE",
+    );
+  });
+
+  it("rejects cumulative overpayment after existing payments", async () => {
+    expect((await recordPayment(400)).status).toBe(201);
+
+    const response = await recordPayment(101, "2026-08-03T09:00:00Z");
+
+    expect(response.status).toBe(409);
+    expect(response.body.error.code).toBe(
+      "PAYMENT_EXCEEDS_OUTSTANDING_BALANCE",
+    );
+  });
+
+  it("excludes soft-deleted payments from the paid total", async () => {
+    const payment = await recordPayment(400);
+    expect(payment.status).toBe(201);
+
+    await prisma.payment.update({
+      where: { id: payment.body.data.id },
+      data: { deleted_at: new Date() },
+    });
+
+    const replacement = await recordPayment(500, "2026-08-03T09:00:00Z");
+
+    expect(replacement.status).toBe(201);
+  });
+
+  it("prevents concurrent payments from collectively exceeding the balance", async () => {
+    const responses = await Promise.all([
+      recordPayment(300),
+      recordPayment(300, "2026-08-03T09:00:00Z"),
+    ]);
+
+    expect(responses.filter((response) => response.status === 201)).toHaveLength(1);
+    expect(responses.filter((response) => response.status === 409)).toHaveLength(1);
+    expect(
+      responses.find((response) => response.status === 409)?.body.error.code,
+    ).toBe("PAYMENT_EXCEEDS_OUTSTANDING_BALANCE");
   });
 
   it("lists payments organization-wide", async () => {

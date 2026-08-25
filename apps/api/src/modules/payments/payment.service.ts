@@ -1,5 +1,6 @@
 import { AppError } from "../../shared";
 import { Decimal } from "@prisma/client/runtime/client";
+import { retrySerializable, transaction } from "../../database";
 import * as repo from "./payment.repository";
 import type {
   PaymentResponse,
@@ -89,19 +90,53 @@ async function createPayment(
   assertValidMethod(input.method);
   assertValidAmount(input.amount);
 
-  const rental = await repo.findRental(rentalId, orgId);
+  const amount = new Decimal(input.amount.toString());
 
-  if (!rental) {
-    throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
-  }
+  const run = () =>
+    transaction(
+      async (tx) => {
+        const rentalInTransaction = await repo.findRental(
+          rentalId,
+          orgId,
+          tx,
+        );
 
-  const payment = await repo.create({
-    organization_id: orgId,
-    rental_id: rentalId,
-    amount: input.amount,
-    payment_date: input.payment_date,
-    method: input.method,
-  });
+        if (!rentalInTransaction) {
+          throw new AppError(404, "RENTAL_NOT_FOUND", "Rental not found.");
+        }
+
+        const payments = await repo.findByRental(rentalId, orgId, tx);
+        const totalPaid = payments.reduce(
+          (sum, payment) => sum.plus(payment.amount),
+          new Decimal(0),
+        );
+        const outstandingBalance = rentalInTransaction.total_amount.minus(
+          totalPaid,
+        );
+
+        if (amount.gt(outstandingBalance)) {
+          throw new AppError(
+            409,
+            "PAYMENT_EXCEEDS_OUTSTANDING_BALANCE",
+            "Payment exceeds the rental's outstanding balance.",
+          );
+        }
+
+        return repo.create(
+          {
+            organization_id: orgId,
+            rental_id: rentalId,
+            amount: input.amount,
+            payment_date: input.payment_date,
+            method: input.method,
+          },
+          tx,
+        );
+      },
+      { isolationLevel: "Serializable" },
+    );
+
+  const payment = await retrySerializable(run);
 
   return toResponse(payment);
 }
