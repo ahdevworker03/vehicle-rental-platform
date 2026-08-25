@@ -1,10 +1,13 @@
 import { AppError } from "../../shared";
 import { isUniqueConstraintError } from "../../database";
 import * as repo from "./customer.repository";
+import {
+  isSupportedLicenseExpiryDate,
+  type CreateCustomerInput,
+  type UpdateCustomerInput,
+} from "./customer.validation";
 import type {
   CustomerResponse,
-  CreateCustomerInput,
-  UpdateCustomerInput,
 } from "./customer.types";
 
 function toResponse(record: {
@@ -19,6 +22,14 @@ function toResponse(record: {
   created_at: Date;
   updated_at: Date;
 }): CustomerResponse {
+  if (!isSupportedLicenseExpiryDate(record.license_expiry_date)) {
+    throw new AppError(
+      500,
+      "CUSTOMER_DATA_INTEGRITY_ERROR",
+      "Customer license expiry date is outside the supported range.",
+    );
+  }
+
   return {
     id: record.id,
     firstName: record.first_name,
@@ -69,7 +80,7 @@ async function createCustomer(
         address: input.address,
         national_id: input.national_id,
         license_number: input.license_number,
-        license_expiry_date: new Date(input.license_expiry_date),
+        license_expiry_date: input.license_expiry_date,
       },
       orgId,
     );
@@ -106,7 +117,7 @@ async function updateCustomer(
       address: input.address,
       national_id: input.national_id,
       license_number: input.license_number,
-      license_expiry_date: new Date(input.license_expiry_date),
+      license_expiry_date: input.license_expiry_date,
     });
 
     return toResponse(updated);

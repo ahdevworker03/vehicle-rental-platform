@@ -7,6 +7,5 @@ export {
 } from "./customer.service";
 export type {
   CustomerResponse,
-  CreateCustomerInput,
-  UpdateCustomerInput,
 } from "./customer.types";
+export type { CreateCustomerInput, UpdateCustomerInput } from "./customer.validation";

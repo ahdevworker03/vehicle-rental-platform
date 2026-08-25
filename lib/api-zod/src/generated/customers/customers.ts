@@ -52,7 +52,7 @@ export const CreateCustomerBody = zod.object({
   "address": zod.string().min(1),
   "national_id": zod.string().min(1),
   "license_number": zod.string().min(1),
-  "license_expiry_date": zod.coerce.date()
+  "license_expiry_date": zod.coerce.date().describe('License expiry date from 1900-01-01 through 2100-12-31.')
 })
 
 export const CreateCustomerResponse = zod.object({
@@ -114,7 +114,7 @@ export const UpdateCustomerBody = zod.object({
   "address": zod.string().min(1),
   "national_id": zod.string().min(1),
   "license_number": zod.string().min(1),
-  "license_expiry_date": zod.coerce.date()
+  "license_expiry_date": zod.coerce.date().describe('License expiry date from 1900-01-01 through 2100-12-31.')
 })
 
 export const UpdateCustomerResponse = zod.object({

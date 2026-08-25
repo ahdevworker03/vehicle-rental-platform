@@ -495,6 +495,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Customer data integrity error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       operationId: createCustomer
       tags: [customers]
@@ -568,6 +574,12 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Customer not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Customer data integrity error
           content:
             application/json:
               schema:
@@ -3546,6 +3558,7 @@ components:
         license_expiry_date:
           type: string
           format: date-time
+          description: License expiry date from 1900-01-01 through 2100-12-31.
       required:
         - first_name
         - last_name
@@ -3579,6 +3592,7 @@ components:
         license_expiry_date:
           type: string
           format: date-time
+          description: License expiry date from 1900-01-01 through 2100-12-31.
       required:
         - first_name
         - last_name

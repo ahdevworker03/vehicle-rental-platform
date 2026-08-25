@@ -25,23 +25,3 @@ export interface CustomerResponse {
   createdAt: string;
   updatedAt: string;
 }
-
-export interface CreateCustomerInput {
-  first_name: string;
-  last_name: string;
-  phone: string;
-  address: string;
-  national_id: string;
-  license_number: string;
-  license_expiry_date: string;
-}
-
-export interface UpdateCustomerInput {
-  first_name: string;
-  last_name: string;
-  phone: string;
-  address: string;
-  national_id: string;
-  license_number: string;
-  license_expiry_date: string;
-}

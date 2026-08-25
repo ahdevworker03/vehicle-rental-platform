@@ -19,5 +19,6 @@ export interface UpdateCustomerRequest {
   national_id: string;
   /** @minLength 1 */
   license_number: string;
+  /** License expiry date from 1900-01-01 through 2100-12-31. */
   license_expiry_date: Date;
 }
