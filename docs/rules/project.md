@@ -46,17 +46,16 @@ apps/
   web/
   api/
 
-packages/
+lib/
   api-spec/
   api-client-react/
   api-zod/
-  shared/
+  db/
 
 docs/
+  rules/
 
-rules/
-
-.opencode/
+.codex/
   skills/
 ```
 
@@ -70,12 +69,12 @@ Different parts of the repository own different responsibilities.
 | ---------------------------- | -------------------------------- |
 | Product behavior             | Product documentation            |
 | Architecture                 | Architecture documentation       |
-| API contracts                | `packages/api-spec`              |
+| API contracts                | `lib/api-spec`                   |
 | Generated API client         | Generated from API specification |
 | Generated validation schemas | Generated from API specification |
 | Shared business logic        | Owning package                   |
-| Repository rules             | `rules/`                         |
-| AI technology knowledge      | `.opencode/skills/`              |
+| Repository rules             | `docs/rules/`                    |
+| AI technology knowledge      | `.codex/skills/`                 |
 
 Never duplicate a source of truth.
 
@@ -102,7 +101,7 @@ Follow `api-contracts.md` before modifying generated packages.
 
 ## Repository Rules
 
-Repository behavior is defined by the rule files inside `rules/`.
+Repository behavior is defined by the rule files inside `docs/rules/`.
 
 These files define:
 
@@ -117,7 +116,7 @@ These files define:
 - API contract ownership
 - generated code handling
 
-Technology-specific implementation guidance belongs in `.opencode/skills/`.
+Technology-specific implementation guidance belongs in `.codex/skills/`.
 
 ## Long-Term Goal
 
