@@ -9,6 +9,7 @@ import {
   listSignedDocuments,
   uploadSignedDocument,
   getSignedDocument,
+  updateSignedDocumentExpiry,
   downloadSignedDocument,
   deleteSignedDocument,
 } from "./contract.service";
@@ -173,6 +174,24 @@ async function getSigned(
   }
 }
 
+async function updateSigned(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const document = await updateSignedDocumentExpiry(
+      req.params.id as string,
+      req.user!.org,
+      req.params.documentId as string,
+      req.body.expiryDate,
+    );
+    ok(res, document);
+  } catch (err) {
+    next(err);
+  }
+}
+
 function sendFile(
   res: Response,
   result: Awaited<ReturnType<typeof downloadSignedDocument>>,
@@ -230,6 +249,7 @@ export {
   listSigned,
   uploadSigned,
   getSigned,
+  updateSigned,
   downloadSigned,
   deleteSigned,
 };

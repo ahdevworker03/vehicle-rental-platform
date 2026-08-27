@@ -17,6 +17,7 @@ import type {
   ContractResponse,
   ContractDocumentResponse,
 } from "./contract.types";
+import { parseDocumentExpiryDate } from "../media/media.validation";
 
 const GENERATABLE_RENTAL_STATUSES = ["RESERVED", "ACTIVE"];
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -275,6 +276,26 @@ async function getSignedDocument(
   return toContractDocumentResponse(document, rentalId);
 }
 
+async function updateSignedDocumentExpiry(
+  rentalId: string,
+  orgId: string,
+  documentId: string,
+  expiryDate: unknown,
+): Promise<ContractDocumentResponse> {
+  const contract = await ensureActiveContract(rentalId, orgId);
+  const document = await repo.findDocument(documentId, contract.id, orgId);
+  if (!document || document.deleted_at) {
+    throw new AppError(404, "DOCUMENT_NOT_FOUND", "Signed contract document not found.");
+  }
+  const updated = await repo.updateDocumentExpiry(
+    documentId,
+    contract.id,
+    orgId,
+    parseDocumentExpiryDate(expiryDate),
+  );
+  return toContractDocumentResponse(updated, rentalId);
+}
+
 async function downloadSignedDocument(
   rentalId: string,
   orgId: string,
@@ -337,6 +358,7 @@ export {
   listSignedDocuments,
   uploadSignedDocument,
   getSignedDocument,
+  updateSignedDocumentExpiry,
   downloadSignedDocument,
   deleteSignedDocument,
 };

@@ -158,4 +158,98 @@ describe("media and signed contract storage reliability", () => {
       `/api/rentals/${rentalId}/contract/signed/:documentId/download`,
     );
   });
+
+  it("stores, returns, and updates date-only document expiry metadata", async () => {
+    const created = await request(app)
+      .post(`/api/vehicles/${vehicleId}/documents`)
+      .set("Authorization", `Bearer ${token}`)
+      .field("category", "INSURANCE")
+      .field("expiryDate", "1900-01-01")
+      .attach("file", Buffer.from("vehicle document"), "vehicle.pdf");
+
+    expect(created.status).toBe(201);
+    expect(created.body.data.expiryDate).toBe("1900-01-01");
+
+    const updated = await request(app)
+      .patch(`/api/vehicles/${vehicleId}/documents/${created.body.data.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ expiryDate: "2100-12-31" });
+
+    expect(updated.status).toBe(200);
+    expect(updated.body.data.expiryDate).toBe("2100-12-31");
+
+    const cleared = await request(app)
+      .patch(`/api/vehicles/${vehicleId}/documents/${created.body.data.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ expiryDate: null });
+
+    expect(cleared.status).toBe(200);
+    expect(cleared.body.data.expiryDate).toBeNull();
+  });
+
+  it("rejects invalid document expiry dates", async () => {
+    const response = await request(app)
+      .post(`/api/vehicles/${vehicleId}/documents`)
+      .set("Authorization", `Bearer ${token}`)
+      .field("category", "OTHER")
+      .field("expiryDate", "2101-01-01")
+      .attach("file", Buffer.from("vehicle document"), "vehicle.pdf");
+
+    expect(response.status).toBe(422);
+    expect(response.body.error.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("supports customer document expiry metadata and preserves tenant isolation", async () => {
+    const created = await request(app)
+      .post(`/api/customers/${customerId}/documents`)
+      .set("Authorization", `Bearer ${token}`)
+      .field("category", "REGISTRATION")
+      .field("expiryDate", "2100-12-31")
+      .attach("file", Buffer.from("customer document"), "customer.pdf");
+
+    expect(created.status).toBe(201);
+    const detail = await request(app)
+      .get(`/api/customers/${customerId}/documents/${created.body.data.id}`)
+      .set("Authorization", `Bearer ${token}`);
+    expect(detail.status).toBe(200);
+    expect(detail.body.data.expiryDate).toBe("2100-12-31");
+
+    const otherTenant = await prisma.organization.create({
+      data: { name: "Other tenant" },
+    });
+    const otherCustomer = await prisma.customer.create({
+      data: {
+        organization_id: otherTenant.id,
+        first_name: "Other",
+        last_name: "Customer",
+        phone: "03000001",
+        address: "Beirut",
+        national_id: `OTHER-${Date.now()}`,
+        license_number: `OTHER-LICENSE-${Date.now()}`,
+        license_expiry_date: new Date("2030-01-01T00:00:00.000Z"),
+      },
+    });
+    const isolated = await request(app)
+      .get(`/api/customers/${otherCustomer.id}/documents`)
+      .set("Authorization", `Bearer ${token}`);
+    expect(isolated.status).toBe(404);
+    expect(isolated.body.error.code).toBe("CUSTOMER_NOT_FOUND");
+  });
+
+  it("enforces exactly one document owner at the database boundary", async () => {
+    await expect(
+      prisma.document.create({
+        data: {
+          organization_id: organizationId,
+          vehicle_id: vehicleId,
+          customer_id: customerId,
+          category: "OTHER",
+          original_filename: "invalid.pdf",
+          mime_type: "application/pdf",
+          file_size: 1,
+          storage_key: `${organizationId}/invalid-${Date.now()}.pdf`,
+        },
+      }),
+    ).rejects.toThrow();
+  });
 });

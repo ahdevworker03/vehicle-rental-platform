@@ -3,6 +3,7 @@ import multer from "multer";
 import { ok, created, noContent, AppError } from "../../shared";
 import { mediaService } from "./media.service";
 import type { CreatePhotoInput, CreateDocumentInput } from "./media.types";
+import { parseDocumentExpiryDate } from "./media.validation";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -225,6 +226,7 @@ async function uploadDocument(
 
     const input: CreateDocumentInput = {
       category: parseCategory(req.body.category),
+      expiryDate: parseDocumentExpiryDate(req.body.expiryDate),
     };
 
     const document = await mediaService.uploadVehicleDocument(
@@ -310,6 +312,7 @@ async function uploadCustomerDocument(
 
     const input: CreateDocumentInput = {
       category: parseCategory(req.body.category),
+      expiryDate: parseDocumentExpiryDate(req.body.expiryDate),
     };
 
     const document = await mediaService.uploadCustomerDocument(
@@ -334,6 +337,42 @@ async function deleteCustomerDocument(
     const id = req.params.id as string;
     await mediaService.deleteCustomerDocument(id, customerId, req.user!.org);
     noContent(res);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function updateVehicleDocument(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const document = await mediaService.updateVehicleDocumentExpiry(
+      req.params.id as string,
+      req.params.vehicleId as string,
+      req.user!.org,
+      req.body.expiryDate,
+    );
+    ok(res, document);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function updateCustomerDocument(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const document = await mediaService.updateCustomerDocumentExpiry(
+      req.params.id as string,
+      req.params.customerId as string,
+      req.user!.org,
+      req.body.expiryDate,
+    );
+    ok(res, document);
   } catch (err) {
     next(err);
   }
@@ -405,6 +444,8 @@ export {
   getCustomerDocument,
   uploadCustomerDocument,
   deleteCustomerDocument,
+  updateVehicleDocument,
+  updateCustomerDocument,
   downloadVehicleDocument,
   downloadCustomerDocument,
 };

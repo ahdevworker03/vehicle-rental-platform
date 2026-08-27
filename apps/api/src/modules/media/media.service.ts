@@ -8,6 +8,7 @@ import {
   isPhotoMimeType,
   isDocumentMimeType,
   extensionForMimeType,
+  parseDocumentExpiryDate,
 } from "./media.validation";
 import { toDocumentResponse, toPhotoResponse } from "./media.mapper";
 import type {
@@ -217,6 +218,7 @@ export async function uploadVehicleDocument(
         organization_id: orgId,
         vehicle_id: vehicleId,
         category: input.category,
+        expiry_date: input.expiryDate ?? null,
         original_filename: sanitizeFilename(file.originalname),
         mime_type: file.mimetype,
         file_size: file.size,
@@ -321,6 +323,7 @@ export async function uploadCustomerDocument(
         organization_id: orgId,
         customer_id: customerId,
         category: input.category,
+        expiry_date: input.expiryDate ?? null,
         original_filename: sanitizeFilename(file.originalname),
         mime_type: file.mimetype,
         file_size: file.size,
@@ -329,6 +332,46 @@ export async function uploadCustomerDocument(
   );
 
   return toDocumentResponse(record);
+}
+
+async function updateVehicleDocumentExpiry(
+  documentId: string,
+  vehicleId: string,
+  orgId: string,
+  expiryDate: unknown,
+): Promise<DocumentResponse> {
+  await ensureVehicleInOrg(vehicleId, orgId);
+  const document = await repo.findDocument(documentId, vehicleId, orgId);
+  if (!document || document.deleted_at) {
+    throw new AppError(404, "DOCUMENT_NOT_FOUND", "Document not found.");
+  }
+  const updated = await repo.updateDocumentExpiry(
+    documentId,
+    orgId,
+    { vehicle_id: vehicleId },
+    parseDocumentExpiryDate(expiryDate),
+  );
+  return toDocumentResponse(updated);
+}
+
+async function updateCustomerDocumentExpiry(
+  documentId: string,
+  customerId: string,
+  orgId: string,
+  expiryDate: unknown,
+): Promise<DocumentResponse> {
+  await ensureCustomerInOrg(customerId, orgId);
+  const document = await repo.findCustomerDocument(documentId, customerId, orgId);
+  if (!document || document.deleted_at) {
+    throw new AppError(404, "DOCUMENT_NOT_FOUND", "Document not found.");
+  }
+  const updated = await repo.updateDocumentExpiry(
+    documentId,
+    orgId,
+    { customer_id: customerId },
+    parseDocumentExpiryDate(expiryDate),
+  );
+  return toDocumentResponse(updated);
 }
 
 export async function deleteCustomerDocument(
@@ -426,5 +469,7 @@ export const mediaService = {
   getCustomerDocument,
   uploadCustomerDocument,
   deleteCustomerDocument,
+  updateVehicleDocumentExpiry,
+  updateCustomerDocumentExpiry,
   downloadCustomerDocument,
 };

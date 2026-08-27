@@ -407,12 +407,17 @@ export interface DocumentResponse {
   vehicleId?: string | null;
   customerId?: string | null;
   category: DocumentResponseCategory;
+  expiryDate: string | null;
   originalFilename: string;
   mimeType: string;
   fileSize: number;
   url: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface UpdateDocumentMetadataRequest {
+  expiryDate: string | null;
 }
 
 export interface DocumentResponseWrapper {
@@ -859,6 +864,7 @@ export const UploadVehicleDocumentBodyCategory = {
 export type UploadVehicleDocumentBody = {
   file?: Blob;
   category?: UploadVehicleDocumentBodyCategory;
+  expiryDate?: string | null;
 };
 
 export type UploadCustomerDocumentBodyCategory = typeof UploadCustomerDocumentBodyCategory[keyof typeof UploadCustomerDocumentBodyCategory];
@@ -873,6 +879,7 @@ export const UploadCustomerDocumentBodyCategory = {
 export type UploadCustomerDocumentBody = {
   file?: Blob;
   category?: UploadCustomerDocumentBodyCategory;
+  expiryDate?: string | null;
 };
 
 export type ListRentalsParams = {

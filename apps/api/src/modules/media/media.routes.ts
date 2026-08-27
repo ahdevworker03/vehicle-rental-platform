@@ -14,6 +14,8 @@ import {
   getCustomerDocument,
   uploadCustomerDocument,
   deleteCustomerDocument,
+  updateVehicleDocument,
+  updateCustomerDocument,
   downloadVehicleDocument,
   downloadCustomerDocument,
 } from "./media.controller";
@@ -22,6 +24,8 @@ import {
   requireOperationalOrganization,
   requireRole,
 } from "../../middleware";
+import { validateBody } from "../../middleware";
+import { documentMetadataSchema } from "./media.validation";
 
 const router: IRouter = Router();
 router.use(authenticate, requireOperationalOrganization);
@@ -45,6 +49,12 @@ router.delete(
 // Documents
 router.get("/vehicles/:vehicleId/documents", listDocuments);
 router.get("/vehicles/:vehicleId/documents/:id", getDocument);
+router.patch(
+  "/vehicles/:vehicleId/documents/:id",
+  requireRole("OWNER"),
+  validateBody(documentMetadataSchema),
+  updateVehicleDocument,
+);
 router.get(
   "/vehicles/:vehicleId/documents/:id/download",
   downloadVehicleDocument,
@@ -69,6 +79,12 @@ router.get(
 router.get(
   "/customers/:customerId/documents/:id",
   getCustomerDocument,
+);
+router.patch(
+  "/customers/:customerId/documents/:id",
+  requireRole("OWNER"),
+  validateBody(documentMetadataSchema),
+  updateCustomerDocument,
 );
 router.get(
   "/customers/:customerId/documents/:id/download",

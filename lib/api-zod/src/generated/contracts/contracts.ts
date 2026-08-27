@@ -102,6 +102,7 @@ export const ListRentalContractSignedDocumentsResponse = zod.object({
   "vehicleId": zod.string().nullish(),
   "customerId": zod.string().nullish(),
   "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "expiryDate": zod.coerce.date().nullable(),
   "originalFilename": zod.string(),
   "mimeType": zod.string(),
   "fileSize": zod.number(),
@@ -124,6 +125,7 @@ export const UploadRentalContractSignedDocumentResponse = zod.object({
   "vehicleId": zod.string().nullish(),
   "customerId": zod.string().nullish(),
   "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "expiryDate": zod.coerce.date().nullable(),
   "originalFilename": zod.string(),
   "mimeType": zod.string(),
   "fileSize": zod.number(),
@@ -147,6 +149,35 @@ export const GetRentalContractSignedDocumentResponse = zod.object({
   "vehicleId": zod.string().nullish(),
   "customerId": zod.string().nullish(),
   "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "expiryDate": zod.coerce.date().nullable(),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+/**
+ * @summary Update signed contract document metadata
+ */
+export const UpdateRentalContractSignedDocumentParams = zod.object({
+  "id": zod.coerce.string(),
+  "documentId": zod.coerce.string()
+})
+
+export const UpdateRentalContractSignedDocumentBody = zod.object({
+  "expiryDate": zod.coerce.date().nullable()
+})
+
+export const UpdateRentalContractSignedDocumentResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string().nullish(),
+  "customerId": zod.string().nullish(),
+  "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "expiryDate": zod.coerce.date().nullable(),
   "originalFilename": zod.string(),
   "mimeType": zod.string(),
   "fileSize": zod.number(),

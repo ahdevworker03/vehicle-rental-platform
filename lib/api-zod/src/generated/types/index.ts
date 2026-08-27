@@ -86,6 +86,7 @@ export * from './taskResponse';
 export * from './taskResponseStatus';
 export * from './taskResponseWrapper';
 export * from './updateCustomerRequest';
+export * from './updateDocumentMetadataRequest';
 export * from './updateExpenseRequest';
 export * from './updateExpenseRequestCategory';
 export * from './updateMaintenanceRequest';

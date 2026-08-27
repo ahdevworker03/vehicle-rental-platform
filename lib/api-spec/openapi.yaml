@@ -1245,6 +1245,10 @@ paths:
                 category:
                   type: string
                   enum: [REGISTRATION, INSURANCE, OTHER]
+                expiryDate:
+                  type: string
+                  format: date
+                  nullable: true
       responses:
         "201":
           description: Document uploaded
@@ -1310,6 +1314,58 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Document, vehicle, or stored file not found (`FILE_NOT_FOUND` when storage is absent)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateVehicleDocument
+      tags: [vehicles]
+      summary: Update vehicle document metadata
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: vehicleId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDocumentMetadataRequest"
+      responses:
+        "200":
+          description: Updated document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Document or vehicle not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
           content:
             application/json:
               schema:
@@ -1457,6 +1513,10 @@ paths:
                 category:
                   type: string
                   enum: [REGISTRATION, INSURANCE, OTHER]
+                expiryDate:
+                  type: string
+                  format: date
+                  nullable: true
       responses:
         "201":
           description: Document uploaded
@@ -1522,6 +1582,58 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Document, customer, or stored file not found (`FILE_NOT_FOUND` when storage is absent)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateCustomerDocument
+      tags: [customers]
+      summary: Update customer document metadata
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDocumentMetadataRequest"
+      responses:
+        "200":
+          description: Updated document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Document or customer not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
           content:
             application/json:
               schema:
@@ -2429,6 +2541,58 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Contract, document, or stored file not found (`FILE_NOT_FOUND` when storage is absent)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateRentalContractSignedDocument
+      tags: [contracts]
+      summary: Update signed contract document metadata
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+        - name: documentId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDocumentMetadataRequest"
+      responses:
+        "200":
+          description: Updated signed document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Contract or signed document not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
           content:
             application/json:
               schema:
@@ -3981,6 +4145,10 @@ components:
         category:
           type: string
           enum: [REGISTRATION, INSURANCE, OTHER]
+        expiryDate:
+          type: string
+          format: date
+          nullable: true
         originalFilename:
           type: string
         mimeType:
@@ -3997,6 +4165,7 @@ components:
           format: date-time
       required:
         - id
+        - expiryDate
         - category
         - originalFilename
         - mimeType
@@ -4004,6 +4173,16 @@ components:
         - url
         - createdAt
         - updatedAt
+
+    UpdateDocumentMetadataRequest:
+      type: object
+      properties:
+        expiryDate:
+          type: string
+          format: date
+          nullable: true
+      required:
+        - expiryDate
 
     DocumentResponseWrapper:
       type: object

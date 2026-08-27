@@ -34,6 +34,7 @@ export function toDocumentResponse(record: {
   vehicle_id: string | null;
   customer_id: string | null;
   category: DocumentCategory;
+  expiry_date: Date | null;
   original_filename: string;
   mime_type: string;
   file_size: number;
@@ -46,6 +47,9 @@ export function toDocumentResponse(record: {
     vehicleId: record.vehicle_id,
     customerId: record.customer_id,
     category: record.category,
+    expiryDate: record.expiry_date
+      ? record.expiry_date.toISOString().slice(0, 10)
+      : null,
     originalFilename: record.original_filename,
     mimeType: record.mime_type,
     fileSize: record.file_size,

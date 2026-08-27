@@ -9,6 +9,7 @@ import {
   listSigned,
   uploadSigned,
   getSigned,
+  updateSigned,
   downloadSigned,
   deleteSigned,
 } from "./contract.controller";
@@ -17,6 +18,8 @@ import {
   requireOperationalOrganization,
   requireRole,
 } from "../../middleware";
+import { validateBody } from "../../middleware";
+import { documentMetadataSchema } from "../media/media.validation";
 
 const router: IRouter = Router();
 router.use(authenticate, requireOperationalOrganization);
@@ -26,6 +29,12 @@ router.get("/rentals/:id/contract/printable", printable);
 router.get("/rentals/:id/contract/pdf", pdf);
 router.get("/rentals/:id/contract/signed", listSigned);
 router.get("/rentals/:id/contract/signed/:documentId", getSigned);
+router.patch(
+  "/rentals/:id/contract/signed/:documentId",
+  requireRole("OWNER"),
+  validateBody(documentMetadataSchema),
+  updateSigned,
+);
 router.get(
   "/rentals/:id/contract/signed/:documentId/download",
   downloadSigned,

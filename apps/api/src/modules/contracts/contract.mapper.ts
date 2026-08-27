@@ -9,6 +9,7 @@ export function toContractDocumentResponse(
     id: string;
     contract_id: string | null;
     category: DocumentCategory;
+    expiry_date: Date | null;
     original_filename: string;
     mime_type: string;
     file_size: number;
@@ -23,6 +24,9 @@ export function toContractDocumentResponse(
     contractId: record.contract_id ?? "",
     rentalId,
     category: record.category,
+    expiryDate: record.expiry_date
+      ? record.expiry_date.toISOString().slice(0, 10)
+      : null,
     originalFilename: record.original_filename,
     mimeType: record.mime_type,
     fileSize: record.file_size,

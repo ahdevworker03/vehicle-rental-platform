@@ -24,6 +24,7 @@ import type {
   DocumentListResponse,
   DocumentResponseWrapper,
   ErrorResponse,
+  UpdateDocumentMetadataRequest,
   UploadRentalContractSignedDocumentBody
 } from '../api.schemas';
 
@@ -654,7 +655,80 @@ export function useGetRentalContractSignedDocument<TData = Awaited<ReturnType<ty
 
 
 
-export const getDeleteRentalContractSignedDocumentUrl = (id: string,
+export const getUpdateRentalContractSignedDocumentUrl = (id: string,
+    documentId: string,) => {
+
+
+
+
+  return `/api/rentals/${id}/contract/signed/${documentId}`
+}
+
+/**
+ * @summary Update signed contract document metadata
+ */
+export const updateRentalContractSignedDocument = async (id: string,
+    documentId: string,
+    updateDocumentMetadataRequest: UpdateDocumentMetadataRequest, options?: RequestInit): Promise<DocumentResponseWrapper> => {
+
+  return customFetch<DocumentResponseWrapper>(getUpdateRentalContractSignedDocumentUrl(id,documentId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateDocumentMetadataRequest)
+  }
+);}
+
+
+
+
+
+export const getUpdateRentalContractSignedDocumentMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRentalContractSignedDocument>>, TError,{id: string;documentId: string;data: BodyType<UpdateDocumentMetadataRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateRentalContractSignedDocument>>, TError,{id: string;documentId: string;data: BodyType<UpdateDocumentMetadataRequest>}, TContext> => {
+
+const mutationKey = ['updateRentalContractSignedDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateRentalContractSignedDocument>>, {id: string;documentId: string;data: BodyType<UpdateDocumentMetadataRequest>}> = (props) => {
+          const {id,documentId,data} = props ?? {};
+
+          return  updateRentalContractSignedDocument(id,documentId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateRentalContractSignedDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof updateRentalContractSignedDocument>>>
+    export type UpdateRentalContractSignedDocumentMutationBody = BodyType<UpdateDocumentMetadataRequest>
+    export type UpdateRentalContractSignedDocumentMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Update signed contract document metadata
+ */
+export const useUpdateRentalContractSignedDocument = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRentalContractSignedDocument>>, TError,{id: string;documentId: string;data: BodyType<UpdateDocumentMetadataRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateRentalContractSignedDocument>>,
+        TError,
+        {id: string;documentId: string;data: BodyType<UpdateDocumentMetadataRequest>},
+        TContext
+      > => {
+      return useMutation(getUpdateRentalContractSignedDocumentMutationOptions(options));
+    }
+    export const getDeleteRentalContractSignedDocumentUrl = (id: string,
     documentId: string,) => {
 
 

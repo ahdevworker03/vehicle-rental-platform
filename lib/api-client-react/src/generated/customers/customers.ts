@@ -28,6 +28,7 @@ import type {
   ErrorResponse,
   ListCustomersParams,
   UpdateCustomerRequest,
+  UpdateDocumentMetadataRequest,
   UploadCustomerDocumentBody
 } from '../api.schemas';
 
@@ -524,6 +525,9 @@ if(uploadCustomerDocumentBody.file !== undefined) {
 if(uploadCustomerDocumentBody.category !== undefined) {
  formData.append(`category`, uploadCustomerDocumentBody.category);
  }
+if(uploadCustomerDocumentBody.expiryDate !== undefined && uploadCustomerDocumentBody.expiryDate !== null) {
+ formData.append(`expiryDate`, uploadCustomerDocumentBody.expiryDate);
+ }
 
   return customFetch<DocumentResponseWrapper>(getUploadCustomerDocumentUrl(customerId),
   {
@@ -663,7 +667,80 @@ export function useGetCustomerDocument<TData = Awaited<ReturnType<typeof getCust
 
 
 
-export const getDeleteCustomerDocumentUrl = (customerId: string,
+export const getUpdateCustomerDocumentUrl = (customerId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/customers/${customerId}/documents/${id}`
+}
+
+/**
+ * @summary Update customer document metadata
+ */
+export const updateCustomerDocument = async (customerId: string,
+    id: string,
+    updateDocumentMetadataRequest: UpdateDocumentMetadataRequest, options?: RequestInit): Promise<DocumentResponseWrapper> => {
+
+  return customFetch<DocumentResponseWrapper>(getUpdateCustomerDocumentUrl(customerId,id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateDocumentMetadataRequest)
+  }
+);}
+
+
+
+
+
+export const getUpdateCustomerDocumentMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCustomerDocument>>, TError,{customerId: string;id: string;data: BodyType<UpdateDocumentMetadataRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCustomerDocument>>, TError,{customerId: string;id: string;data: BodyType<UpdateDocumentMetadataRequest>}, TContext> => {
+
+const mutationKey = ['updateCustomerDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCustomerDocument>>, {customerId: string;id: string;data: BodyType<UpdateDocumentMetadataRequest>}> = (props) => {
+          const {customerId,id,data} = props ?? {};
+
+          return  updateCustomerDocument(customerId,id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCustomerDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof updateCustomerDocument>>>
+    export type UpdateCustomerDocumentMutationBody = BodyType<UpdateDocumentMetadataRequest>
+    export type UpdateCustomerDocumentMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Update customer document metadata
+ */
+export const useUpdateCustomerDocument = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCustomerDocument>>, TError,{customerId: string;id: string;data: BodyType<UpdateDocumentMetadataRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCustomerDocument>>,
+        TError,
+        {customerId: string;id: string;data: BodyType<UpdateDocumentMetadataRequest>},
+        TContext
+      > => {
+      return useMutation(getUpdateCustomerDocumentMutationOptions(options));
+    }
+    export const getDeleteCustomerDocumentUrl = (customerId: string,
     id: string,) => {
 
 

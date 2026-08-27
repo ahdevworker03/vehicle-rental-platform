@@ -180,6 +180,24 @@ async function createDocument(data: {
   return prisma.document.create({ data });
 }
 
+async function updateDocumentExpiry(
+  documentId: string,
+  contractId: string,
+  orgId: string,
+  expiryDate: Date | null,
+): Promise<ContractDocumentRecord> {
+  const result = await prisma.document.updateMany({
+    where: { id: documentId, contract_id: contractId, organization_id: orgId },
+    data: { expiry_date: expiryDate },
+  });
+  if (result.count !== 1) {
+    throw new Error("Signed document update lost its tenant scope.");
+  }
+  return prisma.document.findFirstOrThrow({
+    where: { id: documentId, contract_id: contractId, organization_id: orgId },
+  });
+}
+
 async function softDeleteDocument(
   documentId: string,
 ): Promise<ContractDocumentRecord> {
@@ -200,5 +218,6 @@ export {
   listDocuments,
   findDocument,
   createDocument,
+  updateDocumentExpiry,
   softDeleteDocument,
 };

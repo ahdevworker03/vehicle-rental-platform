@@ -307,6 +307,7 @@ export const ListVehicleDocumentsResponse = zod.object({
   "vehicleId": zod.string().nullish(),
   "customerId": zod.string().nullish(),
   "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "expiryDate": zod.coerce.date().nullable(),
   "originalFilename": zod.string(),
   "mimeType": zod.string(),
   "fileSize": zod.number(),
@@ -329,6 +330,7 @@ export const UploadVehicleDocumentResponse = zod.object({
   "vehicleId": zod.string().nullish(),
   "customerId": zod.string().nullish(),
   "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "expiryDate": zod.coerce.date().nullable(),
   "originalFilename": zod.string(),
   "mimeType": zod.string(),
   "fileSize": zod.number(),
@@ -352,6 +354,35 @@ export const GetVehicleDocumentResponse = zod.object({
   "vehicleId": zod.string().nullish(),
   "customerId": zod.string().nullish(),
   "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "expiryDate": zod.coerce.date().nullable(),
+  "originalFilename": zod.string(),
+  "mimeType": zod.string(),
+  "fileSize": zod.number(),
+  "url": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+/**
+ * @summary Update vehicle document metadata
+ */
+export const UpdateVehicleDocumentParams = zod.object({
+  "vehicleId": zod.coerce.string(),
+  "id": zod.coerce.string()
+})
+
+export const UpdateVehicleDocumentBody = zod.object({
+  "expiryDate": zod.coerce.date().nullable()
+})
+
+export const UpdateVehicleDocumentResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string().nullish(),
+  "customerId": zod.string().nullish(),
+  "category": zod.enum(['REGISTRATION', 'INSURANCE', 'OTHER']),
+  "expiryDate": zod.coerce.date().nullable(),
   "originalFilename": zod.string(),
   "mimeType": zod.string(),
   "fileSize": zod.number(),

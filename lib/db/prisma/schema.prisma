@@ -282,6 +282,7 @@ model Document {
   contract_id       String?          @db.Uuid
   contract          Contract?        @relation(fields: [contract_id], references: [id], onDelete: Restrict)
   category          DocumentCategory @default(OTHER)
+  expiry_date       DateTime?        @db.Date
   original_filename String
   mime_type         String
   file_size         Int
@@ -295,6 +296,7 @@ model Document {
   @@index([customer_id])
   @@index([contract_id])
   @@index([category])
+  @@index([expiry_date])
   @@index([deleted_at])
 }
 

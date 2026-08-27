@@ -12,6 +12,7 @@ export interface DocumentResponse {
   vehicleId?: string | null;
   customerId?: string | null;
   category: DocumentResponseCategory;
+  expiryDate: Date | null;
   originalFilename: string;
   mimeType: string;
   fileSize: number;

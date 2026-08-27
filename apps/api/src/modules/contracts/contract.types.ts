@@ -68,6 +68,7 @@ export interface ContractDocumentRecord {
   organization_id: string;
   contract_id: string | null;
   category: DocumentCategory;
+  expiry_date: Date | null;
   original_filename: string;
   mime_type: string;
   file_size: number;
@@ -82,6 +83,7 @@ export interface ContractDocumentResponse {
   contractId: string;
   rentalId: string;
   category: DocumentCategory;
+  expiryDate: string | null;
   originalFilename: string;
   mimeType: string;
   fileSize: number;

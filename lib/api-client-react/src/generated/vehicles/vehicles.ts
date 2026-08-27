@@ -28,6 +28,7 @@ import type {
   ListVehiclesParams,
   PhotoListResponse,
   PhotoResponseWrapper,
+  UpdateDocumentMetadataRequest,
   UpdateVehicleRequest,
   UploadVehicleDocumentBody,
   UploadVehiclePhotoBody,
@@ -1002,6 +1003,9 @@ if(uploadVehicleDocumentBody.file !== undefined) {
 if(uploadVehicleDocumentBody.category !== undefined) {
  formData.append(`category`, uploadVehicleDocumentBody.category);
  }
+if(uploadVehicleDocumentBody.expiryDate !== undefined && uploadVehicleDocumentBody.expiryDate !== null) {
+ formData.append(`expiryDate`, uploadVehicleDocumentBody.expiryDate);
+ }
 
   return customFetch<DocumentResponseWrapper>(getUploadVehicleDocumentUrl(vehicleId),
   {
@@ -1141,7 +1145,80 @@ export function useGetVehicleDocument<TData = Awaited<ReturnType<typeof getVehic
 
 
 
-export const getDeleteVehicleDocumentUrl = (vehicleId: string,
+export const getUpdateVehicleDocumentUrl = (vehicleId: string,
+    id: string,) => {
+
+
+
+
+  return `/api/vehicles/${vehicleId}/documents/${id}`
+}
+
+/**
+ * @summary Update vehicle document metadata
+ */
+export const updateVehicleDocument = async (vehicleId: string,
+    id: string,
+    updateDocumentMetadataRequest: UpdateDocumentMetadataRequest, options?: RequestInit): Promise<DocumentResponseWrapper> => {
+
+  return customFetch<DocumentResponseWrapper>(getUpdateVehicleDocumentUrl(vehicleId,id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateDocumentMetadataRequest)
+  }
+);}
+
+
+
+
+
+export const getUpdateVehicleDocumentMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateVehicleDocument>>, TError,{vehicleId: string;id: string;data: BodyType<UpdateDocumentMetadataRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateVehicleDocument>>, TError,{vehicleId: string;id: string;data: BodyType<UpdateDocumentMetadataRequest>}, TContext> => {
+
+const mutationKey = ['updateVehicleDocument'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateVehicleDocument>>, {vehicleId: string;id: string;data: BodyType<UpdateDocumentMetadataRequest>}> = (props) => {
+          const {vehicleId,id,data} = props ?? {};
+
+          return  updateVehicleDocument(vehicleId,id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateVehicleDocumentMutationResult = NonNullable<Awaited<ReturnType<typeof updateVehicleDocument>>>
+    export type UpdateVehicleDocumentMutationBody = BodyType<UpdateDocumentMetadataRequest>
+    export type UpdateVehicleDocumentMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Update vehicle document metadata
+ */
+export const useUpdateVehicleDocument = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateVehicleDocument>>, TError,{vehicleId: string;id: string;data: BodyType<UpdateDocumentMetadataRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateVehicleDocument>>,
+        TError,
+        {vehicleId: string;id: string;data: BodyType<UpdateDocumentMetadataRequest>},
+        TContext
+      > => {
+      return useMutation(getUpdateVehicleDocumentMutationOptions(options));
+    }
+    export const getDeleteVehicleDocumentUrl = (vehicleId: string,
     id: string,) => {
 
 

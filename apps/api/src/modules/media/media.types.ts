@@ -21,6 +21,7 @@ export interface DocumentRecord {
   vehicle_id: string | null;
   customer_id: string | null;
   category: DocumentCategory;
+  expiry_date: Date | null;
   original_filename: string;
   mime_type: string;
   file_size: number;
@@ -48,6 +49,7 @@ export interface DocumentResponse {
   vehicleId: string | null;
   customerId: string | null;
   category: DocumentCategory;
+  expiryDate: string | null;
   originalFilename: string;
   mimeType: string;
   fileSize: number;
@@ -63,4 +65,9 @@ export interface CreatePhotoInput {
 
 export interface CreateDocumentInput {
   category: DocumentCategory;
+  expiryDate?: Date | null;
+}
+
+export interface UpdateDocumentMetadataInput {
+  expiryDate: Date | null;
 }

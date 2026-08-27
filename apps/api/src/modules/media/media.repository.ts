@@ -89,6 +89,7 @@ async function createDocument(data: {
   organization_id: string;
   vehicle_id: string;
   category: DocumentCategory;
+  expiry_date?: Date | null;
   original_filename: string;
   mime_type: string;
   file_size: number;
@@ -125,12 +126,33 @@ async function createCustomerDocument(data: {
   organization_id: string;
   customer_id: string;
   category: DocumentCategory;
+  expiry_date?: Date | null;
   original_filename: string;
   mime_type: string;
   file_size: number;
   storage_key: string;
 }): Promise<DocumentRecord> {
   return prisma.document.create({ data });
+}
+
+async function updateDocumentExpiry(
+  documentId: string,
+  orgId: string,
+  owner: { vehicle_id?: string; customer_id?: string },
+  expiryDate: Date | null,
+): Promise<DocumentRecord> {
+  const result = await prisma.document.updateMany({
+    where: { id: documentId, organization_id: orgId, ...owner },
+    data: { expiry_date: expiryDate },
+  });
+  if (result.count !== 1) {
+    throw new Error("Document update lost its tenant scope.");
+  }
+  const record = await prisma.document.findFirst({
+    where: { id: documentId, organization_id: orgId, ...owner },
+  });
+  if (!record) throw new Error("Document update lost its tenant scope.");
+  return record;
 }
 
 async function softDeleteDocument(documentId: string): Promise<DocumentRecord> {
@@ -153,5 +175,6 @@ export {
   listCustomerDocuments,
   findCustomerDocument,
   createCustomerDocument,
+  updateDocumentExpiry,
   softDeleteDocument,
 };
