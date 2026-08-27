@@ -3067,6 +3067,195 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /maintenance-schedules:
+    get:
+      operationId: listMaintenanceSchedules
+      tags: [maintenance]
+      summary: List maintenance schedules in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: vehicleId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vehicle ID
+      responses:
+        "200":
+          description: List of maintenance schedules
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceScheduleListResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createMaintenanceSchedule
+      tags: [maintenance]
+      summary: Create a maintenance schedule in the current organization
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMaintenanceScheduleRequest"
+      responses:
+        "201":
+          description: Maintenance schedule created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceScheduleResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Vehicle not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /maintenance-schedules/{id}:
+    get:
+      operationId: getMaintenanceSchedule
+      tags: [maintenance]
+      summary: Get a maintenance schedule in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Maintenance schedule ID
+      responses:
+        "200":
+          description: Maintenance schedule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceScheduleResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Maintenance schedule not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateMaintenanceSchedule
+      tags: [maintenance]
+      summary: Update a maintenance schedule in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Maintenance schedule ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMaintenanceScheduleRequest"
+      responses:
+        "200":
+          description: Maintenance schedule updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceScheduleResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Maintenance schedule not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteMaintenanceSchedule
+      tags: [maintenance]
+      summary: Soft delete a maintenance schedule in the current organization
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Maintenance schedule ID
+      responses:
+        "204":
+          description: Maintenance schedule deleted
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Maintenance schedule not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /vehicles/{vehicleId}/maintenance:
     get:
       operationId: listVehicleMaintenance
@@ -4545,6 +4734,135 @@ components:
           $ref: "#/components/schemas/ContractResponse"
       required:
         - data
+
+    MaintenanceScheduleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        vehicleId:
+          type: string
+        maintenanceType:
+          type: string
+          enum: [PREVENTIVE_SERVICE, INSPECTION, REPAIR, OTHER]
+        scheduleType:
+          type: string
+          enum: [DATE, MILEAGE, DATE_OR_MILEAGE]
+        dateIntervalDays:
+          type: integer
+          nullable: true
+        nextDueDate:
+          type: string
+          format: date
+          nullable: true
+        mileageInterval:
+          type: integer
+          nullable: true
+        nextDueMileage:
+          type: integer
+          nullable: true
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - vehicleId
+        - maintenanceType
+        - scheduleType
+        - dateIntervalDays
+        - nextDueDate
+        - mileageInterval
+        - nextDueMileage
+        - isActive
+        - createdAt
+        - updatedAt
+
+    MaintenanceScheduleResponseWrapper:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/MaintenanceScheduleResponse"
+      required:
+        - data
+
+    MaintenanceScheduleListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/MaintenanceScheduleResponse"
+      required:
+        - data
+
+    CreateMaintenanceScheduleRequest:
+      type: object
+      properties:
+        vehicle_id:
+          type: string
+          minLength: 1
+        maintenance_type:
+          type: string
+          enum: [PREVENTIVE_SERVICE, INSPECTION, REPAIR, OTHER]
+        schedule_type:
+          type: string
+          enum: [DATE, MILEAGE, DATE_OR_MILEAGE]
+        date_interval_days:
+          type: integer
+          minimum: 1
+          nullable: true
+        next_due_date:
+          type: string
+          format: date
+          nullable: true
+        mileage_interval:
+          type: integer
+          minimum: 1
+          nullable: true
+        next_due_mileage:
+          type: integer
+          minimum: 0
+          nullable: true
+        is_active:
+          type: boolean
+      required:
+        - vehicle_id
+        - maintenance_type
+        - schedule_type
+
+    UpdateMaintenanceScheduleRequest:
+      type: object
+      minProperties: 1
+      properties:
+        maintenance_type:
+          type: string
+          enum: [PREVENTIVE_SERVICE, INSPECTION, REPAIR, OTHER]
+        schedule_type:
+          type: string
+          enum: [DATE, MILEAGE, DATE_OR_MILEAGE]
+        date_interval_days:
+          type: integer
+          minimum: 1
+          nullable: true
+        next_due_date:
+          type: string
+          format: date
+          nullable: true
+        mileage_interval:
+          type: integer
+          minimum: 1
+          nullable: true
+        next_due_mileage:
+          type: integer
+          minimum: 0
+          nullable: true
+        is_active:
+          type: boolean
 
     MaintenanceResponse:
       type: object

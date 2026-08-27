@@ -214,6 +214,137 @@ export const CompleteMaintenanceResponse = zod.object({
 })
 
 /**
+ * @summary List maintenance schedules in the current organization
+ */
+export const ListMaintenanceSchedulesQueryParams = zod.object({
+  "vehicleId": zod.coerce.string().optional().describe('Filter by vehicle ID')
+})
+
+export const ListMaintenanceSchedulesResponse = zod.object({
+  "data": zod.array(zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string(),
+  "maintenanceType": zod.enum(['PREVENTIVE_SERVICE', 'INSPECTION', 'REPAIR', 'OTHER']),
+  "scheduleType": zod.enum(['DATE', 'MILEAGE', 'DATE_OR_MILEAGE']),
+  "dateIntervalDays": zod.number().nullable(),
+  "nextDueDate": zod.coerce.date().nullable(),
+  "mileageInterval": zod.number().nullable(),
+  "nextDueMileage": zod.number().nullable(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+/**
+ * @summary Create a maintenance schedule in the current organization
+ */
+
+
+
+export const createMaintenanceScheduleBodyNextDueMileageMin = 0;
+
+
+
+export const CreateMaintenanceScheduleBody = zod.object({
+  "vehicle_id": zod.string().min(1),
+  "maintenance_type": zod.enum(['PREVENTIVE_SERVICE', 'INSPECTION', 'REPAIR', 'OTHER']),
+  "schedule_type": zod.enum(['DATE', 'MILEAGE', 'DATE_OR_MILEAGE']),
+  "date_interval_days": zod.number().min(1).nullish(),
+  "next_due_date": zod.coerce.date().nullish(),
+  "mileage_interval": zod.number().min(1).nullish(),
+  "next_due_mileage": zod.number().min(createMaintenanceScheduleBodyNextDueMileageMin).nullish(),
+  "is_active": zod.boolean().optional()
+})
+
+export const CreateMaintenanceScheduleResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string(),
+  "maintenanceType": zod.enum(['PREVENTIVE_SERVICE', 'INSPECTION', 'REPAIR', 'OTHER']),
+  "scheduleType": zod.enum(['DATE', 'MILEAGE', 'DATE_OR_MILEAGE']),
+  "dateIntervalDays": zod.number().nullable(),
+  "nextDueDate": zod.coerce.date().nullable(),
+  "mileageInterval": zod.number().nullable(),
+  "nextDueMileage": zod.number().nullable(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+/**
+ * @summary Get a maintenance schedule in the current organization
+ */
+export const GetMaintenanceScheduleParams = zod.object({
+  "id": zod.coerce.string().describe('Maintenance schedule ID')
+})
+
+export const GetMaintenanceScheduleResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string(),
+  "maintenanceType": zod.enum(['PREVENTIVE_SERVICE', 'INSPECTION', 'REPAIR', 'OTHER']),
+  "scheduleType": zod.enum(['DATE', 'MILEAGE', 'DATE_OR_MILEAGE']),
+  "dateIntervalDays": zod.number().nullable(),
+  "nextDueDate": zod.coerce.date().nullable(),
+  "mileageInterval": zod.number().nullable(),
+  "nextDueMileage": zod.number().nullable(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+/**
+ * @summary Update a maintenance schedule in the current organization
+ */
+export const UpdateMaintenanceScheduleParams = zod.object({
+  "id": zod.coerce.string().describe('Maintenance schedule ID')
+})
+
+
+
+export const updateMaintenanceScheduleBodyNextDueMileageMin = 0;
+
+
+
+export const UpdateMaintenanceScheduleBody = zod.object({
+  "maintenance_type": zod.enum(['PREVENTIVE_SERVICE', 'INSPECTION', 'REPAIR', 'OTHER']).optional(),
+  "schedule_type": zod.enum(['DATE', 'MILEAGE', 'DATE_OR_MILEAGE']).optional(),
+  "date_interval_days": zod.number().min(1).nullish(),
+  "next_due_date": zod.coerce.date().nullish(),
+  "mileage_interval": zod.number().min(1).nullish(),
+  "next_due_mileage": zod.number().min(updateMaintenanceScheduleBodyNextDueMileageMin).nullish(),
+  "is_active": zod.boolean().optional()
+})
+
+export const UpdateMaintenanceScheduleResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "vehicleId": zod.string(),
+  "maintenanceType": zod.enum(['PREVENTIVE_SERVICE', 'INSPECTION', 'REPAIR', 'OTHER']),
+  "scheduleType": zod.enum(['DATE', 'MILEAGE', 'DATE_OR_MILEAGE']),
+  "dateIntervalDays": zod.number().nullable(),
+  "nextDueDate": zod.coerce.date().nullable(),
+  "mileageInterval": zod.number().nullable(),
+  "nextDueMileage": zod.number().nullable(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+})
+
+/**
+ * @summary Soft delete a maintenance schedule in the current organization
+ */
+export const DeleteMaintenanceScheduleParams = zod.object({
+  "id": zod.coerce.string().describe('Maintenance schedule ID')
+})
+
+export const DeleteMaintenanceScheduleResponse = zod.void()
+
+/**
  * @summary List maintenance history for a vehicle in the current organization
  */
 export const ListVehicleMaintenanceParams = zod.object({

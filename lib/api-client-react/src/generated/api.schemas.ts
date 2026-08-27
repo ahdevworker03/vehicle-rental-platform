@@ -527,6 +527,113 @@ export interface ContractResponseWrapper {
   data: ContractResponse;
 }
 
+export type MaintenanceScheduleResponseMaintenanceType = typeof MaintenanceScheduleResponseMaintenanceType[keyof typeof MaintenanceScheduleResponseMaintenanceType];
+
+
+export const MaintenanceScheduleResponseMaintenanceType = {
+  PREVENTIVE_SERVICE: 'PREVENTIVE_SERVICE',
+  INSPECTION: 'INSPECTION',
+  REPAIR: 'REPAIR',
+  OTHER: 'OTHER',
+} as const;
+
+export type MaintenanceScheduleResponseScheduleType = typeof MaintenanceScheduleResponseScheduleType[keyof typeof MaintenanceScheduleResponseScheduleType];
+
+
+export const MaintenanceScheduleResponseScheduleType = {
+  DATE: 'DATE',
+  MILEAGE: 'MILEAGE',
+  DATE_OR_MILEAGE: 'DATE_OR_MILEAGE',
+} as const;
+
+export interface MaintenanceScheduleResponse {
+  id: string;
+  vehicleId: string;
+  maintenanceType: MaintenanceScheduleResponseMaintenanceType;
+  scheduleType: MaintenanceScheduleResponseScheduleType;
+  dateIntervalDays: number | null;
+  nextDueDate: string | null;
+  mileageInterval: number | null;
+  nextDueMileage: number | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MaintenanceScheduleResponseWrapper {
+  data: MaintenanceScheduleResponse;
+}
+
+export interface MaintenanceScheduleListResponse {
+  data: MaintenanceScheduleResponse[];
+}
+
+export type CreateMaintenanceScheduleRequestMaintenanceType = typeof CreateMaintenanceScheduleRequestMaintenanceType[keyof typeof CreateMaintenanceScheduleRequestMaintenanceType];
+
+
+export const CreateMaintenanceScheduleRequestMaintenanceType = {
+  PREVENTIVE_SERVICE: 'PREVENTIVE_SERVICE',
+  INSPECTION: 'INSPECTION',
+  REPAIR: 'REPAIR',
+  OTHER: 'OTHER',
+} as const;
+
+export type CreateMaintenanceScheduleRequestScheduleType = typeof CreateMaintenanceScheduleRequestScheduleType[keyof typeof CreateMaintenanceScheduleRequestScheduleType];
+
+
+export const CreateMaintenanceScheduleRequestScheduleType = {
+  DATE: 'DATE',
+  MILEAGE: 'MILEAGE',
+  DATE_OR_MILEAGE: 'DATE_OR_MILEAGE',
+} as const;
+
+export interface CreateMaintenanceScheduleRequest {
+  /** @minLength 1 */
+  vehicle_id: string;
+  maintenance_type: CreateMaintenanceScheduleRequestMaintenanceType;
+  schedule_type: CreateMaintenanceScheduleRequestScheduleType;
+  /** @minimum 1 */
+  date_interval_days?: number | null;
+  next_due_date?: string | null;
+  /** @minimum 1 */
+  mileage_interval?: number | null;
+  /** @minimum 0 */
+  next_due_mileage?: number | null;
+  is_active?: boolean;
+}
+
+export type UpdateMaintenanceScheduleRequestMaintenanceType = typeof UpdateMaintenanceScheduleRequestMaintenanceType[keyof typeof UpdateMaintenanceScheduleRequestMaintenanceType];
+
+
+export const UpdateMaintenanceScheduleRequestMaintenanceType = {
+  PREVENTIVE_SERVICE: 'PREVENTIVE_SERVICE',
+  INSPECTION: 'INSPECTION',
+  REPAIR: 'REPAIR',
+  OTHER: 'OTHER',
+} as const;
+
+export type UpdateMaintenanceScheduleRequestScheduleType = typeof UpdateMaintenanceScheduleRequestScheduleType[keyof typeof UpdateMaintenanceScheduleRequestScheduleType];
+
+
+export const UpdateMaintenanceScheduleRequestScheduleType = {
+  DATE: 'DATE',
+  MILEAGE: 'MILEAGE',
+  DATE_OR_MILEAGE: 'DATE_OR_MILEAGE',
+} as const;
+
+export interface UpdateMaintenanceScheduleRequest {
+  maintenance_type?: UpdateMaintenanceScheduleRequestMaintenanceType;
+  schedule_type?: UpdateMaintenanceScheduleRequestScheduleType;
+  /** @minimum 1 */
+  date_interval_days?: number | null;
+  next_due_date?: string | null;
+  /** @minimum 1 */
+  mileage_interval?: number | null;
+  /** @minimum 0 */
+  next_due_mileage?: number | null;
+  is_active?: boolean;
+}
+
 export type MaintenanceResponseType = typeof MaintenanceResponseType[keyof typeof MaintenanceResponseType];
 
 
@@ -992,6 +1099,13 @@ export type UploadRentalContractSignedDocumentBody = {
 };
 
 export type ListMaintenanceParams = {
+/**
+ * Filter by vehicle ID
+ */
+vehicleId?: string;
+};
+
+export type ListMaintenanceSchedulesParams = {
 /**
  * Filter by vehicle ID
  */

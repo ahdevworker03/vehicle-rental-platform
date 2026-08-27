@@ -209,6 +209,24 @@ UTC calendar-month arithmetic and clamps to the target month's last valid day.
 The model deliberately does not include scheduling, notification, timezone, or
 arbitrary domain-association fields.
 
+## Maintenance Schedules
+
+`MaintenanceSchedule` represents a future servicing rule for one vehicle; it
+is distinct from a `Maintenance` record, which represents work that was
+actually planned or performed. A schedule belongs to one organization and one
+vehicle, and supports `DATE`, `MILEAGE`, or `DATE_OR_MILEAGE` bases.
+
+Date schedules store a positive `date_interval_days` and a `next_due_date` as
+a PostgreSQL `DATE` business date. Mileage schedules store a positive
+`mileage_interval` and a non-negative `next_due_mileage`. The database check
+constraint requires exactly the values applicable to the selected basis, so a
+date-only schedule cannot retain mileage values and vice versa.
+
+Schedules are soft-deletable and can be activated or deactivated without
+changing the vehicle's operational status. This model deliberately does not
+create maintenance records, change availability, send reminders, or run a
+background scheduler; those workflows are deferred.
+
 ---
 
 # Soft Deletes

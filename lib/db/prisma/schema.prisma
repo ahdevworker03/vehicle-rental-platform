@@ -27,6 +27,7 @@ model Organization {
   documents  Document[]
   photos     Photo[]
   maintenance Maintenance[]
+  maintenance_schedules MaintenanceSchedule[]
   expenses   Expense[]
   payments   Payment[]
   tasks      Task[]
@@ -94,6 +95,12 @@ enum MaintenanceStatus {
   SCHEDULED
   IN_PROGRESS
   COMPLETED
+}
+
+enum MaintenanceScheduleType {
+  DATE
+  MILEAGE
+  DATE_OR_MILEAGE
 }
 
 enum ExpenseCategory {
@@ -258,6 +265,7 @@ model Vehicle {
   photos    Photo[]
   rentals   Rental[]
   maintenance Maintenance[]
+  maintenance_schedules MaintenanceSchedule[]
   expenses  Expense[]
 
   @@unique([organization_id, plate_number])
@@ -292,6 +300,31 @@ model Maintenance {
   @@index([deleted_at])
   @@index([status])
   @@index([maintenance_date])
+}
+
+model MaintenanceSchedule {
+  id                  String                  @id @default(uuid()) @db.Uuid
+  organization_id     String                  @db.Uuid
+  organization        Organization            @relation(fields: [organization_id], references: [id])
+  vehicle_id          String                  @db.Uuid
+  vehicle             Vehicle                 @relation(fields: [vehicle_id], references: [id])
+  maintenance_type    MaintenanceType
+  schedule_type       MaintenanceScheduleType
+  date_interval_days  Int?
+  next_due_date       DateTime?               @db.Date
+  mileage_interval    Int?
+  next_due_mileage    Int?
+  is_active           Boolean                 @default(true)
+  created_at          DateTime                @default(now())
+  updated_at          DateTime                @updatedAt
+  deleted_at          DateTime?
+
+  @@index([organization_id])
+  @@index([vehicle_id])
+  @@index([deleted_at])
+  @@index([is_active])
+  @@index([next_due_date])
+  @@index([next_due_mileage])
 }
 
 model Expense {

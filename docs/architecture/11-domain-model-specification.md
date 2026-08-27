@@ -224,6 +224,16 @@ Notes:
 - `UPCOMING` and `OVERDUE` are **not** persisted statuses. They are derived presentation/query states computed from `maintenance_date` and the current date for non-completed records.
 - `CANCELLED` is **not** a status. A maintenance record that is no longer needed uses the established soft-delete mechanism (`deleted_at`).
 
+## MaintenanceScheduleType
+
+| Value | Purpose | Status |
+| ----- | ------- | ------ |
+| `DATE` | Service is due on a business date interval. | Implemented |
+| `MILEAGE` | Service is due at a mileage interval. | Implemented |
+| `DATE_OR_MILEAGE` | Service is due when either date or mileage threshold is reached. | Implemented |
+
+This enum describes a maintenance schedule, not a maintenance-work status.
+
 ## TaskStatus
 
 **Source:** `04-domain-model.md` mentions "completion status" but no enum. Approved architecture decision (Milestone 4, Phase 17, Step 17.1).
@@ -269,6 +279,7 @@ Represents a business using the platform. Each organization owns its own data an
 - Has many `Payment`
 - Has many `Expense`
 - Has many `Maintenance` (`maintenance Maintenance[]`)
+- Has many `MaintenanceSchedule` (`maintenance_schedules MaintenanceSchedule[]`)
 - Has many `Task`
 
 ### Fields
@@ -556,6 +567,7 @@ Represents a business vehicle managed by the platform. The central entity.
 - Belongs to one `Organization`
 - Can have many `Rental`
 - Can have many `Maintenance` records
+- Can have many `MaintenanceSchedule` records
 - Can have many `Expense`
 - Can have many `Document`
 - Can have many `Photo`
@@ -1057,6 +1069,66 @@ Note: the cost invariant and parts validation are business rules. Database enfor
 ### API Notes
 
 - Planned: maintenance history for a vehicle, CRUD for maintenance records, completion workflow.
+
+---
+
+## Maintenance Schedule
+
+### Purpose
+
+Represents an active or inactive future servicing rule for one vehicle. It is
+not a maintenance-work record and does not itself make a vehicle unavailable.
+
+### Relationships
+
+- Belongs to one `Organization`.
+- Belongs to one `Vehicle`.
+- An organization and a vehicle can each have multiple schedules.
+
+### Fields
+
+| Field | Column | Type | Required | Default | Notes |
+| ----- | ------ | ---- | -------- | ------- | ----- |
+| id | id | UUID | ✅ | uuid() | PK |
+| organization_id | organization_id | UUID | ✅ | — | FK → Organization.id |
+| vehicle_id | vehicle_id | UUID | ✅ | — | FK → Vehicle.id |
+| maintenance_type | maintenance_type | MaintenanceType | ✅ | — | Intended servicing category |
+| schedule_type | schedule_type | MaintenanceScheduleType | ✅ | — | DATE / MILEAGE / DATE_OR_MILEAGE |
+| date_interval_days | date_interval_days | Int? | ❌ | null | Positive days for date-capable schedules |
+| next_due_date | next_due_date | Date? | ❌ | null | PostgreSQL DATE business date |
+| mileage_interval | mileage_interval | Int? | ❌ | null | Positive distance interval for mileage-capable schedules |
+| next_due_mileage | next_due_mileage | Int? | ❌ | null | Non-negative odometer threshold |
+| is_active | is_active | Boolean | ✅ | true | Enables or pauses the schedule |
+| created_at | created_at | DateTime | ✅ | now() | Audit |
+| updated_at | updated_at | DateTime | ✅ | @updatedAt | Audit |
+| deleted_at | deleted_at | DateTime? | ❌ | null | Soft delete |
+
+### Constraints and Validation
+
+- `DATE` requires `date_interval_days > 0` and `next_due_date`, with both
+  mileage fields null.
+- `MILEAGE` requires `mileage_interval > 0` and `next_due_mileage >= 0`, with
+  both date fields null.
+- `DATE_OR_MILEAGE` requires both valid date and mileage values.
+- The selected basis is enforced by application validation and a PostgreSQL
+  check constraint.
+- `next_due_date` is an exact `YYYY-MM-DD` business date, not a timestamp.
+
+### Indexes and Lifecycle
+
+- Indexes support organization, vehicle, active-state, date-due, mileage-due,
+  and soft-delete queries.
+- Foreign keys to `Organization` and `Vehicle` use RESTRICT deletion behavior.
+- Soft-deleted schedules are unreadable through the API.
+- Create, update, and delete are owner-only tenant operations; authenticated
+  tenant users can list and get schedules in their own organization.
+
+### Explicitly Excluded Behavior
+
+- No schedule automatically creates a `Maintenance` record.
+- No schedule changes a vehicle's availability or status.
+- No background scheduler, reminders, notifications, or mileage automation is
+  introduced by this model.
 
 ---
 

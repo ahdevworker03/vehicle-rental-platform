@@ -22,11 +22,16 @@ import type {
 import type {
   CompleteMaintenanceRequest,
   CreateMaintenanceRequest,
+  CreateMaintenanceScheduleRequest,
   ErrorResponse,
   ListMaintenanceParams,
+  ListMaintenanceSchedulesParams,
   MaintenanceListResponse,
   MaintenanceResponseWrapper,
-  UpdateMaintenanceRequest
+  MaintenanceScheduleListResponse,
+  MaintenanceScheduleResponseWrapper,
+  UpdateMaintenanceRequest,
+  UpdateMaintenanceScheduleRequest
 } from '../api.schemas';
 
 import { customFetch } from '../../custom-fetch';
@@ -496,6 +501,376 @@ export const useCompleteMaintenance = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getCompleteMaintenanceMutationOptions(options));
+    }
+    export const getListMaintenanceSchedulesUrl = (params?: ListMaintenanceSchedulesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/maintenance-schedules?${stringifiedParams}` : `/api/maintenance-schedules`
+}
+
+/**
+ * @summary List maintenance schedules in the current organization
+ */
+export const listMaintenanceSchedules = async (params?: ListMaintenanceSchedulesParams, options?: RequestInit): Promise<MaintenanceScheduleListResponse> => {
+
+  return customFetch<MaintenanceScheduleListResponse>(getListMaintenanceSchedulesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListMaintenanceSchedulesQueryKey = (params?: ListMaintenanceSchedulesParams,) => {
+    return [
+    `/api/maintenance-schedules`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListMaintenanceSchedulesQueryOptions = <TData = Awaited<ReturnType<typeof listMaintenanceSchedules>>, TError = ErrorType<ErrorResponse>>(params?: ListMaintenanceSchedulesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMaintenanceSchedules>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListMaintenanceSchedulesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listMaintenanceSchedules>>> = ({ signal }) => listMaintenanceSchedules(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listMaintenanceSchedules>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListMaintenanceSchedulesQueryResult = NonNullable<Awaited<ReturnType<typeof listMaintenanceSchedules>>>
+export type ListMaintenanceSchedulesQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary List maintenance schedules in the current organization
+ */
+
+export function useListMaintenanceSchedules<TData = Awaited<ReturnType<typeof listMaintenanceSchedules>>, TError = ErrorType<ErrorResponse>>(
+ params?: ListMaintenanceSchedulesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listMaintenanceSchedules>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListMaintenanceSchedulesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getCreateMaintenanceScheduleUrl = () => {
+
+
+
+
+  return `/api/maintenance-schedules`
+}
+
+/**
+ * @summary Create a maintenance schedule in the current organization
+ */
+export const createMaintenanceSchedule = async (createMaintenanceScheduleRequest: CreateMaintenanceScheduleRequest, options?: RequestInit): Promise<MaintenanceScheduleResponseWrapper> => {
+
+  return customFetch<MaintenanceScheduleResponseWrapper>(getCreateMaintenanceScheduleUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createMaintenanceScheduleRequest)
+  }
+);}
+
+
+
+
+
+export const getCreateMaintenanceScheduleMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMaintenanceSchedule>>, TError,{data: BodyType<CreateMaintenanceScheduleRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createMaintenanceSchedule>>, TError,{data: BodyType<CreateMaintenanceScheduleRequest>}, TContext> => {
+
+const mutationKey = ['createMaintenanceSchedule'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createMaintenanceSchedule>>, {data: BodyType<CreateMaintenanceScheduleRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createMaintenanceSchedule(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateMaintenanceScheduleMutationResult = NonNullable<Awaited<ReturnType<typeof createMaintenanceSchedule>>>
+    export type CreateMaintenanceScheduleMutationBody = BodyType<CreateMaintenanceScheduleRequest>
+    export type CreateMaintenanceScheduleMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Create a maintenance schedule in the current organization
+ */
+export const useCreateMaintenanceSchedule = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMaintenanceSchedule>>, TError,{data: BodyType<CreateMaintenanceScheduleRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createMaintenanceSchedule>>,
+        TError,
+        {data: BodyType<CreateMaintenanceScheduleRequest>},
+        TContext
+      > => {
+      return useMutation(getCreateMaintenanceScheduleMutationOptions(options));
+    }
+    export const getGetMaintenanceScheduleUrl = (id: string,) => {
+
+
+
+
+  return `/api/maintenance-schedules/${id}`
+}
+
+/**
+ * @summary Get a maintenance schedule in the current organization
+ */
+export const getMaintenanceSchedule = async (id: string, options?: RequestInit): Promise<MaintenanceScheduleResponseWrapper> => {
+
+  return customFetch<MaintenanceScheduleResponseWrapper>(getGetMaintenanceScheduleUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMaintenanceScheduleQueryKey = (id: string,) => {
+    return [
+    `/api/maintenance-schedules/${id}`
+    ] as const;
+    }
+
+
+export const getGetMaintenanceScheduleQueryOptions = <TData = Awaited<ReturnType<typeof getMaintenanceSchedule>>, TError = ErrorType<ErrorResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMaintenanceSchedule>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMaintenanceScheduleQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMaintenanceSchedule>>> = ({ signal }) => getMaintenanceSchedule(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMaintenanceSchedule>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMaintenanceScheduleQueryResult = NonNullable<Awaited<ReturnType<typeof getMaintenanceSchedule>>>
+export type GetMaintenanceScheduleQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get a maintenance schedule in the current organization
+ */
+
+export function useGetMaintenanceSchedule<TData = Awaited<ReturnType<typeof getMaintenanceSchedule>>, TError = ErrorType<ErrorResponse>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMaintenanceSchedule>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMaintenanceScheduleQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+export const getUpdateMaintenanceScheduleUrl = (id: string,) => {
+
+
+
+
+  return `/api/maintenance-schedules/${id}`
+}
+
+/**
+ * @summary Update a maintenance schedule in the current organization
+ */
+export const updateMaintenanceSchedule = async (id: string,
+    updateMaintenanceScheduleRequest: UpdateMaintenanceScheduleRequest, options?: RequestInit): Promise<MaintenanceScheduleResponseWrapper> => {
+
+  return customFetch<MaintenanceScheduleResponseWrapper>(getUpdateMaintenanceScheduleUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateMaintenanceScheduleRequest)
+  }
+);}
+
+
+
+
+
+export const getUpdateMaintenanceScheduleMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMaintenanceSchedule>>, TError,{id: string;data: BodyType<UpdateMaintenanceScheduleRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateMaintenanceSchedule>>, TError,{id: string;data: BodyType<UpdateMaintenanceScheduleRequest>}, TContext> => {
+
+const mutationKey = ['updateMaintenanceSchedule'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMaintenanceSchedule>>, {id: string;data: BodyType<UpdateMaintenanceScheduleRequest>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateMaintenanceSchedule(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateMaintenanceScheduleMutationResult = NonNullable<Awaited<ReturnType<typeof updateMaintenanceSchedule>>>
+    export type UpdateMaintenanceScheduleMutationBody = BodyType<UpdateMaintenanceScheduleRequest>
+    export type UpdateMaintenanceScheduleMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Update a maintenance schedule in the current organization
+ */
+export const useUpdateMaintenanceSchedule = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateMaintenanceSchedule>>, TError,{id: string;data: BodyType<UpdateMaintenanceScheduleRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateMaintenanceSchedule>>,
+        TError,
+        {id: string;data: BodyType<UpdateMaintenanceScheduleRequest>},
+        TContext
+      > => {
+      return useMutation(getUpdateMaintenanceScheduleMutationOptions(options));
+    }
+    export const getDeleteMaintenanceScheduleUrl = (id: string,) => {
+
+
+
+
+  return `/api/maintenance-schedules/${id}`
+}
+
+/**
+ * @summary Soft delete a maintenance schedule in the current organization
+ */
+export const deleteMaintenanceSchedule = async (id: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteMaintenanceScheduleUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeleteMaintenanceScheduleMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMaintenanceSchedule>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteMaintenanceSchedule>>, TError,{id: string}, TContext> => {
+
+const mutationKey = ['deleteMaintenanceSchedule'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMaintenanceSchedule>>, {id: string}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteMaintenanceSchedule(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteMaintenanceScheduleMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMaintenanceSchedule>>>
+
+    export type DeleteMaintenanceScheduleMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Soft delete a maintenance schedule in the current organization
+ */
+export const useDeleteMaintenanceSchedule = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMaintenanceSchedule>>, TError,{id: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteMaintenanceSchedule>>,
+        TError,
+        {id: string},
+        TContext
+      > => {
+      return useMutation(getDeleteMaintenanceScheduleMutationOptions(options));
     }
     export const getListVehicleMaintenanceUrl = (vehicleId: string,) => {
 
