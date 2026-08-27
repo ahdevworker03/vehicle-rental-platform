@@ -2,9 +2,13 @@ export type AuditAction =
   | "ORGANIZATION_STATUS_UPDATED"
   | "EMPLOYEE_INVITATION_CREATED"
   | "EMPLOYEE_INVITATION_RESENT"
-  | "EMPLOYEE_INVITATION_ACCEPTED";
+  | "EMPLOYEE_INVITATION_ACCEPTED"
+  | "PASSWORD_RESET_COMPLETED";
 
-export type AuditTargetType = "ORGANIZATION" | "EMPLOYEE_INVITATION";
+export type AuditTargetType =
+  | "ORGANIZATION"
+  | "EMPLOYEE_INVITATION"
+  | "USER";
 
 export type AuditMetadata = Record<string, string | number | boolean | null>;
 

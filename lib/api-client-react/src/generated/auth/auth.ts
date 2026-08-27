@@ -22,12 +22,14 @@ import type {
 import type {
   AcceptEmployeeInvitationRequest,
   AuthTokensResponse,
+  ConfirmPasswordResetRequest,
   CurrentUserResponseWrapper,
   ErrorResponse,
   LoginRequest,
   LogoutRequest,
   RefreshRequest,
-  RegisterRequest
+  RegisterRequest,
+  RequestPasswordResetRequest
 } from '../api.schemas';
 
 import { customFetch } from '../../custom-fetch';
@@ -418,7 +420,148 @@ export function useGetCurrentUser<TData = Awaited<ReturnType<typeof getCurrentUs
 
 
 
-export const getAcceptEmployeeInvitationUrl = () => {
+export const getRequestPasswordResetUrl = () => {
+
+
+
+
+  return `/api/auth/password-reset/request`
+}
+
+/**
+ * Always returns the same response whether or not the email belongs to an active account.
+ * @summary Request a password reset
+ */
+export const requestPasswordReset = async (requestPasswordResetRequest: RequestPasswordResetRequest, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getRequestPasswordResetUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(requestPasswordResetRequest)
+  }
+);}
+
+
+
+
+
+export const getRequestPasswordResetMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestPasswordReset>>, TError,{data: BodyType<RequestPasswordResetRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestPasswordReset>>, TError,{data: BodyType<RequestPasswordResetRequest>}, TContext> => {
+
+const mutationKey = ['requestPasswordReset'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestPasswordReset>>, {data: BodyType<RequestPasswordResetRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  requestPasswordReset(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestPasswordResetMutationResult = NonNullable<Awaited<ReturnType<typeof requestPasswordReset>>>
+    export type RequestPasswordResetMutationBody = BodyType<RequestPasswordResetRequest>
+    export type RequestPasswordResetMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Request a password reset
+ */
+export const useRequestPasswordReset = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestPasswordReset>>, TError,{data: BodyType<RequestPasswordResetRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof requestPasswordReset>>,
+        TError,
+        {data: BodyType<RequestPasswordResetRequest>},
+        TContext
+      > => {
+      return useMutation(getRequestPasswordResetMutationOptions(options));
+    }
+    export const getConfirmPasswordResetUrl = () => {
+
+
+
+
+  return `/api/auth/password-reset/confirm`
+}
+
+/**
+ * @summary Confirm a password reset with a one-time token
+ */
+export const confirmPasswordReset = async (confirmPasswordResetRequest: ConfirmPasswordResetRequest, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getConfirmPasswordResetUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(confirmPasswordResetRequest)
+  }
+);}
+
+
+
+
+
+export const getConfirmPasswordResetMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmPasswordReset>>, TError,{data: BodyType<ConfirmPasswordResetRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmPasswordReset>>, TError,{data: BodyType<ConfirmPasswordResetRequest>}, TContext> => {
+
+const mutationKey = ['confirmPasswordReset'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmPasswordReset>>, {data: BodyType<ConfirmPasswordResetRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  confirmPasswordReset(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmPasswordResetMutationResult = NonNullable<Awaited<ReturnType<typeof confirmPasswordReset>>>
+    export type ConfirmPasswordResetMutationBody = BodyType<ConfirmPasswordResetRequest>
+    export type ConfirmPasswordResetMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Confirm a password reset with a one-time token
+ */
+export const useConfirmPasswordReset = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmPasswordReset>>, TError,{data: BodyType<ConfirmPasswordResetRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof confirmPasswordReset>>,
+        TError,
+        {data: BodyType<ConfirmPasswordResetRequest>},
+        TContext
+      > => {
+      return useMutation(getConfirmPasswordResetMutationOptions(options));
+    }
+    export const getAcceptEmployeeInvitationUrl = () => {
 
 
 

@@ -124,6 +124,7 @@ model User {
   organization_id String         @db.Uuid
   organization    Organization   @relation(fields: [organization_id], references: [id])
   refresh_tokens  RefreshToken[]
+  password_reset_tokens PasswordResetToken[]
   audit_logs      AuditLog[]
   created_employee_invitations EmployeeInvitation[] @relation("EmployeeInvitationCreator")
   accepted_employee_invitation EmployeeInvitation? @relation("EmployeeInvitationAcceptedUser")
@@ -181,6 +182,19 @@ model RefreshToken {
   created_at DateTime @default(now())
 
   @@index([user_id])
+  @@index([expires_at])
+}
+
+model PasswordResetToken {
+  id          String   @id @default(uuid()) @db.Uuid
+  token_hash  String   @unique
+  user_id     String   @db.Uuid
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  expires_at  DateTime
+  consumed_at DateTime?
+  created_at  DateTime @default(now())
+
+  @@index([user_id, consumed_at])
   @@index([expires_at])
 }
 

@@ -6,12 +6,18 @@ import {
   rotateRefreshToken,
   revokeRefreshToken,
 } from "./auth.service";
+import {
+  requestPasswordReset,
+  confirmPasswordReset,
+} from "./password-reset.service";
 import { ok, created, noContent } from "../../shared";
 import type {
   RegisterInput,
   LoginInput,
   RefreshInput,
   LogoutInput,
+  RequestPasswordResetInput,
+  ConfirmPasswordResetInput,
 } from "./auth.validation";
 
 async function register(
@@ -120,4 +126,40 @@ async function currentUser(
   }
 }
 
-export { register, loginHandler as login, refresh, logout, currentUser };
+async function requestReset(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const input = req.body as RequestPasswordResetInput;
+    await requestPasswordReset(input.email);
+    noContent(res);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function confirmReset(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const input = req.body as ConfirmPasswordResetInput;
+    await confirmPasswordReset(input.token, input.password);
+    noContent(res);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export {
+  register,
+  loginHandler as login,
+  refresh,
+  logout,
+  currentUser,
+  requestReset,
+  confirmReset,
+};

@@ -17,6 +17,17 @@ export interface RegisterRequest {
   organizationName: string;
 }
 
+export interface RequestPasswordResetRequest {
+  email: string;
+}
+
+export interface ConfirmPasswordResetRequest {
+  /** @minLength 32 */
+  token: string;
+  /** @minLength 8 */
+  password: string;
+}
+
 export interface LoginRequest {
   email: string;
   /** @minLength 1 */

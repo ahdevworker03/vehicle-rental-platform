@@ -184,6 +184,18 @@ Invitation acceptance creates the user and marks the invitation accepted in one
 serializable transaction, preserving the global user-email uniqueness rule and
 preventing replay or concurrent double acceptance.
 
+## Password Reset Tokens
+
+`PasswordResetToken` stores an opaque token hash, its user, expiry timestamp,
+optional consumption timestamp, and creation timestamp. Token hashes are
+unique; indexes support active-token lookup by user and expiry cleanup. The
+plaintext token is never persisted.
+
+Password-reset confirmation consumes the token, replaces the user's password
+hash, revokes every refresh token for that user, and records the completion
+audit event in one serializable transaction. A new reset request invalidates
+any previously unused token for the same user.
+
 ---
 
 # Soft Deletes

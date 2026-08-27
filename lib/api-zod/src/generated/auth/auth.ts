@@ -99,6 +99,32 @@ export const GetCurrentUserResponse = zod.object({
 })
 
 /**
+ * Always returns the same response whether or not the email belongs to an active account.
+ * @summary Request a password reset
+ */
+export const RequestPasswordResetBody = zod.object({
+  "email": zod.string().email()
+})
+
+export const RequestPasswordResetResponse = zod.void()
+
+/**
+ * @summary Confirm a password reset with a one-time token
+ */
+export const confirmPasswordResetBodyTokenMin = 32;
+
+export const confirmPasswordResetBodyPasswordMin = 8;
+
+
+
+export const ConfirmPasswordResetBody = zod.object({
+  "token": zod.string().min(confirmPasswordResetBodyTokenMin),
+  "password": zod.string().min(confirmPasswordResetBodyPasswordMin)
+})
+
+export const ConfirmPasswordResetResponse = zod.void()
+
+/**
  * @summary Accept an employee invitation and set a password
  */
 export const acceptEmployeeInvitationBodyTokenMin = 32;

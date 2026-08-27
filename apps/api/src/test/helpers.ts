@@ -10,6 +10,7 @@ interface SeedOrg {
 
 async function cleanup(): Promise<void> {
   await prisma.refreshToken.deleteMany({});
+  await prisma.passwordResetToken.deleteMany({});
   await prisma.auditLog.deleteMany({});
   await prisma.employeeInvitation.deleteMany({});
   await prisma.payment.deleteMany({});

@@ -183,6 +183,55 @@ paths:
               schema:
                 $ref: "#/components/schemas/CurrentUserResponseWrapper"
 
+  /auth/password-reset/request:
+    post:
+      operationId: requestPasswordReset
+      tags: [auth]
+      summary: Request a password reset
+      description: Always returns the same response whether or not the email belongs to an active account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestPasswordResetRequest"
+      responses:
+        "204":
+          description: Password-reset request accepted
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/password-reset/confirm:
+    post:
+      operationId: confirmPasswordReset
+      tags: [auth]
+      summary: Confirm a password reset with a one-time token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfirmPasswordResetRequest"
+      responses:
+        "204":
+          description: Password reset completed
+        "409":
+          description: Reset token is invalid, expired, or already used
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /organizations/me:
     get:
       operationId: getMyOrganization
@@ -3605,6 +3654,28 @@ components:
         - email
         - password
         - organizationName
+
+    RequestPasswordResetRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+
+    ConfirmPasswordResetRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 32
+        password:
+          type: string
+          minLength: 8
+      required:
+        - token
+        - password
 
     LoginRequest:
       type: object

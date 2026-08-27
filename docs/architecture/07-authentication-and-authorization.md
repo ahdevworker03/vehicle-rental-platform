@@ -168,6 +168,25 @@ Authentication compares the submitted password against the stored hash.
 
 Password handling should follow modern security best practices.
 
+## Password Recovery
+
+`POST /api/auth/password-reset/request` returns the same empty response for
+known, unknown, and deactivated email addresses. For an active account, the
+service creates a secure random reset token, stores only its hash, and expires
+it after one hour. A later request invalidates any earlier unused reset token
+for that user.
+
+`POST /api/auth/password-reset/confirm` accepts a valid one-time token and a
+new password. In one serializable transaction it consumes the token, updates
+the password hash, invalidates all refresh sessions, and records a
+`PASSWORD_RESET_COMPLETED` audit entry. Invalid, expired, and reused tokens
+receive the same business-conflict response.
+
+Reset tokens are never returned by production API responses or logs. The
+current delivery boundary exposes raw tokens only to the test delivery sink;
+production email delivery must be configured through that boundary without
+persisting or logging the token.
+
 ## Employee Invitations
 
 Employee invitations are organization-scoped and never allow the inviter to
@@ -233,6 +252,16 @@ Exchanges a valid refresh token for a new access and refresh token pair. The pre
 `POST /api/auth/logout`
 
 Revokes the provided refresh token, ending the authenticated session.
+
+## Password Reset
+
+`POST /api/auth/password-reset/request` accepts an email address and always
+returns `204 No Content` after validation, without revealing whether an active
+account exists.
+
+`POST /api/auth/password-reset/confirm` accepts a reset token and replacement
+password. It returns `204 No Content` on success, `409` for an invalid,
+expired, or already-used token, and `422` for malformed input.
 
 ## Current User
 
