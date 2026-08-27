@@ -276,20 +276,24 @@ Business owners gain visibility into business performance.
 
 Objectives:
 
-- Backend & Database Correctness Remediation
-- Feature-Based Frontend Architecture Refactoring
-- Platform Administration Dashboard
-- Contract/signed-contract fetches log 404 when a rental has no contract resource. Decide whether the frontend should suppress expected 404s or the API should return a clearer empty state.
+- Simple Platform Admin Dashboard
+- Secure PLATFORM_OWNER bootstrap and operations runbook
+- Real password-reset delivery
 - Offline synchronization
 - Performance optimization
-- Bug fixing
+- Bug fixing and regression hardening
 - Security improvements
 - Deployment
 - Documentation
 
+Known follow-up issues:
+
+- Contract/signed-contract fetches currently log `404` when a rental has no contract resource. Decide whether the frontend should suppress expected empty-state `404`s or whether the API should expose a clearer no-contract state.
+- Malformed vehicle IDs can still reach Prisma and return `500`; normalize this into request validation/error handling.
+
 Deliverable:
 
-A production-ready multi-tenant SaaS platform, including a separate Platform Administration dashboard for managing organizations, subscriptions, users, and platform operations.
+A production-ready multi-tenant SaaS platform with a simple Platform Admin Dashboard for managing client organizations, secure platform-owner setup, real password-reset delivery, offline-capable workflows, production deployment readiness, performance/security hardening, and updated documentation.
 
 ---
 
