@@ -9,6 +9,7 @@ import {
 import {
   authenticate,
   requireRole,
+  requireOperationalOrganization,
   validateBody,
   validateQuery,
 } from "../../middleware";
@@ -19,28 +20,26 @@ import {
 } from "./expense.validation";
 
 const router: IRouter = Router();
+router.use(authenticate, requireOperationalOrganization);
 
 router.get(
   "/expenses",
-  authenticate,
   validateQuery(listExpensesQuerySchema),
   list,
 );
-router.get("/expenses/:id", authenticate, get);
+router.get("/expenses/:id", get);
 router.post(
   "/expenses",
-  authenticate,
   requireRole("OWNER"),
   validateBody(createExpenseSchema),
   create,
 );
 router.patch(
   "/expenses/:id",
-  authenticate,
   requireRole("OWNER"),
   validateBody(updateExpenseSchema),
   update,
 );
-router.delete("/expenses/:id", authenticate, requireRole("OWNER"), remove);
+router.delete("/expenses/:id", requireRole("OWNER"), remove);
 
 export default router;

@@ -5,10 +5,17 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { OrganizationStatus } from './organizationStatus';
 
 export interface OrganizationResponse {
   id: string;
   name: string;
+  status: OrganizationStatus;
+  legalName: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  contractFooterText: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

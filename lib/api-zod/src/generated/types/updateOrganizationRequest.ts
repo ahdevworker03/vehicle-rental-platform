@@ -8,5 +8,14 @@
 
 export interface UpdateOrganizationRequest {
   /** @minLength 1 */
-  name: string;
+  name?: string;
+  /** @minLength 1 */
+  legalName?: string | null;
+  /** @minLength 1 */
+  phone?: string | null;
+  email?: string | null;
+  /** @minLength 1 */
+  address?: string | null;
+  /** @minLength 1 */
+  contractFooterText?: string | null;
 }

@@ -344,6 +344,12 @@ Since every authenticated user belongs to exactly one organization, the API deri
     "data": {
       "id": "...",
       "name": "My Company",
+      "status": "TRIAL",
+      "legalName": null,
+      "phone": null,
+      "email": null,
+      "address": null,
+      "contractFooterText": null,
       "createdAt": "2026-01-01T00:00:00.000Z",
       "updatedAt": "2026-01-01T00:00:00.000Z"
     }
@@ -360,7 +366,12 @@ Since every authenticated user belongs to exactly one organization, the API deri
 - **Request body:**
   ```json
   {
-    "name": "My Renamed Company"
+    "name": "My Renamed Company",
+    "legalName": "My Rental Company LLC",
+    "phone": "+961 1 234 567",
+    "email": "info@example.com",
+    "address": "Beirut",
+    "contractFooterText": "Approved rental terms apply."
   }
   ```
 - **Success response:** `200 OK`
@@ -369,6 +380,12 @@ Since every authenticated user belongs to exactly one organization, the API deri
     "data": {
       "id": "...",
       "name": "My Renamed Company",
+      "status": "TRIAL",
+      "legalName": "My Rental Company LLC",
+      "phone": "+961 1 234 567",
+      "email": "info@example.com",
+      "address": "Beirut",
+      "contractFooterText": "Approved rental terms apply.",
       "createdAt": "2026-01-01T00:00:00.000Z",
       "updatedAt": "2026-01-01T00:00:00.000Z"
     }
@@ -379,6 +396,16 @@ Since every authenticated user belongs to exactly one organization, the API deri
   - `403` Insufficient permissions
   - `404` Organization not found
   - `422` Validation failed
+
+## PATCH /api/platform/organizations/:organizationId/status
+
+- **Purpose:** Update a tenant organization's SaaS lifecycle status.
+- **Authorization:** `PLATFORM_OWNER` only.
+- **Request body:** `{ "status": "ACTIVE" }`, where status is `TRIAL`,
+  `ACTIVE`, `SUSPENDED`, or `CANCELLED`.
+- **Behavior:** suspended and cancelled organizations retain authentication and
+  account-status visibility, but their tenant business APIs return
+  `403 ORGANIZATION_NOT_OPERATIONAL`.
 
 ## DELETE /api/organizations/me
 

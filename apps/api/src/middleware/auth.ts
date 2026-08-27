@@ -98,4 +98,50 @@ function requireRole(...roles: string[]) {
   };
 }
 
-export { authenticate, requireRole };
+async function requireOperationalOrganization(
+  req: Request,
+  _res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user) {
+      throw new AppError(
+        401,
+        "AUTHENTICATION_REQUIRED",
+        "Authentication is required.",
+      );
+    }
+
+    if (req.user.role === "PLATFORM_OWNER") {
+      throw new AppError(
+        403,
+        "TENANT_ACCESS_REQUIRED",
+        "Platform owners cannot access tenant business operations.",
+      );
+    }
+
+    const organization = await prisma.organization.findUnique({
+      where: { id: req.user.org },
+      select: { deleted_at: true, status: true },
+    });
+
+    if (
+      !organization ||
+      organization.deleted_at ||
+      organization.status === "SUSPENDED" ||
+      organization.status === "CANCELLED"
+    ) {
+      throw new AppError(
+        403,
+        "ORGANIZATION_NOT_OPERATIONAL",
+        "This organization is not available for business operations.",
+      );
+    }
+
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+export { authenticate, requireRole, requireOperationalOrganization };

@@ -7,11 +7,17 @@ datasource db {
 }
 
 model Organization {
-  id         String     @id @default(uuid()) @db.Uuid
-  name       String
-  created_at DateTime   @default(now())
-  updated_at DateTime   @updatedAt
-  deleted_at DateTime?
+  id                   String             @id @default(uuid()) @db.Uuid
+  name                 String
+  status               OrganizationStatus @default(TRIAL)
+  legal_name           String?
+  phone                String?
+  email                String?
+  address              String?
+  contract_footer_text String?
+  created_at           DateTime           @default(now())
+  updated_at           DateTime           @updatedAt
+  deleted_at           DateTime?
 
   users      User[]
   customers  Customer[]
@@ -26,6 +32,13 @@ model Organization {
   tasks      Task[]
 
   @@index([deleted_at])
+}
+
+enum OrganizationStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+  CANCELLED
 }
 
 enum Role {

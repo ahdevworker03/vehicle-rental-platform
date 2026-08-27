@@ -2,10 +2,12 @@ import type { Request, Response, NextFunction } from "express";
 import {
   getOrganization,
   updateOrganization,
+  updateOrganizationStatus,
   deleteOrganization,
 } from "./organization.service";
 import { ok, noContent } from "../../shared";
 import type { UpdateOrganizationInput } from "./organization.validation";
+import type { UpdateOrganizationStatusInput } from "./organization.validation";
 
 async function get(
   req: Request,
@@ -34,6 +36,23 @@ async function update(
   }
 }
 
+async function updateStatus(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const input = req.body as UpdateOrganizationStatusInput;
+    const organizationId = Array.isArray(req.params.organizationId)
+      ? req.params.organizationId[0]
+      : req.params.organizationId;
+    const org = await updateOrganizationStatus(organizationId, input.status);
+    ok(res, org);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function remove(
   req: Request,
   res: Response,
@@ -47,4 +66,4 @@ async function remove(
   }
 }
 
-export { get, update, remove };
+export { get, update, updateStatus, remove };

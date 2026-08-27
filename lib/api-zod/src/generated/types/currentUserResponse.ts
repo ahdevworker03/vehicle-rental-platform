@@ -5,6 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { OrganizationStatus } from './organizationStatus';
 import type { UserRole } from './userRole';
 
 export interface CurrentUserResponse {
@@ -12,5 +13,6 @@ export interface CurrentUserResponse {
   email: string;
   role: UserRole;
   organizationId: string;
+  organizationStatus: OrganizationStatus;
   createdAt: Date;
 }

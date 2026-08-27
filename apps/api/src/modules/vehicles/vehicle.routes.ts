@@ -10,6 +10,7 @@ import {
 import {
   authenticate,
   requireRole,
+  requireOperationalOrganization,
   validateBody,
   validateQuery,
 } from "../../middleware";
@@ -21,34 +22,31 @@ import {
 } from "./vehicle.validation";
 
 const router: IRouter = Router();
+router.use(authenticate, requireOperationalOrganization);
 
 router.get(
   "/vehicles",
-  authenticate,
   validateQuery(listVehiclesQuerySchema),
   list,
 );
 router.get(
   "/vehicles/availability",
-  authenticate,
   validateQuery(listAvailableVehiclesQuerySchema),
   availability,
 );
-router.get("/vehicles/:id", authenticate, get);
+router.get("/vehicles/:id", get);
 router.post(
   "/vehicles",
-  authenticate,
   requireRole("OWNER"),
   validateBody(createVehicleSchema),
   create,
 );
 router.patch(
   "/vehicles/:id",
-  authenticate,
   requireRole("OWNER"),
   validateBody(updateVehicleSchema),
   update,
 );
-router.delete("/vehicles/:id", authenticate, requireRole("OWNER"), remove);
+router.delete("/vehicles/:id", requireRole("OWNER"), remove);
 
 export default router;

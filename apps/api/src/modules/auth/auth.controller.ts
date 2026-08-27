@@ -112,6 +112,7 @@ async function currentUser(
       email: user.email,
       role: user.role,
       organizationId: user.organization_id,
+      organizationStatus: user.organization.status,
       createdAt: user.created_at.toISOString(),
     });
   } catch {

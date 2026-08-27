@@ -129,6 +129,7 @@ async function getCurrentUser(accessToken: string) {
       role: true,
       organization_id: true,
       created_at: true,
+      organization: { select: { status: true } },
     },
   });
 

@@ -14,6 +14,8 @@ tags:
     description: Authentication operations
   - name: organizations
     description: Organization operations
+  - name: platform
+    description: Platform administration operations
   - name: users
     description: User operations
   - name: customers
@@ -273,6 +275,59 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /platform/organizations/{organizationId}/status:
+    patch:
+      operationId: updateOrganizationStatus
+      tags: [platform]
+      summary: Update an organization lifecycle status
+      description: Updates tenant lifecycle status. This endpoint is restricted to PLATFORM_OWNER.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrganizationStatusRequest"
+      responses:
+        "200":
+          description: Organization status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
           content:
             application/json:
               schema:
@@ -3396,6 +3451,8 @@ components:
           $ref: "#/components/schemas/UserRole"
         organizationId:
           type: string
+        organizationStatus:
+          $ref: "#/components/schemas/OrganizationStatus"
         createdAt:
           type: string
           format: date-time
@@ -3404,6 +3461,7 @@ components:
         - email
         - role
         - organizationId
+        - organizationStatus
         - createdAt
 
     CurrentUserResponseWrapper:
@@ -3473,6 +3531,24 @@ components:
           type: string
         name:
           type: string
+        status:
+          $ref: "#/components/schemas/OrganizationStatus"
+        legalName:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        contractFooterText:
+          type: string
+          nullable: true
         createdAt:
           type: string
           format: date-time
@@ -3482,6 +3558,12 @@ components:
       required:
         - id
         - name
+        - status
+        - legalName
+        - phone
+        - email
+        - address
+        - contractFooterText
         - createdAt
         - updatedAt
 
@@ -3495,12 +3577,43 @@ components:
 
     UpdateOrganizationRequest:
       type: object
+      minProperties: 1
       properties:
         name:
           type: string
           minLength: 1
+        legalName:
+          type: string
+          minLength: 1
+          nullable: true
+        phone:
+          type: string
+          minLength: 1
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        address:
+          type: string
+          minLength: 1
+          nullable: true
+        contractFooterText:
+          type: string
+          minLength: 1
+          nullable: true
+
+    OrganizationStatus:
+      type: string
+      enum: [TRIAL, ACTIVE, SUSPENDED, CANCELLED]
+
+    UpdateOrganizationStatusRequest:
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/OrganizationStatus"
       required:
-        - name
+        - status
 
     CustomerResponse:
       type: object

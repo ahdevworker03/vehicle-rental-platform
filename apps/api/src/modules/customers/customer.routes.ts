@@ -3,6 +3,7 @@ import { list, get, create, update, remove } from "./customer.controller";
 import {
   authenticate,
   requireRole,
+  requireOperationalOrganization,
   validateBody,
   validateQuery,
 } from "../../middleware";
@@ -13,28 +14,26 @@ import {
 } from "./customer.validation";
 
 const router: IRouter = Router();
+router.use(authenticate, requireOperationalOrganization);
 
 router.get(
   "/customers",
-  authenticate,
   validateQuery(listCustomersQuerySchema),
   list,
 );
-router.get("/customers/:id", authenticate, get);
+router.get("/customers/:id", get);
 router.post(
   "/customers",
-  authenticate,
   requireRole("OWNER"),
   validateBody(createCustomerSchema),
   create,
 );
 router.patch(
   "/customers/:id",
-  authenticate,
   requireRole("OWNER"),
   validateBody(updateCustomerSchema),
   update,
 );
-router.delete("/customers/:id", authenticate, requireRole("OWNER"), remove);
+router.delete("/customers/:id", requireRole("OWNER"), remove);
 
 export default router;

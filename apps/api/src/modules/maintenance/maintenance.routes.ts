@@ -11,6 +11,7 @@ import {
 import {
   authenticate,
   requireRole,
+  requireOperationalOrganization,
   validateBody,
   validateQuery,
 } from "../../middleware";
@@ -22,36 +23,33 @@ import {
 } from "./maintenance.validation";
 
 const router: IRouter = Router();
+router.use(authenticate, requireOperationalOrganization);
 
 router.get(
   "/maintenance",
-  authenticate,
   validateQuery(listMaintenanceQuerySchema),
   list,
 );
-router.get("/maintenance/:id", authenticate, get);
+router.get("/maintenance/:id", get);
 router.post(
   "/maintenance",
-  authenticate,
   requireRole("OWNER"),
   validateBody(createMaintenanceSchema),
   create,
 );
 router.patch(
   "/maintenance/:id",
-  authenticate,
   requireRole("OWNER"),
   validateBody(updateMaintenanceSchema),
   update,
 );
 router.post(
   "/maintenance/:id/complete",
-  authenticate,
   requireRole("OWNER"),
   validateBody(completeMaintenanceSchema),
   complete,
 );
-router.delete("/maintenance/:id", authenticate, requireRole("OWNER"), remove);
-router.get("/vehicles/:vehicleId/maintenance", authenticate, listByVehicle);
+router.delete("/maintenance/:id", requireRole("OWNER"), remove);
+router.get("/vehicles/:vehicleId/maintenance", listByVehicle);
 
 export default router;

@@ -89,6 +89,17 @@ Examples include:
 - Notifications
 - Documents
 
+## Organization Lifecycle and Profile
+
+`Organization` has a lifecycle status of `TRIAL`, `ACTIVE`, `SUSPENDED`, or
+`CANCELLED`. New tenant registrations begin in `TRIAL`; existing tenants were
+backfilled to `ACTIVE` when lifecycle support was introduced.
+
+Organizations also store nullable business identity fields used by contracts
+and reports: legal name, phone, email, address, and contract footer text. SaaS
+pricing, subscriptions, and billing data are deliberately not part of this
+model.
+
 ---
 
 # Relationships

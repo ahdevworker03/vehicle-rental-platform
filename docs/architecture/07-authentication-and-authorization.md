@@ -108,6 +108,19 @@ The organization identity is derived from authentication. The authenticated orga
 
 Organization boundaries are enforced by the backend and the database.
 
+## Organization Lifecycle Access Policy
+
+Tenant organizations have one of four lifecycle statuses: `TRIAL`, `ACTIVE`,
+`SUSPENDED`, or `CANCELLED`. `TRIAL` and `ACTIVE` allow normal tenant business
+operations. `SUSPENDED` and `CANCELLED` block those operations through shared
+middleware with `403 ORGANIZATION_NOT_OPERATIONAL`.
+
+The lifecycle policy does not replace authentication: `/api/auth/me` and
+`GET /api/organizations/me` remain available so a user can see account state.
+Only `PLATFORM_OWNER` may update tenant lifecycle status through the dedicated
+platform endpoint. A `PLATFORM_OWNER` is not granted ordinary tenant-business
+access merely because it has an organization claim.
+
 ---
 
 # Session Management

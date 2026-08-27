@@ -93,6 +93,7 @@ export const GetCurrentUserResponse = zod.object({
   "email": zod.string(),
   "role": zod.enum(['PLATFORM_OWNER', 'OWNER', 'EMPLOYEE']),
   "organizationId": zod.string(),
+  "organizationStatus": zod.enum(['TRIAL', 'ACTIVE', 'SUSPENDED', 'CANCELLED']),
   "createdAt": zod.coerce.date()
 }),zod.null()])
 })

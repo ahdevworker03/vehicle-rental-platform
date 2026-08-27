@@ -8,15 +8,44 @@ import type {
 function toResponse(record: {
   id: string;
   name: string;
+  status: "TRIAL" | "ACTIVE" | "SUSPENDED" | "CANCELLED";
+  legal_name: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  contract_footer_text: string | null;
   created_at: Date;
   updated_at: Date;
 }): OrganizationResponse {
   return {
     id: record.id,
     name: record.name,
+    status: record.status,
+    legalName: record.legal_name,
+    phone: record.phone,
+    email: record.email,
+    address: record.address,
+    contractFooterText: record.contract_footer_text,
     createdAt: record.created_at.toISOString(),
     updatedAt: record.updated_at.toISOString(),
   };
+}
+
+async function updateOrganizationStatus(
+  orgId: string,
+  status: OrganizationResponse["status"],
+): Promise<OrganizationResponse> {
+  const org = await repo.findById(orgId);
+
+  if (!org || org.deleted_at) {
+    throw new AppError(
+      404,
+      "ORGANIZATION_NOT_FOUND",
+      "Organization not found.",
+    );
+  }
+
+  return toResponse(await repo.updateStatus(orgId, status));
 }
 
 async function getOrganization(orgId: string): Promise<OrganizationResponse> {
@@ -70,4 +99,9 @@ async function deleteOrganization(orgId: string): Promise<void> {
   );
 }
 
-export { getOrganization, updateOrganization, deleteOrganization };
+export {
+  getOrganization,
+  updateOrganization,
+  updateOrganizationStatus,
+  deleteOrganization,
+};

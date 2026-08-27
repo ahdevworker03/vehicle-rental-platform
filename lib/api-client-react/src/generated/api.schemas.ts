@@ -60,11 +60,22 @@ export interface UserResponse {
   updatedAt: string;
 }
 
+export type OrganizationStatus = typeof OrganizationStatus[keyof typeof OrganizationStatus];
+
+
+export const OrganizationStatus = {
+  TRIAL: 'TRIAL',
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
 export interface CurrentUserResponse {
   id: string;
   email: string;
   role: UserRole;
   organizationId: string;
+  organizationStatus: OrganizationStatus;
   createdAt: string;
 }
 
@@ -108,6 +119,12 @@ export interface UpdateUserRequest {
 export interface OrganizationResponse {
   id: string;
   name: string;
+  status: OrganizationStatus;
+  legalName: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  contractFooterText: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -118,7 +135,20 @@ export interface OrganizationResponseWrapper {
 
 export interface UpdateOrganizationRequest {
   /** @minLength 1 */
-  name: string;
+  name?: string;
+  /** @minLength 1 */
+  legalName?: string | null;
+  /** @minLength 1 */
+  phone?: string | null;
+  email?: string | null;
+  /** @minLength 1 */
+  address?: string | null;
+  /** @minLength 1 */
+  contractFooterText?: string | null;
+}
+
+export interface UpdateOrganizationStatusRequest {
+  status: OrganizationStatus;
 }
 
 export interface CustomerResponse {

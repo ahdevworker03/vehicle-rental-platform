@@ -1,5 +1,9 @@
 import { prisma } from "../../database";
-import type { OrganizationRecord } from "./organization.types";
+import type {
+  OrganizationRecord,
+  OrganizationStatus,
+  UpdateOrganizationInput,
+} from "./organization.types";
 
 async function findById(orgId: string): Promise<OrganizationRecord | null> {
   return prisma.organization.findUnique({
@@ -9,11 +13,28 @@ async function findById(orgId: string): Promise<OrganizationRecord | null> {
 
 async function update(
   orgId: string,
-  data: { name: string },
+  data: UpdateOrganizationInput,
 ): Promise<OrganizationRecord> {
   return prisma.organization.update({
     where: { id: orgId },
-    data: { name: data.name },
+    data: {
+      name: data.name,
+      legal_name: data.legalName,
+      phone: data.phone,
+      email: data.email,
+      address: data.address,
+      contract_footer_text: data.contractFooterText,
+    },
+  });
+}
+
+async function updateStatus(
+  orgId: string,
+  status: OrganizationStatus,
+): Promise<OrganizationRecord> {
+  return prisma.organization.update({
+    where: { id: orgId },
+    data: { status },
   });
 }
 
@@ -24,4 +45,9 @@ async function softDelete(orgId: string): Promise<OrganizationRecord> {
   });
 }
 
-export { findById, update, softDelete };
+export {
+  findById,
+  update,
+  updateStatus,
+  softDelete,
+};

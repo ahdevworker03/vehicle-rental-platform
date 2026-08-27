@@ -7,17 +7,18 @@ import {
 import {
   authenticate,
   requireRole,
+  requireOperationalOrganization,
   validateBody,
 } from "../../middleware";
 import { createPaymentSchema } from "./payment.validation";
 
 const router: IRouter = Router();
+router.use(authenticate, requireOperationalOrganization);
 
-router.get("/payments", authenticate, list);
-router.get("/rentals/:rentalId/payments", authenticate, listByRental);
+router.get("/payments", list);
+router.get("/rentals/:rentalId/payments", listByRental);
 router.post(
   "/rentals/:rentalId/payments",
-  authenticate,
   requireRole("OWNER"),
   validateBody(createPaymentSchema),
   create,

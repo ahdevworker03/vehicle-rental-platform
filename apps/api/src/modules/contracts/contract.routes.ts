@@ -12,42 +12,42 @@ import {
   downloadSigned,
   deleteSigned,
 } from "./contract.controller";
-import { authenticate, requireRole } from "../../middleware";
+import {
+  authenticate,
+  requireOperationalOrganization,
+  requireRole,
+} from "../../middleware";
 
 const router: IRouter = Router();
+router.use(authenticate, requireOperationalOrganization);
 
-router.get("/rentals/:id/contract", authenticate, get);
-router.get("/rentals/:id/contract/printable", authenticate, printable);
-router.get("/rentals/:id/contract/pdf", authenticate, pdf);
-router.get("/rentals/:id/contract/signed", authenticate, listSigned);
-router.get("/rentals/:id/contract/signed/:documentId", authenticate, getSigned);
+router.get("/rentals/:id/contract", get);
+router.get("/rentals/:id/contract/printable", printable);
+router.get("/rentals/:id/contract/pdf", pdf);
+router.get("/rentals/:id/contract/signed", listSigned);
+router.get("/rentals/:id/contract/signed/:documentId", getSigned);
 router.get(
   "/rentals/:id/contract/signed/:documentId/download",
-  authenticate,
   downloadSigned,
 );
 router.post(
   "/rentals/:id/contract",
-  authenticate,
   requireRole("OWNER"),
   generate,
 );
 router.post(
   "/rentals/:id/contract/signed",
-  authenticate,
   requireRole("OWNER"),
   handleUpload,
   uploadSigned,
 );
 router.delete(
   "/rentals/:id/contract",
-  authenticate,
   requireRole("OWNER"),
   remove,
 );
 router.delete(
   "/rentals/:id/contract/signed/:documentId",
-  authenticate,
   requireRole("OWNER"),
   deleteSigned,
 );
