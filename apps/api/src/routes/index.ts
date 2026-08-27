@@ -12,13 +12,19 @@ import expensesRouter from "../modules/expenses/expense.routes";
 import paymentsRouter from "../modules/payments/payment.routes";
 import tasksRouter from "../modules/tasks/task.routes";
 import mediaRouter from "../modules/media/media.routes";
+import {
+  invitationRouter,
+  publicInvitationRouter,
+} from "../modules/invitations";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use("/auth", authRouter);
+router.use(publicInvitationRouter);
 router.use(organizationsRouter);
 router.use(usersRouter);
+router.use(invitationRouter);
 router.use(customersRouter);
 router.use(vehiclesRouter);
 router.use(rentalsRouter);

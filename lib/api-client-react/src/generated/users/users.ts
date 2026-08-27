@@ -20,7 +20,9 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CreateEmployeeInvitationRequest,
   CreateUserRequest,
+  EmployeeInvitationResponseWrapper,
   ErrorResponse,
   UpdateUserRequest,
   UserListResponse,
@@ -416,4 +418,75 @@ export const useDeleteUser = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getDeleteUserMutationOptions(options));
+    }
+    export const getCreateEmployeeInvitationUrl = () => {
+
+
+
+
+  return `/api/users/invitations`
+}
+
+/**
+ * Creates an EMPLOYEE-only invitation for the authenticated owner's organization. The acceptance token is returned once for manual secure delivery and is never stored in plaintext.
+ * @summary Create or resend an employee invitation
+ */
+export const createEmployeeInvitation = async (createEmployeeInvitationRequest: CreateEmployeeInvitationRequest, options?: RequestInit): Promise<EmployeeInvitationResponseWrapper> => {
+
+  return customFetch<EmployeeInvitationResponseWrapper>(getCreateEmployeeInvitationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(createEmployeeInvitationRequest)
+  }
+);}
+
+
+
+
+
+export const getCreateEmployeeInvitationMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmployeeInvitation>>, TError,{data: BodyType<CreateEmployeeInvitationRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createEmployeeInvitation>>, TError,{data: BodyType<CreateEmployeeInvitationRequest>}, TContext> => {
+
+const mutationKey = ['createEmployeeInvitation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createEmployeeInvitation>>, {data: BodyType<CreateEmployeeInvitationRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createEmployeeInvitation(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateEmployeeInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof createEmployeeInvitation>>>
+    export type CreateEmployeeInvitationMutationBody = BodyType<CreateEmployeeInvitationRequest>
+    export type CreateEmployeeInvitationMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Create or resend an employee invitation
+ */
+export const useCreateEmployeeInvitation = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createEmployeeInvitation>>, TError,{data: BodyType<CreateEmployeeInvitationRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createEmployeeInvitation>>,
+        TError,
+        {data: BodyType<CreateEmployeeInvitationRequest>},
+        TContext
+      > => {
+      return useMutation(getCreateEmployeeInvitationMutationOptions(options));
     }

@@ -70,6 +70,8 @@ User creation follows these current rules:
 
 - `POST /api/auth/register` creates a new organization and its first `OWNER` user.
 - `POST /api/users` lets an authenticated `OWNER` create an `EMPLOYEE` user in the same organization.
+- `POST /api/users/invitations` lets an authenticated `OWNER` create or resend a seven-day, `EMPLOYEE`-only invitation for its organization. The one-time acceptance token is returned only to the owner for secure manual delivery; only its hash is stored.
+- `POST /api/auth/invitations/accept` consumes a valid invitation once, lets the recipient set a password, and creates the `EMPLOYEE` in the invited organization. Resending invalidates the previous token.
 - There is no API path to create or promote another `OWNER`.
 - `PLATFORM_OWNER` creation is not available through registration or tenant user-management endpoints.
 - The current database seed creates no users.
@@ -165,6 +167,18 @@ The platform stores only secure password hashes.
 Authentication compares the submitted password against the stored hash.
 
 Password handling should follow modern security best practices.
+
+## Employee Invitations
+
+Employee invitations are organization-scoped and never allow the inviter to
+select a role: every accepted invitation creates an `EMPLOYEE`. Invitation
+tokens are secure random values, stored only as hashes, expire after seven
+days, and cannot be replayed after acceptance or resend. The initial release
+uses manual secure delivery by the owner rather than an email-delivery platform.
+
+Creation, resend, and acceptance are recorded in the narrow platform/security
+audit log without token or password material. `PLATFORM_OWNER` and `EMPLOYEE`
+accounts cannot issue tenant invitations.
 
 ---
 

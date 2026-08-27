@@ -116,6 +116,38 @@ export interface UpdateUserRequest {
   role: UpdateUserRequestRole;
 }
 
+export interface CreateEmployeeInvitationRequest {
+  email: string;
+}
+
+export interface AcceptEmployeeInvitationRequest {
+  /** @minLength 32 */
+  token: string;
+  /** @minLength 8 */
+  password: string;
+}
+
+export type EmployeeInvitationResponseRole = typeof EmployeeInvitationResponseRole[keyof typeof EmployeeInvitationResponseRole];
+
+
+export const EmployeeInvitationResponseRole = {
+  EMPLOYEE: 'EMPLOYEE',
+} as const;
+
+export interface EmployeeInvitationResponse {
+  id: string;
+  email: string;
+  role: EmployeeInvitationResponseRole;
+  expiresAt: string;
+  /** One-time token for secure manual delivery. It is never stored in plaintext and is not returned by later reads. */
+  acceptanceToken: string;
+  createdAt: string;
+}
+
+export interface EmployeeInvitationResponseWrapper {
+  data: EmployeeInvitationResponse;
+}
+
 export interface OrganizationResponse {
   id: string;
   name: string;

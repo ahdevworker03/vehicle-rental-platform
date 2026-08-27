@@ -1,6 +1,10 @@
-export type AuditAction = "ORGANIZATION_STATUS_UPDATED";
+export type AuditAction =
+  | "ORGANIZATION_STATUS_UPDATED"
+  | "EMPLOYEE_INVITATION_CREATED"
+  | "EMPLOYEE_INVITATION_RESENT"
+  | "EMPLOYEE_INVITATION_ACCEPTED";
 
-export type AuditTargetType = "ORGANIZATION";
+export type AuditTargetType = "ORGANIZATION" | "EMPLOYEE_INVITATION";
 
 export type AuditMetadata = Record<string, string | number | boolean | null>;
 

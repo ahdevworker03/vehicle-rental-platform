@@ -98,3 +98,25 @@ export const GetCurrentUserResponse = zod.object({
 }),zod.null()])
 })
 
+/**
+ * @summary Accept an employee invitation and set a password
+ */
+export const acceptEmployeeInvitationBodyTokenMin = 32;
+
+export const acceptEmployeeInvitationBodyPasswordMin = 8;
+
+
+
+export const AcceptEmployeeInvitationBody = zod.object({
+  "token": zod.string().min(acceptEmployeeInvitationBodyTokenMin),
+  "password": zod.string().min(acceptEmployeeInvitationBodyPasswordMin)
+})
+
+export const AcceptEmployeeInvitationResponse = zod.object({
+  "data": zod.object({
+  "accessToken": zod.string(),
+  "refreshToken": zod.string(),
+  "expiresAt": zod.coerce.date()
+})
+})
+

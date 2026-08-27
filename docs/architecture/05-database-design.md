@@ -172,6 +172,18 @@ update. Invitation, password-reset, and account-administration workflows will
 use the same mechanism as they are introduced. Audit records are retained and
 are not soft-deleted through normal application operations.
 
+## Employee Invitations
+
+`EmployeeInvitation` stores organization-scoped, `EMPLOYEE`-only onboarding
+records. It contains the invited email, a unique token hash, expiry, acceptance
+timestamp, creator, accepted user, and timestamps. A unique organization/email
+key gives each tenant at most one invitation record per email; resend replaces
+the previous token hash and expiry. The token is never stored in plaintext.
+
+Invitation acceptance creates the user and marks the invitation accepted in one
+serializable transaction, preserving the global user-email uniqueness rule and
+preventing replay or concurrent double acceptance.
+
 ---
 
 # Soft Deletes

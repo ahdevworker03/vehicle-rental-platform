@@ -31,6 +31,7 @@ model Organization {
   payments   Payment[]
   tasks      Task[]
   audit_logs AuditLog[]
+  employee_invitations EmployeeInvitation[]
 
   @@index([deleted_at])
 }
@@ -124,6 +125,8 @@ model User {
   organization    Organization   @relation(fields: [organization_id], references: [id])
   refresh_tokens  RefreshToken[]
   audit_logs      AuditLog[]
+  created_employee_invitations EmployeeInvitation[] @relation("EmployeeInvitationCreator")
+  accepted_employee_invitation EmployeeInvitation? @relation("EmployeeInvitationAcceptedUser")
   created_at      DateTime       @default(now())
   updated_at      DateTime       @updatedAt
   deleted_at      DateTime?
@@ -147,6 +150,26 @@ model AuditLog {
   @@index([organization_id, created_at])
   @@index([actor_user_id, created_at])
   @@index([target_type, target_id])
+}
+
+model EmployeeInvitation {
+  id                 String       @id @default(uuid()) @db.Uuid
+  organization_id    String       @db.Uuid
+  organization       Organization @relation(fields: [organization_id], references: [id], onDelete: Restrict)
+  email              String
+  token_hash         String       @unique
+  expires_at         DateTime
+  accepted_at        DateTime?
+  created_by_user_id String       @db.Uuid
+  created_by_user    User         @relation("EmployeeInvitationCreator", fields: [created_by_user_id], references: [id], onDelete: Restrict)
+  accepted_user_id   String?      @unique @db.Uuid
+  accepted_user      User?        @relation("EmployeeInvitationAcceptedUser", fields: [accepted_user_id], references: [id], onDelete: Restrict)
+  created_at         DateTime     @default(now())
+  updated_at         DateTime     @updatedAt
+
+  @@unique([organization_id, email])
+  @@index([organization_id, expires_at])
+  @@index([accepted_at])
 }
 
 model RefreshToken {

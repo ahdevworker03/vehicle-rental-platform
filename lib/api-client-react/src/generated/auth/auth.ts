@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AcceptEmployeeInvitationRequest,
   AuthTokensResponse,
   CurrentUserResponseWrapper,
   ErrorResponse,
@@ -417,3 +418,73 @@ export function useGetCurrentUser<TData = Awaited<ReturnType<typeof getCurrentUs
 
 
 
+export const getAcceptEmployeeInvitationUrl = () => {
+
+
+
+
+  return `/api/auth/invitations/accept`
+}
+
+/**
+ * @summary Accept an employee invitation and set a password
+ */
+export const acceptEmployeeInvitation = async (acceptEmployeeInvitationRequest: AcceptEmployeeInvitationRequest, options?: RequestInit): Promise<AuthTokensResponse> => {
+
+  return customFetch<AuthTokensResponse>(getAcceptEmployeeInvitationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(acceptEmployeeInvitationRequest)
+  }
+);}
+
+
+
+
+
+export const getAcceptEmployeeInvitationMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptEmployeeInvitation>>, TError,{data: BodyType<AcceptEmployeeInvitationRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptEmployeeInvitation>>, TError,{data: BodyType<AcceptEmployeeInvitationRequest>}, TContext> => {
+
+const mutationKey = ['acceptEmployeeInvitation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptEmployeeInvitation>>, {data: BodyType<AcceptEmployeeInvitationRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  acceptEmployeeInvitation(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptEmployeeInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof acceptEmployeeInvitation>>>
+    export type AcceptEmployeeInvitationMutationBody = BodyType<AcceptEmployeeInvitationRequest>
+    export type AcceptEmployeeInvitationMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Accept an employee invitation and set a password
+ */
+export const useAcceptEmployeeInvitation = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptEmployeeInvitation>>, TError,{data: BodyType<AcceptEmployeeInvitationRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof acceptEmployeeInvitation>>,
+        TError,
+        {data: BodyType<AcceptEmployeeInvitationRequest>},
+        TContext
+      > => {
+      return useMutation(getAcceptEmployeeInvitationMutationOptions(options));
+    }

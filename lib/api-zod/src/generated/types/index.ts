@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './acceptEmployeeInvitationRequest';
 export * from './authTokens';
 export * from './authTokensResponse';
 export * from './checkRentalAvailabilityParams';
@@ -13,6 +14,7 @@ export * from './completeMaintenanceRequest';
 export * from './contractResponse';
 export * from './contractResponseWrapper';
 export * from './createCustomerRequest';
+export * from './createEmployeeInvitationRequest';
 export * from './createExpenseRequest';
 export * from './createExpenseRequestCategory';
 export * from './createMaintenanceRequest';
@@ -36,6 +38,9 @@ export * from './documentListResponse';
 export * from './documentResponse';
 export * from './documentResponseCategory';
 export * from './documentResponseWrapper';
+export * from './employeeInvitationResponse';
+export * from './employeeInvitationResponseRole';
+export * from './employeeInvitationResponseWrapper';
 export * from './errorResponse';
 export * from './errorResponseError';
 export * from './expenseListResponse';

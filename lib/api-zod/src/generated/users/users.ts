@@ -91,3 +91,22 @@ export const DeleteUserParams = zod.object({
 
 export const DeleteUserResponse = zod.void()
 
+/**
+ * Creates an EMPLOYEE-only invitation for the authenticated owner's organization. The acceptance token is returned once for manual secure delivery and is never stored in plaintext.
+ * @summary Create or resend an employee invitation
+ */
+export const CreateEmployeeInvitationBody = zod.object({
+  "email": zod.string().email()
+})
+
+export const CreateEmployeeInvitationResponse = zod.object({
+  "data": zod.object({
+  "id": zod.string(),
+  "email": zod.string().email(),
+  "role": zod.enum(['EMPLOYEE']),
+  "expiresAt": zod.coerce.date(),
+  "acceptanceToken": zod.string().describe('One-time token for secure manual delivery. It is never stored in plaintext and is not returned by later reads.'),
+  "createdAt": zod.coerce.date()
+})
+})
+

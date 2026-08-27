@@ -430,6 +430,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
     patch:
       operationId: updateUser
       tags: [users]
@@ -510,6 +511,83 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/invitations:
+    post:
+      operationId: createEmployeeInvitation
+      tags: [users]
+      summary: Create or resend an employee invitation
+      description: Creates an EMPLOYEE-only invitation for the authenticated owner's organization. The acceptance token is returned once for manual secure delivery and is never stored in plaintext.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEmployeeInvitationRequest"
+      responses:
+        "201":
+          description: Employee invitation created or resent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmployeeInvitationResponseWrapper"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Insufficient permissions or organization is not operational
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: The email is already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/invitations/accept:
+    post:
+      operationId: acceptEmployeeInvitation
+      tags: [auth]
+      summary: Accept an employee invitation and set a password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptEmployeeInvitationRequest"
+      responses:
+        "201":
+          description: Invitation accepted and employee account created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokensResponse"
+        "409":
+          description: Invitation has expired, was already used, or email is no longer available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
           content:
             application/json:
               schema:
@@ -3687,6 +3765,64 @@ components:
           enum: [EMPLOYEE]
       required:
         - role
+
+    CreateEmployeeInvitationRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+
+    AcceptEmployeeInvitationRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 32
+        password:
+          type: string
+          minLength: 8
+      required:
+        - token
+        - password
+
+    EmployeeInvitationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [EMPLOYEE]
+        expiresAt:
+          type: string
+          format: date-time
+        acceptanceToken:
+          type: string
+          description: One-time token for secure manual delivery. It is never stored in plaintext and is not returned by later reads.
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - role
+        - expiresAt
+        - acceptanceToken
+        - createdAt
+
+    EmployeeInvitationResponseWrapper:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/EmployeeInvitationResponse"
+      required:
+        - data
 
     OrganizationResponse:
       type: object
