@@ -6,6 +6,7 @@ url = "https://mcp.vercel.com"
 
 [mcp_servers.github]
 url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_TOKEN"
 
 [mcp_servers.playwright]
 command = "npx"
@@ -23,6 +24,19 @@ enabled = true
 [mcp_servers."21st"]
 url = "https://21st.dev/api/mcp"
 enabled = true
+
+[mcp_servers.openapi]
+command = "uvx"
+args = ["awslabs.openapi-mcp-server@latest"]
+
+[mcp_servers.openapi.env]
+API_NAME = "vehicle-rental-api"
+API_BASE_URL = "http://localhost:3000/api"
+API_SPEC_PATH = "lib/api-spec/openapi.yaml"
+LOG_LEVEL = "ERROR"
+ENABLE_OPERATION_PROMPTS = "true"
+ALLOW_INSECURE_HTTP = "true"
+ALLOW_PRIVATE_NETWORKS = "true"
 
 [mcp_servers.playwright.tools.browser_navigate]
 approval_mode = "approve"

@@ -74,7 +74,7 @@ Different parts of the repository own different responsibilities.
 | Generated validation schemas | Generated from API specification |
 | Shared business logic        | Owning package                   |
 | Repository rules             | `docs/rules/`                    |
-| AI technology knowledge      | `.codex/skills/`                 |
+| AI technology knowledge      | `.agents/skills/`                |
 
 Never duplicate a source of truth.
 
@@ -116,7 +116,7 @@ These files define:
 - API contract ownership
 - generated code handling
 
-Technology-specific implementation guidance belongs in `.codex/skills/`.
+Technology-specific implementation guidance belongs in `.agents/skills/`.
 
 ## Long-Term Goal
 

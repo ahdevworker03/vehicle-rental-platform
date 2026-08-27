@@ -1,5 +1,5 @@
 ---
-name: react
+name: folder-architecture
 description: WHEN building React components/pages/apps; enforces scalable architecture, state management, API layer, performance patterns.
 ---
 

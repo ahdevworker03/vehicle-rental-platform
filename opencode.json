@@ -19,10 +19,9 @@
 
     "github": {
       "type": "local",
-      "command": ["npx", "-y", "github-mcp-server-js"],
+      "command": ["sh", "-c", "GITHUB_TOKEN=\"$(gh auth token)\" npx -y github-mcp-server-js"],
       "enabled": true,
       "environment": {
-        "GITHUB_TOKEN": "{env:GITHUB_TOKEN}",
         "GITHUB_PERMISSION": "read-write",
         "LOG_LEVEL": "info"
       }
@@ -32,6 +31,7 @@
       "type": "local",
       "command": ["uvx", "awslabs.openapi-mcp-server@latest"],
       "enabled": true,
+      "timeout": 60000,
       "environment": {
         "API_NAME": "vehicle-rental-api",
         "API_BASE_URL": "http://localhost:3000/api",
@@ -41,6 +41,18 @@
         "ALLOW_INSECURE_HTTP": "true",
         "ALLOW_PRIVATE_NETWORKS": "true"
       }
+    },
+
+    "shadcn": {
+      "type": "local",
+      "command": ["npx", "-y", "shadcn@latest", "mcp"],
+      "enabled": true
+    },
+
+    "21st": {
+      "type": "remote",
+      "url": "https://21st.dev/api/mcp",
+      "enabled": true
     },
 
     "vercel": {

@@ -1,5 +1,5 @@
 ---
-name: mcp
+name: mcp-routing
 description: Load when choosing or configuring MCP servers for this repository, especially `.codex/config.toml`, Context7, GitHub, Playwright, PostgreSQL, Docker, Vercel, or OpenAPI. Determines whether an MCP should be used and selects the appropriate server.
 ---
 
