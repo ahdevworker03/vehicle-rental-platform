@@ -160,6 +160,18 @@ Typical fields include:
 
 These fields improve traceability and simplify auditing.
 
+## Platform and Security Audit Log
+
+`AuditLog` is an append-only record for sensitive platform and security events,
+not an event-sourcing system. It stores an optional organization and actor,
+action, target type/identifier, non-sensitive structured metadata, and its
+creation timestamp. It is indexed for organization, actor, and target lookup.
+
+Lifecycle-status changes are written in the same transaction as the status
+update. Invitation, password-reset, and account-administration workflows will
+use the same mechanism as they are introduced. Audit records are retained and
+are not soft-deleted through normal application operations.
+
 ---
 
 # Soft Deletes

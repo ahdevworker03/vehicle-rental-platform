@@ -121,6 +121,10 @@ Only `PLATFORM_OWNER` may update tenant lifecycle status through the dedicated
 platform endpoint. A `PLATFORM_OWNER` is not granted ordinary tenant-business
 access merely because it has an organization claim.
 
+Each actual lifecycle status change creates an append-only audit entry in the
+same database transaction. The entry records the platform actor, tenant target,
+and previous/new status without including credentials or token material.
+
 ---
 
 # Session Management

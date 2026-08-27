@@ -107,6 +107,26 @@ describe("organization lifecycle routes", () => {
     expect(statusResponse.status).toBe(200);
     expect(statusResponse.body.data.status).toBe("SUSPENDED");
 
+    const auditLogs = await prisma.auditLog.findMany({
+      where: { organization_id: organizationId },
+      select: {
+        actor_user_id: true,
+        action: true,
+        target_type: true,
+        target_id: true,
+        metadata: true,
+      },
+    });
+    expect(auditLogs).toEqual([
+      {
+        actor_user_id: expect.any(String),
+        action: "ORGANIZATION_STATUS_UPDATED",
+        target_type: "ORGANIZATION",
+        target_id: organizationId,
+        metadata: { previousStatus: "TRIAL", newStatus: "SUSPENDED" },
+      },
+    ]);
+
     const businessResponse = await request(app)
       .get("/api/customers")
       .set("Authorization", `Bearer ${ownerToken}`);
@@ -136,6 +156,18 @@ describe("organization lifecycle routes", () => {
 
     expect(response.status).toBe(403);
     expect(response.body.error.code).toBe("INSUFFICIENT_PERMISSIONS");
+  });
+
+  it("does not create an audit record when lifecycle status is unchanged", async () => {
+    const response = await request(app)
+      .patch(`/api/platform/organizations/${organizationId}/status`)
+      .set("Authorization", `Bearer ${platformOwnerToken}`)
+      .send({ status: "TRIAL" });
+
+    expect(response.status).toBe(200);
+    await expect(
+      prisma.auditLog.count({ where: { organization_id: organizationId } }),
+    ).resolves.toBe(0);
   });
 
   it("does not let employees manage lifecycle status", async () => {

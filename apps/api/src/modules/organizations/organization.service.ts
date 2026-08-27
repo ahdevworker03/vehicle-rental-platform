@@ -1,4 +1,6 @@
 import { AppError } from "../../shared";
+import { transaction } from "../../database";
+import { recordAuditLog } from "../audit";
 import * as repo from "./organization.repository";
 import type {
   OrganizationResponse,
@@ -33,19 +35,41 @@ function toResponse(record: {
 
 async function updateOrganizationStatus(
   orgId: string,
+  actorUserId: string,
   status: OrganizationResponse["status"],
 ): Promise<OrganizationResponse> {
-  const org = await repo.findById(orgId);
+  const organization = await transaction(async (tx) => {
+    const org = await repo.findByIdWithinTx(orgId, tx);
 
-  if (!org || org.deleted_at) {
-    throw new AppError(
-      404,
-      "ORGANIZATION_NOT_FOUND",
-      "Organization not found.",
-    );
-  }
+    if (!org || org.deleted_at) {
+      throw new AppError(
+        404,
+        "ORGANIZATION_NOT_FOUND",
+        "Organization not found.",
+      );
+    }
 
-  return toResponse(await repo.updateStatus(orgId, status));
+    if (org.status === status) {
+      return org;
+    }
+
+    const updated = await repo.updateStatusWithinTx(orgId, status, tx);
+    await recordAuditLog(tx, {
+      organizationId: updated.id,
+      actorUserId,
+      action: "ORGANIZATION_STATUS_UPDATED",
+      targetType: "ORGANIZATION",
+      targetId: updated.id,
+      metadata: {
+        previousStatus: org.status,
+        newStatus: updated.status,
+      },
+    });
+
+    return updated;
+  });
+
+  return toResponse(organization);
 }
 
 async function getOrganization(orgId: string): Promise<OrganizationResponse> {

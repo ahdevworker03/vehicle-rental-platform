@@ -1,9 +1,12 @@
 import { prisma } from "../../database";
+import type { TxClient } from "../../database";
 import type {
   OrganizationRecord,
   OrganizationStatus,
   UpdateOrganizationInput,
 } from "./organization.types";
+
+type DbClient = typeof prisma | TxClient;
 
 async function findById(orgId: string): Promise<OrganizationRecord | null> {
   return prisma.organization.findUnique({
@@ -28,11 +31,21 @@ async function update(
   });
 }
 
-async function updateStatus(
+async function findByIdWithinTx(
+  orgId: string,
+  tx: DbClient,
+): Promise<OrganizationRecord | null> {
+  return tx.organization.findUnique({
+    where: { id: orgId },
+  });
+}
+
+async function updateStatusWithinTx(
   orgId: string,
   status: OrganizationStatus,
+  tx: DbClient,
 ): Promise<OrganizationRecord> {
-  return prisma.organization.update({
+  return tx.organization.update({
     where: { id: orgId },
     data: { status },
   });
@@ -47,7 +60,8 @@ async function softDelete(orgId: string): Promise<OrganizationRecord> {
 
 export {
   findById,
+  findByIdWithinTx,
   update,
-  updateStatus,
+  updateStatusWithinTx,
   softDelete,
 };

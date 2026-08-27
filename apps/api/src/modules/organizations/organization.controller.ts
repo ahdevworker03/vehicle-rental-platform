@@ -46,7 +46,11 @@ async function updateStatus(
     const organizationId = Array.isArray(req.params.organizationId)
       ? req.params.organizationId[0]
       : req.params.organizationId;
-    const org = await updateOrganizationStatus(organizationId, input.status);
+    const org = await updateOrganizationStatus(
+      organizationId,
+      req.user!.sub,
+      input.status,
+    );
     ok(res, org);
   } catch (err) {
     next(err);
