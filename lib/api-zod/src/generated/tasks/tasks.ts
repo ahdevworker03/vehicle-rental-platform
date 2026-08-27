@@ -16,6 +16,8 @@ export const ListTasksResponse = zod.object({
   "id": zod.string(),
   "dueDate": zod.coerce.date(),
   "status": zod.enum(['PENDING', 'COMPLETED']),
+  "recurrenceType": zod.enum(['NONE', 'DAILY', 'WEEKLY', 'MONTHLY']),
+  "predecessorId": zod.string().nullable(),
   "notes": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
@@ -27,7 +29,8 @@ export const ListTasksResponse = zod.object({
  */
 export const CreateTaskBody = zod.object({
   "due_date": zod.coerce.date(),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "recurrence_type": zod.enum(['NONE', 'DAILY', 'WEEKLY', 'MONTHLY']).optional()
 })
 
 export const CreateTaskResponse = zod.object({
@@ -35,6 +38,8 @@ export const CreateTaskResponse = zod.object({
   "id": zod.string(),
   "dueDate": zod.coerce.date(),
   "status": zod.enum(['PENDING', 'COMPLETED']),
+  "recurrenceType": zod.enum(['NONE', 'DAILY', 'WEEKLY', 'MONTHLY']),
+  "predecessorId": zod.string().nullable(),
   "notes": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
@@ -53,6 +58,8 @@ export const GetTaskResponse = zod.object({
   "id": zod.string(),
   "dueDate": zod.coerce.date(),
   "status": zod.enum(['PENDING', 'COMPLETED']),
+  "recurrenceType": zod.enum(['NONE', 'DAILY', 'WEEKLY', 'MONTHLY']),
+  "predecessorId": zod.string().nullable(),
   "notes": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
@@ -68,7 +75,8 @@ export const UpdateTaskParams = zod.object({
 
 export const UpdateTaskBody = zod.object({
   "due_date": zod.coerce.date().optional(),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "recurrence_type": zod.enum(['NONE', 'DAILY', 'WEEKLY', 'MONTHLY']).optional()
 })
 
 export const UpdateTaskResponse = zod.object({
@@ -76,6 +84,8 @@ export const UpdateTaskResponse = zod.object({
   "id": zod.string(),
   "dueDate": zod.coerce.date(),
   "status": zod.enum(['PENDING', 'COMPLETED']),
+  "recurrenceType": zod.enum(['NONE', 'DAILY', 'WEEKLY', 'MONTHLY']),
+  "predecessorId": zod.string().nullable(),
   "notes": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
@@ -103,6 +113,8 @@ export const CompleteTaskResponse = zod.object({
   "id": zod.string(),
   "dueDate": zod.coerce.date(),
   "status": zod.enum(['PENDING', 'COMPLETED']),
+  "recurrenceType": zod.enum(['NONE', 'DAILY', 'WEEKLY', 'MONTHLY']),
+  "predecessorId": zod.string().nullable(),
   "notes": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()

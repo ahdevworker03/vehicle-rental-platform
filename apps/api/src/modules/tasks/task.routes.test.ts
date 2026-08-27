@@ -49,6 +49,24 @@ describe("task routes", () => {
     expect(res.body.data.dueDate).toBe("2026-09-01T09:00:00.000Z");
     expect(res.body.data.status).toBe("PENDING");
     expect(res.body.data.notes).toBe("Insurance renewal");
+    expect(res.body.data.recurrenceType).toBe("NONE");
+    expect(res.body.data.predecessorId).toBeNull();
+  });
+
+  it("creates and completes a recurring task through the API", async () => {
+    const created = await createTask({ recurrence_type: "WEEKLY" });
+
+    expect(created.status).toBe(201);
+    expect(created.body.data.recurrenceType).toBe("WEEKLY");
+    const completed = await request(app)
+      .post(`/api/tasks/${created.body.data.id}/complete`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(completed.status).toBe(200);
+    const successor = await prisma.task.findFirstOrThrow({
+      where: { predecessor_id: created.body.data.id },
+    });
+    expect(successor.due_date.toISOString()).toBe("2026-09-08T09:00:00.000Z");
   });
 
   it("rejects an unauthenticated request", async () => {
@@ -107,6 +125,34 @@ describe("task routes", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data.notes).toBe("Updated");
+  });
+
+  it("updates recurrence for a pending task", async () => {
+    const created = await createTask();
+    const res = await request(app)
+      .patch(`/api/tasks/${created.body.data.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ recurrence_type: "MONTHLY" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.recurrenceType).toBe("MONTHLY");
+  });
+
+  it("rejects changing recurrence after completion", async () => {
+    const created = await createTask({ recurrence_type: "DAILY" });
+    await request(app)
+      .post(`/api/tasks/${created.body.data.id}/complete`)
+      .set("Authorization", `Bearer ${token}`);
+
+    const res = await request(app)
+      .patch(`/api/tasks/${created.body.data.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ recurrence_type: "NONE" });
+
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe(
+      "TASK_RECURRENCE_CANNOT_CHANGE_AFTER_COMPLETION",
+    );
   });
 
   it("completes a pending task", async () => {

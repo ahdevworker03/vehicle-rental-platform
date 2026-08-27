@@ -196,6 +196,19 @@ hash, revokes every refresh token for that user, and records the completion
 audit event in one serializable transaction. A new reset request invalidates
 any previously unused token for the same user.
 
+## Task Recurrence
+
+`Task.recurrence_type` is `NONE`, `DAILY`, `WEEKLY`, or `MONTHLY`. A nullable
+unique `predecessor_id` self-reference forms a series of occurrences and
+ensures that a completed task has at most one direct successor. Completion and
+creation of a recurring successor occur in one serializable transaction.
+
+The successor copies the recurring task's notes and recurrence type and derives
+its due date from the completed occurrence's due date. Monthly recurrence uses
+UTC calendar-month arithmetic and clamps to the target month's last valid day.
+The model deliberately does not include scheduling, notification, timezone, or
+arbitrary domain-association fields.
+
 ---
 
 # Soft Deletes

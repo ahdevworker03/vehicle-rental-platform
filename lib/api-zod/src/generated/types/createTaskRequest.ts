@@ -5,8 +5,10 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { CreateTaskRequestRecurrenceType } from './createTaskRequestRecurrenceType';
 
 export interface CreateTaskRequest {
   due_date: Date;
   notes?: string;
+  recurrence_type?: CreateTaskRequestRecurrenceType;
 }

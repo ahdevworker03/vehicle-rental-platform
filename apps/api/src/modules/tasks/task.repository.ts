@@ -1,11 +1,18 @@
 import { prisma } from "../../database";
+import type { TxClient } from "../../database";
 import type {
   TaskRecord,
+  TaskRecurrenceType,
   TaskStatus,
 } from "./task.types";
 
-async function findByOrg(orgId: string): Promise<TaskRecord[]> {
-  return prisma.task.findMany({
+type DbClient = typeof prisma | TxClient;
+
+async function findByOrg(
+  orgId: string,
+  db: DbClient = prisma,
+): Promise<TaskRecord[]> {
+  return db.task.findMany({
     where: {
       organization_id: orgId,
       deleted_at: null,
@@ -17,8 +24,9 @@ async function findByOrg(orgId: string): Promise<TaskRecord[]> {
 async function findById(
   taskId: string,
   orgId: string,
+  db: DbClient = prisma,
 ): Promise<TaskRecord | null> {
-  return prisma.task.findFirst({
+  return db.task.findFirst({
     where: { id: taskId, organization_id: orgId },
   });
 }
@@ -27,9 +35,11 @@ async function create(data: {
   organization_id: string;
   due_date: Date;
   status: TaskStatus;
+  recurrence_type: TaskRecurrenceType;
+  predecessor_id?: string;
   notes: string | null;
-}): Promise<TaskRecord> {
-  return prisma.task.create({ data });
+}, db: DbClient = prisma): Promise<TaskRecord> {
+  return db.task.create({ data });
 }
 
 async function update(
@@ -37,12 +47,30 @@ async function update(
   data: {
     due_date?: Date;
     status?: TaskStatus;
+    recurrence_type?: TaskRecurrenceType;
     notes?: string | null;
   },
+  db: DbClient = prisma,
 ): Promise<TaskRecord> {
-  return prisma.task.update({
+  return db.task.update({
     where: { id: taskId },
     data,
+  });
+}
+
+async function completePending(
+  taskId: string,
+  orgId: string,
+  db: DbClient,
+) {
+  return db.task.updateMany({
+    where: {
+      id: taskId,
+      organization_id: orgId,
+      status: "PENDING",
+      deleted_at: null,
+    },
+    data: { status: "COMPLETED", updated_at: new Date() },
   });
 }
 
@@ -58,5 +86,6 @@ export {
   findById,
   create,
   update,
+  completePending,
   softDelete,
 };

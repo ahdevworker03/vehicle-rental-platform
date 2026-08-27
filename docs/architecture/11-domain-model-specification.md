@@ -238,7 +238,9 @@ Notes:
 - `UPCOMING` and `OVERDUE` are **not** persisted statuses. They are derived presentation/query states computed from `due_date` and the current date for non-completed records, mirroring the `MaintenanceStatus` `UPCOMING`/`OVERDUE` convention.
 - `CANCELLED` is **not** a status. A task that is no longer needed uses the established soft-delete mechanism (`deleted_at`).
 - `TaskStatus` deliberately does **not** include `IN_PROGRESS`. Unlike maintenance (which has a documented scheduled → in-progress → completed workflow), no Task flow documents a started state; the product defines only create → complete. `MaintenanceStatus` cannot simply be copied because it models a multi-stage workshop process with a middle state, whereas Task models a binary completion lifecycle.
-- Recurring tasks are **deferred** (see the Task model notes): the recurrence representation requires architectural approval and is not implemented in Milestone 4.
+- Recurring tasks use `TaskRecurrenceType` (`NONE`, `DAILY`, `WEEKLY`, or
+  `MONTHLY`). Completion of a recurring task creates the next pending
+  occurrence; no scheduler or notification process is required.
 
 ## NotificationType
 
@@ -1076,6 +1078,8 @@ Operational reminders.
 | organization_id    | organization_id | UUID       | ✅       | —          | FK → Organization.id                |
 | due_date           | due_date        | DateTime   | ✅       | —          | Due/business date                   |
 | status             | status          | TaskStatus | ✅       | PENDING    | PENDING / COMPLETED                 |
+| recurrence_type    | recurrence_type | TaskRecurrenceType | ✅ | NONE | NONE / DAILY / WEEKLY / MONTHLY |
+| predecessor_id     | predecessor_id  | UUID?      | ❌       | null       | Immediate prior occurrence in a recurring series |
 | notes              | notes           | String?    | ❌       | null       | Free-text notes                     |
 | created_at         | created_at      | DateTime   | ✅       | now()      | Audit                               |
 | updated_at         | updated_at      | DateTime   | ✅       | @updatedAt | Audit                               |
@@ -1085,7 +1089,17 @@ Notes:
 
 - `due_date` is the **due/business date** for the task. It is the date used for ordering and for deriving `UPCOMING`/`OVERDUE` presentation states.
 - `status` default is `PENDING`; transition to `COMPLETED` marks the task finished and removes it from active reminders.
-- Recurring schedule: **deferred** (approved architectural decision, Milestone 4, Phase 17, Step 17.1). No recurrence representation is defined in Milestone 4; tasks are single-occurrence. The product requirement to "create recurring tasks" and the domain responsibility "recurring schedule" remain open for a future approved decision.
+- `recurrence_type` is selected when creating a task and can be changed only
+  while that occurrence is pending. `NONE` keeps the task single-occurrence.
+- `predecessor_id` forms the recurring-task chain. It is unique, so one
+  completed occurrence can have at most one direct next occurrence.
+- Completing a recurring task atomically marks the current occurrence complete
+  and creates the next `PENDING` occurrence with the same notes and recurrence
+  type. The next due date is calculated from the completed occurrence's due
+  date: +1 UTC calendar day, +7 UTC calendar days, or +1 UTC calendar month.
+  Monthly recurrence clamps to the final valid day of the target month.
+- No cron, background scheduler, timezone recurrence engine, or notification
+  delivery is part of this model.
 - Entity associations (Vehicle, Rental, Maintenance, User): **deferred** (approved architectural decision, Milestone 4, Phase 17, Step 17.1). The base Task belongs only to its Organization.
 
 ### Constraints
@@ -1123,11 +1137,14 @@ Notes:
 
 - `due_date` is required and must be a valid date.
 - `status` is required and must be a valid `TaskStatus` (default `PENDING`).
+- `recurrence_type`, when provided, must be a valid `TaskRecurrenceType`.
 - `notes` is optional; when present, must be a non-empty string.
 
 ### API Notes
 
-- Planned: standard tasks, due dates, completion workflow. Recurring tasks are deferred and not part of the planned Task API in Milestone 4.
+- The Task API exposes recurrence type and predecessor ID. Completing a
+  recurring task returns the completed occurrence; clients retrieve the next
+  occurrence through the normal task list/detail endpoints.
 
 ---
 
@@ -1476,7 +1493,11 @@ Those belong to later steps.
 
 1. **Rental field set and status enum** — period structure, pricing, status values.
 2. **Contract representation** — content vs file reference vs template.
-3. **Task field set** — **RESOLVED** (approved in Milestone 4, Phase 17, Step 17.1). Fields: `due_date`, `status` (`TaskStatus` = `PENDING`/`COMPLETED`, default `PENDING`), `notes`. Recurrence representation is **deferred** (not implemented in Milestone 4); entity associations (Vehicle/Rental/Maintenance/User) are **deferred**.
+3. **Task field set** — **RESOLVED**. Fields: `due_date`, `status`
+   (`TaskStatus` = `PENDING`/`COMPLETED`, default `PENDING`), `notes`,
+   `recurrence_type` (`NONE`/`DAILY`/`WEEKLY`/`MONTHLY`), and optional
+   `predecessor_id`. Entity associations (Vehicle/Rental/Maintenance/User)
+   remain deferred.
 4. **Notification field set** — type enum, read state, stored vs generated.
 5. **Role permission matrix** — **RESOLVED** (approved in Milestone 4, Phases 14–17, verified in Step 18.2). For all Milestone 4 operations modules (Maintenance, Expense, Payment, Task): list/get for any authenticated user; create/update/delete/complete restricted to `OWNER`. Mirrors the Milestone 2/3 user-module pattern.
 

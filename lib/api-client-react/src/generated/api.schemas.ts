@@ -775,10 +775,22 @@ export const TaskResponseStatus = {
   COMPLETED: 'COMPLETED',
 } as const;
 
+export type TaskResponseRecurrenceType = typeof TaskResponseRecurrenceType[keyof typeof TaskResponseRecurrenceType];
+
+
+export const TaskResponseRecurrenceType = {
+  NONE: 'NONE',
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  MONTHLY: 'MONTHLY',
+} as const;
+
 export interface TaskResponse {
   id: string;
   dueDate: string;
   status: TaskResponseStatus;
+  recurrenceType: TaskResponseRecurrenceType;
+  predecessorId: string | null;
   notes?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -792,14 +804,36 @@ export interface TaskListResponse {
   data: TaskResponse[];
 }
 
+export type CreateTaskRequestRecurrenceType = typeof CreateTaskRequestRecurrenceType[keyof typeof CreateTaskRequestRecurrenceType];
+
+
+export const CreateTaskRequestRecurrenceType = {
+  NONE: 'NONE',
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  MONTHLY: 'MONTHLY',
+} as const;
+
 export interface CreateTaskRequest {
   due_date: string;
   notes?: string;
+  recurrence_type?: CreateTaskRequestRecurrenceType;
 }
+
+export type UpdateTaskRequestRecurrenceType = typeof UpdateTaskRequestRecurrenceType[keyof typeof UpdateTaskRequestRecurrenceType];
+
+
+export const UpdateTaskRequestRecurrenceType = {
+  NONE: 'NONE',
+  DAILY: 'DAILY',
+  WEEKLY: 'WEEKLY',
+  MONTHLY: 'MONTHLY',
+} as const;
 
 export interface UpdateTaskRequest {
   due_date?: string;
   notes?: string | null;
+  recurrence_type?: UpdateTaskRequestRecurrenceType;
 }
 
 export interface CreateRentalRequest {

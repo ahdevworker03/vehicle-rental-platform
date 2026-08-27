@@ -3536,6 +3536,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Completed task recurrence cannot be changed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "422":
           description: Validation failed
           content:
@@ -4887,6 +4893,12 @@ components:
         status:
           type: string
           enum: [PENDING, COMPLETED]
+        recurrenceType:
+          type: string
+          enum: [NONE, DAILY, WEEKLY, MONTHLY]
+        predecessorId:
+          type: string
+          nullable: true
         notes:
           type: string
           nullable: true
@@ -4900,6 +4912,8 @@ components:
         - id
         - dueDate
         - status
+        - recurrenceType
+        - predecessorId
         - createdAt
         - updatedAt
 
@@ -4929,6 +4943,9 @@ components:
           format: date-time
         notes:
           type: string
+        recurrence_type:
+          type: string
+          enum: [NONE, DAILY, WEEKLY, MONTHLY]
       required:
         - due_date
 
@@ -4941,6 +4958,9 @@ components:
         notes:
           type: string
           nullable: true
+        recurrence_type:
+          type: string
+          enum: [NONE, DAILY, WEEKLY, MONTHLY]
       required: []
 
     CreateRentalRequest:
