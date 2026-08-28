@@ -17,7 +17,7 @@ Reviewed:
 - Reference implementation under `docs/audits/frontend-work/car-rental`.
 - Reference/current screenshots under `assets/screenshots`.
 
-Important repository inconsistency: `docs/architecture/03-frontend-architecture.md` describes the older `artifacts/car-rental` mock prototype. The active frontend is `apps/web`, uses Wouter, and is partially wired to generated API hooks. The architecture document should not be used as implementation truth during the rebuild.
+The architecture reference is aligned with the active `apps/web` implementation. The remaining mixed local/API data finding is intentional transitional work scheduled for dashboard and analytics data-consistency steps. `README.md` still contains historical prototype descriptions and is intentionally deferred until project completion.
 
 ## 3. Reference Product Review
 

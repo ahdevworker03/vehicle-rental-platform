@@ -2,225 +2,190 @@
 
 ## Purpose
 
-This document describes the architecture of the frontend application in `artifacts/car-rental` (`@workspace/car-rental`).
+This document describes the active frontend application in `apps/web` (`@workspace/web`). It covers the source structure, routing, layout, state management, data flow, component ownership, styling, testing, and build workflow.
 
-It explains the application structure, routing, layout, state management, data flow, component organization, styling approach, and testing setup.
+The frontend is an Arabic-first, RTL tenant-facing React application. It is partially API-backed through the generated React Query client. Transitional local data remains only for legacy dashboard and analytics consumers until their dedicated data-consistency work is completed.
 
-The document describes the repository as it currently exists. It is a **validation prototype**: the frontend is the main deliverable and reads and writes directly to in-memory mock data.
+## Technology
 
----
+- React 19 and strict TypeScript
+- Vite 7 with `@vitejs/plugin-react` and `@tailwindcss/vite`
+- Tailwind CSS 4 with tokens defined in `src/index.css`
+- Wouter for client-side routing
+- Radix UI primitives wrapped with Tailwind in the shadcn-style `components/ui` layer
+- TanStack React Query 5 through `@workspace/api-client-react`
+- React Hook Form and Zod where form-level validation is required
+- Vitest, jsdom, and React Testing Library
 
-# Application Overview
-
-The frontend is a mobile-optimised, Arabic-first, RTL single-page application for small Lebanese car rental businesses. It is built with:
-
-- **React 19** + TypeScript (strict)
-- **Vite 7** with `@vitejs/plugin-react` and `@tailwindcss/vite`
-- **Tailwind CSS 4** with `@theme inline` design tokens (no `tailwind.config.js`)
-- **wouter** for client-side routing
-- **shadcn/ui** pattern: unstyled Radix UI primitives wrapped with Tailwind
-- **react-hook-form** + **Zod** (`@hookform/resolvers`) for forms
-- **Vitest** + React Testing Library for unit/component tests
-- **TanStack React Query 5** (installed, **not yet wired**)
-
-The application renders 14 screens covering dashboard, vehicles, customers, rentals, maintenance, and analytics. All data is served from in-memory TypeScript arrays under `src/data/`.
-
----
-
-# Source Layout
+## Source Layout
 
 ```text
-src/
-├── main.tsx                 Entry point — renders <App />
-├── App.tsx                  Router composition (nested switches, provider mounting)
-├── index.css                Tailwind import, @theme tokens, CSS variables, utilities
-├── pages/                   Route-level page components (14 pages + not-found)
-├── features/                Per-domain feature modules
-│   ├── vehicles/            hooks.ts, selectors.ts (+ tests)
-│   ├── customers/           hooks.ts
-│   ├── rentals/             hooks.ts, selectors.ts (+ tests)
-│   └── maintenance/         hooks.ts, selectors.ts (+ tests)
+apps/web/src/
+├── main.tsx                 Application entry point
+├── App.tsx                  Wouter route composition and provider boundary
+├── index.css                Tailwind entry, design tokens, RTL utilities
+├── app/
+│   └── NotFoundPage.tsx     Application-level unmatched route
+├── features/                Feature-owned pages, components, hooks, adapters, selectors, and tests
+│   ├── auth/
+│   ├── dashboard/
+│   ├── vehicles/
+│   ├── customers/
+│   ├── rentals/
+│   ├── contracts/
+│   ├── payments/
+│   ├── maintenance/
+│   ├── expenses/
+│   ├── tasks/
+│   ├── analytics/
+│   ├── reports/
+│   └── media/
 ├── components/
-│   ├── layout/              AppShell, BottomNavigation, PageHeader
-│   └── ui/                  shadcn/ui primitives + domain components
-├── hooks/                   use-toast, use-mobile, useTimeout
-├── lib/                     format, labels, mock-date, utils (+ tests)
-├── data/                    In-memory mock data + barrel accessors + types
-└── test/                    test setup (Vitest environment)
+│   ├── layout/              Shared shell, navigation, page primitives
+│   └── ui/                  Shared shadcn-style and application-neutral components
+├── providers/               Query and authentication providers
+├── hooks/                   Shared general-purpose hooks
+├── lib/                     Formatting, labels, API errors, tokens, and utilities
+├── data/                    Transitional local data used by legacy consumers
+└── test/                    Vitest and Testing Library setup
 ```
 
----
+Feature pages are colocated under `features/<feature>/pages`. Domain components and API adapters are colocated under the same feature. Each feature may expose stable public entries through its `index.ts`; callers should not depend on another feature's private implementation files.
 
-# Routing
+## Routing
 
-Routing uses **wouter**. Two levels of routing are composed in `App.tsx`:
+`apps/web/src/App.tsx` is the Wouter composition root. It mounts `QueryProvider`, `AuthProvider`, `TooltipProvider`, and the base-path-aware Wouter router.
 
-1. **Outer switch** — handles the two full-screen data-entry flows that must render *outside* `AppShell` (no bottom navigation):
-   - `/rentals/new` → `NewRentalPage`
-   - `/maintenance/add` → `AddMaintenancePage`
-   - Everything else falls through to the inner router wrapped in `AppShell`.
-2. **Inner switch (`Router`)** — all AppShell screens plus the catch-all `NotFound` page.
+The outer switch handles public and focused flows. Protected full-screen create flows render outside `AppShell` so persistent navigation does not compete with transaction completion. The protected shell handles the remaining tenant routes.
 
-| Route | Component | Layout |
+| Route | Feature owner | Layout |
 |---|---|---|
-| `/` | DashboardPage | AppShell |
-| `/vehicles` | VehiclesPage | AppShell |
-| `/vehicles/add` | AddVehiclePage | AppShell |
-| `/vehicles/:id` | VehicleDetailPage | AppShell |
-| `/customers` | CustomersPage | AppShell |
-| `/customers/add` | AddCustomerPage | AppShell |
-| `/customers/:id` | CustomerDetailPage | AppShell |
-| `/rentals` | RentalsPage | AppShell |
-| `/rentals/new` | NewRentalPage | Full-screen (no AppShell) |
-| `/rentals/:id` | RentalDetailPage | AppShell |
-| `/maintenance` | MaintenancePage | AppShell |
-| `/maintenance/add` | AddMaintenancePage | Full-screen (no AppShell) |
-| `/analytics` | AnalyticsPage | AppShell |
-| (catch-all) | NotFound | Full-screen |
+| `/login` | `features/auth` | Public |
+| `/` | `features/dashboard` | Protected `AppShell` |
+| `/vehicles*` | `features/vehicles` | Protected `AppShell` |
+| `/customers*` | `features/customers` | Protected `AppShell` |
+| `/rentals/new` | `features/rentals` | Protected full-screen |
+| `/rentals*` | `features/rentals` | Protected `AppShell` |
+| `/maintenance/add` | `features/maintenance` | Protected full-screen |
+| `/maintenance*` | `features/maintenance` | Protected `AppShell` |
+| `/expenses*` | `features/expenses` | Protected `AppShell` |
+| `/tasks/add` | `features/tasks` | Protected full-screen |
+| `/tasks*` | `features/tasks` | Protected `AppShell` |
+| `/analytics` | `features/analytics` | Protected `AppShell` |
+| `/reports` | `features/reports` | Protected `AppShell` |
+| unmatched route | `app/NotFoundPage.tsx` | Protected shell fallback |
 
-Details:
+The base path comes from `import.meta.env.BASE_URL`. Route ownership is composed in `App.tsx`; feature modules do not define competing global routers.
 
-- Router base is derived from `import.meta.env.BASE_URL` (Vite `base`), so routing works under a sub-path.
-- The full-screen flows reuse the same viewport wrapper as `AppShell` (480px max-width, `h-[100dvh]`, `overflow-hidden`, `shadow-2xl`) but skip the `AppShell` chrome.
-- `TooltipProvider` and the sonner `Toaster` are mounted once at the root, above the router.
+## Layout and Navigation
 
----
+`components/layout/AppShell.tsx` owns the protected application frame, scroll region, skip link, page container, and responsive navigation composition.
 
-# Layout
+- `AppSidebar.tsx` provides desktop grouped navigation.
+- `TabletNavigationRail.tsx` provides the compact tablet navigation.
+- `BottomNavigation.tsx` provides the mobile primary destinations and More entry.
+- `NavigationDrawer.tsx` provides the mobile secondary navigation surface.
+- `navigation.ts` is the shared navigation definition and active-route logic.
+- `PageContainer.tsx`, `PageHeader.tsx`, `PageActionArea.tsx`, and `ContentGrid.tsx` provide shared page structure.
 
-`components/layout/AppShell.tsx` provides:
+The shell keeps page content scrollable, accounts for mobile safe-area space, and preserves keyboard skip-link behavior. Feature pages should not recreate shell gutters or navigation logic.
 
-- Viewport constrained to `max-w-[480px]`, centred, `h-[100dvh]` flex column.
-- Scrollable `<main>` with `flex-1`, `overflow-y-auto`, `pb-20` (bottom-nav padding), `no-scrollbar`.
-- `BottomNavigation` pinned at the bottom with five tabs: Home, Vehicles, Customers, Rentals, Maintenance.
-  - Home is exact-match only (`/`); all other tabs match their route prefix.
-  - Active state driven by wouter's `useLocation`.
+## State and Data Flow
 
-`components/layout/PageHeader.tsx` renders a sticky header with title, optional back button, and optional action button.
+There is no external global state library.
 
----
+- Local UI state uses React state for filters, form inputs, and disclosure controls.
+- Server state uses TanStack React Query and generated hooks from `@workspace/api-client-react`.
+- Query and mutation ownership belongs to the owning feature adapter.
+- `features/vehicles/api-hooks.ts` and `features/customers/api-hooks.ts` centralize list/detail queries and mutation invalidation.
+- `features/rentals/api-hooks.ts`, `features/media/hooks.ts`, `features/contracts/hooks.ts`, `features/payments/hooks.ts`, `features/maintenance/hooks.ts`, `features/expenses/hooks.ts`, `features/tasks/hooks.ts`, and `features/reports/hooks.ts` provide feature-specific API behavior.
+- Pure selectors remain under their owning feature and are unit tested where calculations or derived states are non-trivial.
+- `providers/QueryProvider.tsx` owns the shared QueryClient provider.
+- `providers/AuthProvider.tsx` owns current-user restoration and authentication context.
 
-# State Management
+The generated client is sourced from `lib/api-spec/openapi.yaml`. Generated packages are not edited manually.
 
-There is **no global state library**. State is deliberately local:
+### Transitional Local Data
 
-- **Local state** — `useState` for search, filters, form inputs, UI toggles.
-- **Form state** — react-hook-form with Zod resolvers (`@hookform/resolvers`), shared field components.
-- **Toast state** — `hooks/use-toast.ts`, a shadcn-compatible reducer pattern (dispatch-based, `toast()` imperative helper + `useToast()` hook).
-- **Server state** — TanStack React Query 5 is a dependency and the generated client exists in `lib/api-client-react`, but neither is connected to any page. All data comes from in-memory mock arrays.
-- **Theme** — light mode only. `next-themes` remains a dependency (used by `sonner.tsx`), but `index.css` defines no dark variant.
+`features/vehicles/hooks.ts`, `features/customers/hooks.ts`, and `features/rentals/hooks.ts` still expose local-data contracts for legacy dashboard and analytics selectors. This is an explicit transitional boundary, not the preferred data path. The local `data/` directory and `lib/mock-date.ts` must not be removed until those consumers use authoritative generated response types and current API data.
 
----
+## Component Ownership
 
-# Data Flow
+### Shared Layout
 
-Pages never touch the mock arrays directly. They go through the **feature layer**:
+Shared shell and page composition remain in `components/layout`.
 
-```text
-User interaction
-        │
-        ▼
-Page component (pages/*.tsx)
-        │
-        ├── reads via feature hooks (features/*/hooks.ts)
-        │     └── useRentals(), useVehicle(id), useActiveRentals(), ...
-        │
-        ├── hooks call pure selectors (features/*/selectors.ts)
-        │     └── getTotalRemaining(), getMonthlyRevenue(), ...
-        │
-        ├── selectors read from data barrel (data/index.ts)
-        │     └── data/vehicles.ts, customers.ts, rentals.ts, maintenance.ts
-        │
-        └── mutations go directly to the arrays (Array.push, assignment)
+### Shared UI
+
+`components/ui` contains shadcn-style primitives and application-neutral composites such as buttons, inputs, cards, dialogs, sheets, tables, skeletons, status badges, feedback states, form fields, search, filters, section cards, and section headers.
+
+### Feature Components
+
+Domain-specific components live under their owning feature:
+
+- Vehicle cards, forms, lists, availability, and status presentation: `features/vehicles/components`
+- Customer cards, forms, and lists: `features/customers/components`
+- Rental cards, lists, and rental history: `features/rentals/components`
+- Contract presentation: `features/contracts/components`
+- Payment presentation: `features/payments/components`
+- Maintenance cards, lists, and history: `features/maintenance/components`
+- Expense cards, lists, and category presentation: `features/expenses/components`
+- Task cards and lists: `features/tasks/components`
+- Media galleries and document lists: `features/media/components`
+- Report period controls: `features/reports/components`
+
+Shared layers must not import feature pages or domain internals. Cross-feature composition uses a feature's public entry point when a related feature component is intentionally reused.
+
+## Styling and RTL
+
+- Tailwind CSS 4 is configured through `@tailwindcss/vite`; there is no Tailwind config file.
+- Semantic design tokens are defined in `src/index.css`.
+- Arabic is the document language and RTL is set in `index.html`.
+- The application font is IBM Plex Sans Arabic.
+- `lib/format.ts` owns currency, date, and number formatting.
+- Numeric and mixed-direction values use the shared LTR treatment where needed.
+- New UI should use logical `start`/`end` properties rather than physical left/right positioning.
+- The design-system baseline is documented in `docs/architecture/12-ui-design-system.md`.
+
+## Forms and Feedback
+
+Feature forms use shared field and section primitives, generated request types, and feature-owned mutation adapters. User-facing API errors are mapped through `lib/api-error.ts`.
+
+Shared feedback components provide loading, empty, error, inline-error, and informational states. Screens must distinguish valid zero values from unavailable or failed data and must show submitting state for mutations.
+
+## Testing
+
+Tests are colocated with the feature or shared component they cover. The test environment is configured in `src/test/setup.ts`.
+
+Run the frontend suite with:
+
+```sh
+pnpm --filter @workspace/web test
 ```
 
-- **`src/data/`** — mock data as exported `const` arrays, re-exported through the `data/index.ts` barrel which also exposes lookup helpers (`getVehicleById`, `getRentalsForCustomer`, ...). Types live in `data/types.ts`.
-- **`src/features/*/selectors.ts`** — pure, unit-tested functions for filtering and calculation.
-- **`src/features/*/hooks.ts`** — thin hooks that wrap selectors over the mock data (`useRental(id)` → `rentals.find(...)`), giving pages a stable API to swap for React Query hooks later.
+The current suite covers feature selectors, API-backed page behavior, shared components, form flows, and dashboard/task/payment states. Changes to route composition, feature boundaries, shared UI, or API adapters should include corresponding regression coverage.
 
-Mock data volumes: 7 vehicles, 6 customers, 7 rentals, 7 maintenance records.
+## Build and Development
 
-The generated API client (`@workspace/api-client-react`) is the intended replacement for the feature hooks when the API integration starts — the hook-per-entity shape was designed for a near drop-in swap. This has **not** been started.
+`apps/web/vite.config.ts` defines the Vite base path, `@` source alias, `@assets` alias, React/Tailwind plugins, development server, and `dist/public` output.
 
----
+Available commands:
 
-# Components
+```sh
+pnpm --filter @workspace/web dev
+pnpm --filter @workspace/web typecheck
+pnpm --filter @workspace/web test
+pnpm --filter @workspace/web build
+```
 
-## Layout components (`components/layout/`)
+The repository-wide lint command is `pnpm lint`.
 
-`AppShell`, `BottomNavigation`, `PageHeader` — 3 components.
+## Architectural Boundaries
 
-## UI components (`components/ui/`)
-
-~69 components, split into:
-
-- **shadcn/ui primitives** — Radix UI wrappers styled with Tailwind: accordion, alert, alert-dialog, aspect-ratio, avatar, badge, breadcrumb, button, button-group, calendar, card, carousel, chart, checkbox, collapsible, command, context-menu, dialog, drawer, dropdown-menu, field, form, hover-card, input, input-group, input-otp, kbd, label, menubar, navigation-menu, pagination, popover, progress, radio-group, resizable, scroll-area, select, separator, sheet, sidebar, skeleton, slider, sonner, spinner, switch, table, tabs, textarea, toast, toaster, toggle, toggle-group, tooltip, and more.
-- **Domain-specific components** composed from primitives: VehicleCard, CustomerCard, RentalCard, MaintenanceCard, StatCard, StatusBadge, EmptyState, SearchBar, FilterChips, SegmentedControl, FormField, InfoRow, CollapsibleSection, SectionHeader.
-
-## Hooks (`hooks/`)
-
-`use-toast.ts` (reducer-based toast store), `use-mobile.tsx` (responsive breakpoint hook), `useTimeout.ts`.
-
-## Utilities (`lib/`)
-
-`format.ts` (number/currency/date formatting), `labels.ts` (Arabic display labels and status maps), `mock-date.ts` (deterministic "today" for consistent demo rendering), `utils.ts` (`cn()` class merger).
-
----
-
-# Styling
-
-- **Tailwind CSS 4** via `@tailwindcss/vite` — on-demand compilation, no config file; tokens defined inline in `src/index.css` with `@theme inline`.
-- **Design tokens** as HSL CSS custom properties (background, foreground, primary, secondary, muted, accent, destructive, card, popover, sidebar, status colors, shadows, radius, fonts).
-- **Status colors** — dedicated tokens for available / rented / maintenance / danger states with tinted backgrounds (`--status-*`, `--status-*-bg`).
-- **Elevation utilities** — custom `.hover-elevate`, `.active-elevate`, `.toggle-elevate` utility classes implementing the elevation language via `::before`/`::after` pseudo-elements.
-- **Font** — Cairo typeface for Arabic (`--app-font-sans`).
-- **RTL** — set at document level in `index.html` (`<html lang="ar" dir="rtl">`); no per-component direction overrides needed.
-- **Light mode only** — dark mode variables were removed from `index.css`.
-
----
-
-# Forms
-
-All forms use **react-hook-form** with **Zod** schemas via `@hookform/resolvers`. The `FormField` component standardizes label + error display across add/edit screens (vehicle, customer, rental, maintenance). Validation is client-side only; mock mutations are not validated.
-
----
-
-# Testing
-
-Vitest-based test infrastructure:
-
-- **Vitest 4** with **jsdom** environment; setup in `src/test/setup.ts` (Testing Library matchers via `@testing-library/jest-dom`).
-- Script: `pnpm --filter @workspace/car-rental test` (`vitest run`).
-- Existing suites:
-  - `features/*/selectors.test.ts` — pure selector unit tests (maintenance, rentals, vehicles).
-  - `lib/format.test.ts`, `lib/mock-date.test.ts` — formatting and mock-date behavior.
-  - `components/ui/SegmentedControl.test.tsx`, `StatusBadge.test.tsx` — component tests with Testing Library.
-
----
-
-# Build & Development
-
-- **Vite 7** — `base` from `BASE_PATH` (default `/`); aliases `@/` → `src/`, `@assets/` → `attached_assets/`; dedupe `react`/`react-dom`; dev server on port `PORT` (default 5173, `strictPort`, `host 0.0.0.0`, `allowedHosts`); build output to `dist/public/`.
-- Scripts: `dev` (Vite dev server), `build` (vite build), `typecheck` (`tsc --noEmit`), `test` (vitest run).
-- Deployed on Vercel (manual deployments).
-
----
-
-# Current Limitations
-
-1. **No data persistence** — all data in-memory, lost on reload.
-2. **No API integration** — React Query and the generated client are installed but unwired.
-3. **No error boundaries** — a crash in any page unmounts the whole tree.
-4. **Light mode only** — no dark theme.
-5. **Mock mutations unvalidated** — direct array pushes without schema checks.
-6. **Financial calculations naive** — iterates all records without caching/memoisation.
-7. **Test coverage is thin** — selectors, lib utilities, and two components only; no page-level tests.
-
----
-
-# Future Evolution
-
-1. **Wire React Query** — replace feature hooks with generated hooks from `@workspace/api-client-react` (the hook-per-entity shape is ready for a drop-in swap).
-2. **Add error boundaries** — per-route boundaries with retry and graceful fallback.
-3. **Server-driven data** — move `data/` arrays into the backend once the API is implemented.
-4. **Expand testing** — page-level integration tests with Testing Library and mocked API hooks.
+1. `App.tsx` owns global providers and route composition.
+2. Features own domain pages, components, API adapters, selectors, and related tests.
+3. Shared components remain domain-neutral unless they are explicitly assigned to a feature.
+4. Feature code may use shared components, layout, hooks, lib utilities, providers, and generated client packages.
+5. Features do not import another feature's private implementation files.
+6. API contracts are changed only in `lib/api-spec`; generated clients and schemas are regenerated from the contract.
+7. Local data remains transitional and cannot be mixed with API data for the same visible entity without an explicit, truthful state model.
