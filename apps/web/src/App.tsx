@@ -6,31 +6,17 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 
-import LoginPage from '@/pages/LoginPage';
-import DashboardPage from '@/pages/DashboardPage';
-import VehiclesPage from '@/pages/VehiclesPage';
-import AddVehiclePage from '@/pages/AddVehiclePage';
-import VehicleDetailPage from '@/pages/VehicleDetailPage';
-import EditVehiclePage from '@/pages/EditVehiclePage';
-import CustomersPage from '@/pages/CustomersPage';
-import AddCustomerPage from '@/pages/AddCustomerPage';
-import EditCustomerPage from '@/pages/EditCustomerPage';
-import CustomerDetailPage from '@/pages/CustomerDetailPage';
-import RentalsPage from '@/pages/RentalsPage';
-import NewRentalPage from '@/pages/NewRentalPage';
-import RentalDetailPage from '@/pages/RentalDetailPage';
-import MaintenancePage from '@/pages/MaintenancePage';
-import AddMaintenancePage from '@/pages/AddMaintenancePage';
-import MaintenanceDetailPage from '@/pages/MaintenanceDetailPage';
-import ExpensesPage from '@/pages/ExpensesPage';
-import AddExpensePage from '@/pages/AddExpensePage';
-import ExpenseDetailPage from '@/pages/ExpenseDetailPage';
-import AnalyticsPage from '@/pages/AnalyticsPage';
-import ReportsPage from '@/pages/ReportsPage';
-import TasksPage from '@/pages/TasksPage';
-import AddTaskPage from '@/pages/AddTaskPage';
-import TaskDetailPage from '@/pages/TaskDetailPage';
-import NotFound from '@/pages/not-found';
+import { LoginPage } from '@/features/auth';
+import { DashboardPage } from '@/features/dashboard';
+import { AddVehiclePage, EditVehiclePage, VehicleDetailPage, VehiclesPage } from '@/features/vehicles';
+import { AddCustomerPage, CustomerDetailPage, CustomersPage, EditCustomerPage } from '@/features/customers';
+import { NewRentalPage, RentalDetailPage, RentalsPage } from '@/features/rentals';
+import { AddMaintenancePage, MaintenanceDetailPage, MaintenancePage } from '@/features/maintenance';
+import { AddExpensePage, ExpenseDetailPage, ExpensesPage } from '@/features/expenses';
+import { AnalyticsPage } from '@/features/analytics';
+import { ReportsPage } from '@/features/reports';
+import { AddTaskPage, TaskDetailPage, TasksPage } from '@/features/tasks';
+import NotFound from '@/app/NotFoundPage';
 
 function Router() {
   return (
