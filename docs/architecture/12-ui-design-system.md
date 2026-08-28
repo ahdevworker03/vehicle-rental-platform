@@ -1,1100 +1,329 @@
 # UI Design System
 
-## Purpose
+## 1. Purpose
 
-This document defines the visual and interaction design system for the Vehicle Rental Management Platform.
+This document is the implementation baseline for the Vehicle Rental Management Platform UI. It translates the frontend audit and Milestone 5.5 direction into reusable rules for `apps/web`.
 
-Its purpose is to keep the rebuilt frontend consistent, professional, responsive, and suitable for a real vehicle rental SaaS product.
+The product is an Arabic-first, RTL, operational SaaS application for vehicle rental businesses. The interface must help owners and employees complete daily work quickly and understand the current state of their fleet, rentals, finances, and obligations.
 
-This document supports **Milestone 5.5 — Product UI Rebuild** and should be used as the design reference before implementing or reviewing frontend UI work.
+Use this document when designing, implementing, or reviewing user-facing frontend work. Current implementation, API contracts, and product documentation remain the sources of truth for behavior and domain rules.
 
-The design system should guide:
+## 2. Product UI Principles
 
-- Layout
-- Colors
-- Typography
-- Spacing
-- Components
-- Responsive behavior
-- Arabic RTL interface design
-- Future English/LTR readiness
-- Accessibility
-- Visual QA
+- **Business first:** prioritize actions and information that prevent missed returns, unavailable vehicles, overdue balances, maintenance issues, or data-entry mistakes.
+- **Operational clarity:** show the current status, the next valid action, and relevant amounts or dates before secondary detail.
+- **Density with hierarchy:** use compact, scannable layouts for operational work without reducing readability or touch targets.
+- **Consistency over novelty:** repeated workflows use shared page, list, detail, form, and feedback patterns.
+- **Responsive by design:** adapt information architecture by device width; do not merely shrink desktop screens.
+- **Calm professionalism:** use visual emphasis to communicate business importance, not decoration.
 
----
+## 3. Scope and Non-Goals
 
-# Design Goal
+### Scope
 
-The interface should feel like a clean, professional, modern SaaS dashboard for vehicle rental businesses.
+- Tenant-facing app shell, navigation, dashboard, business screens, operations, analytics, reports, authentication, account, and company workflows.
+- Existing and approved Version 2 UI support for organization profile, organization status, invitations, password reset, document expiry, recurring tasks, and maintenance schedules.
+- Shared components, responsive behavior, Arabic RTL, accessibility, and API-state presentation.
 
-The product should feel:
+### Non-goals
 
-- Trustworthy
-- Operational
-- Practical
-- Business-focused
-- Modern
-- Clear
-- Reliable
+- This is not a greenfield rewrite. Preserve existing business behavior, routes, generated API integration, and domain workflows unless a verified usability or integration problem requires a change.
+- Do not introduce billing, subscriptions, usage metering, Whish/QR payments, support CRM, tenant impersonation, notification delivery, background schedulers, or maintenance automation.
+- Do not build the platform-admin dashboard as part of the tenant-facing rebuild.
+- Do not invent persisted statuses, permissions, calculations, or API behavior in the UI.
 
-The interface should not feel like:
+## 4. Visual Direction
 
-- A portfolio website
-- A landing page
-- A generic admin template
-- An AI-generated dashboard
-- A flashy startup demo
-- A mobile app stretched onto desktop
+Use a clean, professional, modern SaaS dashboard style.
 
----
+- Primary direction: blue for trust and primary actions; neutral backgrounds; white surfaces; clear semantic status colors; low visual noise.
+- The application is a work tool, not a landing page, portfolio, generic admin template, or animated demo.
+- Prefer subtle borders, restrained shadows, readable type, and intentional whitespace.
+- Avoid decorative gradients, deep card nesting, oversized headings, excessive rounding, and non-functional illustration.
+- Use icons to support recognition. Do not replace a primary navigation or business action label with an icon alone.
 
-# Design Direction
+## 5. Design Tokens
 
-## Style
+Current tokens are defined in `apps/web/src/index.css`. Reuse semantic roles before adding a token or component-specific color.
 
-The approved style direction is:
+### 5.1 Color
 
-> Clean professional + modern SaaS dashboard
-
-The UI should support daily business operations, not marketing presentation.
-
-Visual design should improve:
-
-- Speed of use
-- Information scanning
-- Data clarity
-- Workflow confidence
-- Business visibility
-
-Decoration should be minimal and purposeful.
-
----
-
-## Brand Direction
-
-The approved brand direction is:
-
-> Blue / trust
-
-Blue should be the main brand color family.
-
-Use blue to communicate:
-
-- Trust
-- Stability
-- Professionalism
-- System identity
-- Primary actions
-
-Blue should not be overused. It should guide the interface, not dominate every surface.
-
----
-
-# Design Principles
-
-## Business First
-
-Every UI decision should support the daily work of vehicle rental businesses.
-
-The interface must help users:
-
-- Find vehicles quickly
-- Understand vehicle status
-- Create and manage rentals
-- Track payments and balances
-- Monitor maintenance
-- Review business performance
-- Act on urgent operational issues
-
-Do not add visual elements that do not support business use.
-
----
-
-## Simplicity
-
-Prefer simple, maintainable design patterns.
-
-Avoid unnecessary:
-
-- Visual effects
-- Complex animations
-- Decorative gradients
-- Over-designed cards
-- Unclear abstractions
-- One-off layouts
-
-Complexity is acceptable only when it improves usability.
-
----
-
-## Consistency
-
-The product should look like one system.
-
-Similar screens should use similar:
-
-- Page structure
-- Spacing
-- Typography
-- Buttons
-- Tables
-- Cards
-- Forms
-- Status badges
-- Empty states
-- Loading states
-- Error states
-
-Avoid one-off styling unless there is a clear product reason.
-
----
-
-## Density With Clarity
-
-This product is an operational SaaS. Some screens should be dense.
-
-Density is acceptable for:
-
-- Dashboards
-- Tables
-- Reports
-- Analytics
-- Detail pages
-- Operational lists
-
-Density is not acceptable when it causes:
-
-- Poor readability
-- Weak hierarchy
-- Visual noise
-- Crowded actions
-- Confusing status display
-
-The goal is not “more content everywhere.”  
-The goal is “more useful information where it helps business decisions.”
-
----
-
-## Responsive By Design
-
-The interface should adapt to device size.
-
-It should not simply stretch or shrink.
-
-The UI must work well on:
-
-- Mobile
-- Tablet
-- Laptop
-- Desktop
-- Wide desktop
-
-Desktop should use available space properly.
-
-Mobile should remain fast and focused.
-
-Tablet should not feel accidental.
-
----
-
-## Arabic First, LTR Ready
-
-The current product interface is Arabic RTL.
-
-The design system must support Arabic well now while avoiding decisions that block English/LTR support later.
+| Role | Current semantic token family | Usage |
+|---|---|---|
+| App background and text | `background`, `foreground` | Page canvas and primary text |
+| Surfaces | `card`, `popover`, `muted` | Sections, overlays, subdued areas |
+| Structure | `border`, `input` | Dividers, fields, table structure |
+| Brand/action | `primary`, `secondary`, `accent`, `ring` | Primary actions, selected state, focus |
+| Destructive | `destructive` | Delete, irreversible or blocking actions |
+| Navigation | `sidebar` family | Desktop/sidebar navigation |
+| Status | `status-positive`, `status-info`, `status-warning`, `status-danger`, `status-neutral` | Business state and contextual feedback |
 
 Rules:
 
-- Use RTL-safe spacing and alignment.
-- Prefer start/end thinking over left/right thinking.
-- Avoid hardcoded directional assumptions.
-- Keep icon placement direction-aware.
-- Keep Arabic labels short enough for UI constraints.
-- Avoid layouts that only work in one direction.
+- Blue identifies primary action, selected navigation, important links, and focused work. It must not decorate every icon, heading, or card.
+- Neutrals provide most surfaces, structure, muted text, disabled treatment, and table rhythm.
+- Use existing semantic tokens; compatibility aliases are transitional and new UI should use the semantic status family.
+- Never encode critical meaning through color alone.
 
----
+### 5.2 Typography
 
-# Layout System
+- Use the existing Arabic-capable `--app-font-sans` stack. Any font change needs a clear Arabic readability reason.
+- Use the existing semantic hierarchy: page title, section title, label, secondary text, KPI value, table text, button text, and badge text.
+- Page titles are compact product headings, not marketing headings. Section titles distinguish work groups; helper text explains state or constraints.
+- Use medium or semibold weight for hierarchy. Keep body, table, and helper text readable at compact operational density.
+- Render amounts, dates, identifiers, plate numbers, phone numbers, and KPI values with the existing LTR numeric treatment where needed inside RTL content.
 
-## App Shell
+### 5.3 Spacing
 
-The app shell should provide a stable structure across the product.
+Use the existing four-pixel base scale and keep spacing intentional.
 
-Desktop layout:
+| Context | Rule |
+|---|---|
+| Page gutters | One shell/container owner; avoid duplicate page and child padding |
+| Page sections | Use a consistent vertical rhythm; compact on mobile, roomier on desktop |
+| Cards and panels | Shared padding for equivalent card types; no empty oversized surfaces |
+| Forms | Stable field and section gaps; related fields are grouped |
+| Tables and lists | Row height supports scanning and touch use without waste |
+| Actions | Group related actions; separate destructive actions from routine actions |
 
-- Full sidebar
-- Main content area
-- Optional topbar/header
-- Responsive content container
+Do not add arbitrary one-off padding, margins, or widths when an existing token or layout primitive fits.
 
-Mobile layout:
+### 5.4 Radius, Borders, and Shadows
 
-- Compact navigation
-- Stacked content
-- Clear primary actions
-- No desktop-only dependency
+- Use the existing small, medium, large, and extra-large radius scale. Controls use smaller radii than cards and panels.
+- Borders provide most separation. Shadows are subtle and reserved for raised surfaces, menus, dialogs, and contextual emphasis.
+- Avoid a border, shadow, and white card around every content fragment.
+- Avoid arbitrary z-index values; use established layer conventions for shell, popover, dialog, and toast behavior.
 
-Tablet layout:
+### 5.5 Status Semantics
 
-- Adaptive navigation
-- Balanced content width
-- Two-column layouts where useful
+Every status display uses a short text label plus semantic color and, when useful, an icon.
 
----
+| Meaning | Semantic treatment | Typical use |
+|---|---|---|
+| Positive / available / completed | Positive | Available vehicle, paid/complete state |
+| Active / informational | Info | Active rental, selected or informational state |
+| Scheduled / needs attention | Warning | Maintenance, due soon, pending balance |
+| Overdue / blocking / destructive | Danger | Overdue return, failed action, destructive confirmation |
+| Archived / cancelled / unavailable | Neutral | Archived vehicle, cancelled or inactive state |
 
-## Sidebar
+- Map persisted statuses through the domain label source; do not create new statuses solely for presentation.
+- Derived states such as overdue or due today may supplement, not replace, the persisted state.
+- Keep the same label and treatment for the same meaning across dashboard, lists, details, and forms.
 
-Desktop uses a full sidebar.
+## 6. Responsive Layout System
 
-Sidebar should include primary modules:
+The locked review widths are 375px, 768px, 1024px, 1440px, and 1920px. Test real Arabic strings and real data states at each width.
 
-- لوحة التحكم
-- المركبات
-- العملاء
-- الإيجارات
-- الصيانة
-- المصاريف
-- المدفوعات
-- المهام
-- التحليلات
-- التقارير
-- الإعدادات
+| Width | Layout rule |
+|---|---|
+| 375px | Single column, compact controls, bottom navigation, visible primary action, no unintended horizontal overflow |
+| 768px | Adaptive navigation/rail, balanced gutters, selective two-column sections, preserved touch targets |
+| 1024px | Desktop shell transition, stable sidebar/content balance, useful two-column details and forms |
+| 1440px | Bounded, information-dense dashboard and tables with intentional columns |
+| 1920px | Controlled max widths and grids; use space for useful data, not stretched rows or empty canvas |
 
-Rules:
+- Content widths vary by page type: forms are constrained, list/report pages can be wide, and dashboards/details use deliberate grids.
+- Tables must become mobile cards, prioritized fields, or justified horizontal scroll. Never shrink columns until text is unreadable.
+- Full-screen task flows may omit persistent mobile navigation only when they need focused completion and provide a clear back/cancel route.
 
-- Active route must be clearly visible.
-- Icons and labels must align consistently.
-- Sidebar width should be stable.
-- Sidebar should not visually overpower the content.
-- Navigation order should match business workflow priority.
+## 7. App Shell and Navigation
 
----
+Define one responsive shell contract. The current shell already provides a skip link, desktop sidebar, tablet rail, mobile bottom navigation, and a scrollable main content region; rebuild work must preserve those responsibilities.
 
-## Page Structure
+### Desktop and Tablet
 
-Standard page structure:
+- Desktop uses a full sidebar grouped by business workflow: rental management, daily operations, and business follow-up.
+- Tablet uses the approved adaptive rail or equivalent compact navigation without duplicating conflicting active, focus, or spacing behavior.
+- Keep active routes obvious and navigation labels stable. Route order follows daily workflow priority.
+- Include an account/company area for owner-facing profile, organization settings, employee invitations, and session actions.
 
-1. Page header
-2. Primary actions
-3. Filters/search if applicable
-4. Main content
-5. Secondary sections
-6. Empty/loading/error states where needed
+### Mobile
 
-Page header may include:
+- Keep a small set of frequent destinations immediately available: dashboard, rentals, vehicles, and customers.
+- A clear More navigation exposes maintenance, expenses, tasks, analytics, reports, and account/company destinations. It must preserve route context and be keyboard accessible.
+- Do not hide a primary workflow behind an unlabeled icon or require desktop navigation for routine work.
 
-- Title
-- Description
-- Breadcrumb/back action
-- Primary action
-- Secondary actions
+### Boundary Rules
 
----
+- Payments remain rental-contextual unless a product-approved organization-wide payments route exists.
+- Platform-only controls do not appear in standard tenant navigation.
+- Suspended or cancelled organizations retain the account-status path while business actions are visibly unavailable according to authorization behavior.
 
-## Content Width
+## 8. Page Archetypes
 
-Desktop content should not stretch endlessly.
+All pages use the sequence that fits their workflow: page header, primary action, search/filter controls when relevant, main content, secondary/related content, then state feedback.
 
-Use controlled content widths:
+### 8.1 Dashboard
 
-- Dashboard: wide layout allowed
-- Tables: wide layout allowed
-- Forms: constrained width
-- Detail pages: multi-column structure
-- Reports/analytics: wide but organized
+- The first viewport prioritizes revenue-loss and operational-risk information: overdue returns, returns due today, outstanding balances, fleet availability, urgent maintenance, overdue tasks, and urgent document expiry.
+- Follow with active rentals, financial summary, fleet status, maintenance/tasks, recent activity, and shortcuts to deeper analysis.
+- Financial periods must be explicit. Never present a fixed or mock period as current business data.
+- Separate `loading`, `unavailable`, `zero`, and `error` states. A zero value is valid data; unavailable data is not.
+- Charts are optional and must answer a defined business question. Lists or tables are preferred for actionable recent activity.
 
-Avoid:
+### 8.2 List Pages
 
-- Narrow mobile-style column on desktop
-- Edge-to-edge content on wide desktop
-- Overly wide paragraphs
-- Giant cards with little content
+- Support search, filters, sort, and pagination or a clear equivalent appropriate to the available API/data behavior.
+- Persist or make recoverable the user’s list context when navigating to detail and back.
+- Desktop may use dense tables or structured lists. Mobile uses cards or prioritized fields.
+- Keep row actions predictable: primary navigation opens detail; secondary/destructive actions are grouped and confirmed when necessary.
+- State the search scope where it is not obvious, particularly for customer, vehicle, and rental lookup.
 
----
+### 8.3 Detail Pages
 
-# Responsive Targets
+Lead with:
 
-Every rebuilt screen should be reviewed at:
+1. Entity identity and persisted status.
+2. The next valid action.
+3. Financial or operational summary.
+4. Related records and secondary metadata.
 
-- 375px
-- 768px
-- 1024px
-- 1440px
-- 1920px
+- Vehicle detail prioritizes availability, current rental, maintenance, mileage, documents, and photos.
+- Customer detail prioritizes active rental, outstanding balance, license validity, documents, and rental history.
+- Rental detail keeps total, deposit, paid amount, outstanding balance, contract state, and status-dependent actions visible. Contract generation and signature status are distinct.
+- Maintenance, task, and expense detail retains status, due/completion information, vehicle association, financial value, and notes before secondary metadata.
 
-## 375px — Mobile
+### 8.4 Forms and Create/Edit Flows
 
-Expected behavior:
+- Use a shared label, input, hint, validation, submit, and cancel pattern.
+- Associate every label, hint, and error with its control. Invalid controls expose `aria-invalid` and error/help relationships.
+- Group related fields. Use one column on mobile and a purposeful two-column layout on wider screens.
+- Keep the primary submit action stable and obvious. Disable duplicate submissions and show submitting state.
+- Use full pages or sheets for complex workflows; avoid modals for large, multi-section forms.
+- Confirmation is required for destructive, status-changing, or financially significant actions. The confirmation states the consequence and action target.
+- For supported Version 2 flows, reuse this pattern for registration, password reset, invitation acceptance, organization profile, document-expiry editing, recurring task settings, and maintenance schedule management.
 
-- Single-column layout
-- Compact navigation
-- Clear primary action
-- Stacked sections
-- No horizontal overflow
-- Tables adapt into cards or scroll only when justified
+### 8.5 Reports and Analytics
 
-## 768px — Tablet
+- Make the reporting period, source scope, and included records clear.
+- Distinguish printable rental contracts from business reports.
+- Support loading, empty, export/print failure, and retry states.
+- Charts require a readable textual or tabular summary and a compact mobile alternative.
 
-Expected behavior:
+### 8.6 Account and Auth Flows
 
-- Balanced layout
-- Optional two-column sections
-- Navigation adapts cleanly
-- Tables remain readable
-- Forms use available width without becoming crowded
+- Public flows include login, registration, password-reset request/confirmation, and invitation acceptance when implemented against existing contracts.
+- Auth screens are focused, low-distraction forms with clear validation, loading, recovery, and redirect behavior.
+- Owner account/company screens expose organization profile and employee invitation workflows without exposing platform controls.
+- Suspended/cancelled state is an account-level explanation with permitted recovery/support actions; it is not a generic application error.
 
-## 1024px — Small Laptop
+## 9. Core Components
 
-Expected behavior:
+### 9.1 Buttons and Actions
 
-- Desktop shell begins to feel useful
-- Sidebar/content balance works
-- Dashboard starts using multi-column layout
-- Detail pages avoid mobile-stretched appearance
+- Use primary, secondary/outline, ghost, destructive, disabled, and loading treatments already supported by the component foundation.
+- One primary action per visual area unless a workflow clearly requires more. Destructive actions are visually distinct.
+- Buttons expose hover, pressed, focus-visible, disabled, and loading states. Icon-only buttons have an accessible name and adequate target size.
+- Use concise Arabic action labels such as `حفظ`, `إلغاء`, `تعديل`, `حذف`, `إضافة`, `بحث`, `تصفية`, `طباعة`, and `تصدير`.
 
-## 1440px — Desktop
+### 9.2 Cards
 
-Expected behavior:
+- Use cards for KPI metrics, dashboard blocks, entity summaries, alerts, and related-record groups.
+- Equivalent cards share padding, title treatment, density, and action placement.
+- Cards should clarify grouping, not wrap every text fragment or create nested visual boxes.
 
-- Full desktop layout
-- Dense dashboard works well
-- Tables and reports use width effectively
-- Forms and detail pages are structured into useful sections
+### 9.3 Tables and Mobile Cards
 
-## 1920px — Wide Desktop
+- Tables are suitable for rentals, customers, expenses, maintenance history, tasks, reports, and other comparable records.
+- Align numeric values consistently and preserve LTR formatting for numbers in RTL contexts.
+- Provide table-shaped loading states, useful empty states, and explicit action affordances.
+- On mobile, retain the most decision-relevant fields and move secondary information into detail rather than compressing every column.
 
-Expected behavior:
+### 9.4 Forms
 
-- Content remains controlled
-- No excessive stretching
-- Dashboard/grid layout remains intentional
-- Large empty areas are avoided or used purposefully
+- Inputs use the established control height, border, focus, disabled, placeholder, and error treatment.
+- Hints explain constraints before failure; inline errors explain how to recover.
+- Required markers supplement labels and validation; they do not replace clear field instructions.
+- Date, time, amount, phone, plate, and identifier fields preserve readable direction and input behavior in RTL layouts.
 
----
+### 9.5 Status Badges
 
-# Color System
+- Status badges are compact labels, not decorative pills.
+- Use them for vehicle, rental, maintenance, task, payment/balance, document expiry, and organization lifecycle states.
+- Do not overload a row with badges; choose persisted status first, then the most urgent derived state when it changes the required action.
 
-## Direction
+### 9.6 Dialogs and Sheets
 
-Use a blue/trust primary color system with neutral supporting surfaces.
+- Dialogs are for confirmation, short focused tasks, and contextual decisions.
+- Sheets can host focused create/edit content or related context when a full route would interrupt a list workflow.
+- On open, move focus into the component; trap focus as appropriate; support Escape; return focus to the trigger; and prevent interaction with background content.
+- Provide a labeled close action. Do not rely on backdrop click as the only way to dismiss a dialog or sheet.
 
-Recommended color roles:
+### 9.7 Feedback States
 
-- Primary
-- Primary foreground
-- Background
-- Surface/card
-- Muted surface
-- Border
-- Text
-- Muted text
-- Success
-- Warning
-- Danger
-- Info
+| State | Required treatment |
+|---|---|
+| Loading | Layout-shaped skeleton or localized progress; retain shell/navigation and avoid layout shifts |
+| Empty | Explain what is absent and offer the relevant next action when permitted |
+| Zero | Present as valid, complete data; do not use an error or placeholder |
+| Unavailable | Explain that the value cannot currently be determined without implying zero |
+| Error | Calm Arabic message, recovery action where possible, no raw technical payload |
+| Permission denied | Explain access limitation and provide an allowed next step if one exists |
+| Submitting | Prevent duplicate action, retain context, and communicate progress |
 
-Exact values should be implemented as design tokens.
+## 10. Arabic RTL Guidelines
 
----
+- Set document and component direction intentionally; use `start`/`end`, logical padding/margin, and direction-aware icon placement rather than physical `left`/`right` utilities.
+- Test the actual Arabic labels and realistic names, addresses, notes, and status text at every responsive target.
+- Keep product copy concise, professional, direct, and calm. Avoid slogans, casual slang, machine translation, and unnecessary exclamation marks.
+- Use `dir="auto"` or equivalent for mixed-direction values when appropriate. Numbers, dates, plates, phone numbers, money, and identifiers must remain legible.
+- Directional icons represent the intended reading/action direction. Do not mirror non-directional semantic icons.
 
-## Usage Rules
+## 11. Accessibility Requirements
 
-### Primary Blue
+- Use semantic HTML and native controls before ARIA additions.
+- Maintain visible focus states and logical keyboard order. Provide a skip link to main content.
+- Meet readable contrast for text, controls, focus indicators, and semantic status colors.
+- Every control has an accessible name. Icon-only controls require explicit labels.
+- Form controls link labels, instructions, and validation errors programmatically.
+- Status text, not color alone, communicates state. Do not use color-only charts or alerts.
+- Dialogs, sheets, menus, and mobile More navigation must meet focus, Escape, dismissal, and return-focus rules.
+- Touch targets remain usable on mobile. Respect reduced-motion preferences.
+- Critical rental, return, payment, maintenance, and auth flows require keyboard-only and screen-reader verification.
 
-Use for:
+## 12. Data and API State Rules
 
-- Primary actions
-- Active navigation
-- Important links
-- Key highlights
-- Selected states
+- A screen presents one authoritative data source for each user-visible entity or metric. Do not mix local/mock and API-backed records in a way that can produce conflicting names, counts, statuses, or financial values.
+- Preserve API contract meanings. The UI can format and group data but must not infer unsupported permissions, lifecycle transitions, financial calculations, or automation.
+- Loading, unavailable, zero, stale/refreshing, and error values are distinct visual states. Financial values must never silently fall back to zero on an error.
+- Filter, sort, pagination, search, and route state should be reflected clearly enough for users to understand the current result set.
+- API errors are mapped to concise Arabic recovery messages. Technical diagnostics remain in developer tooling, not user-facing screens.
+- Mutation feedback confirms the result and refreshes or reconciles the visible source of truth before showing a completed state.
 
-Do not use primary blue for every icon, card, and heading.
+## 13. Motion and Interaction
 
----
+- Motion is brief, functional, and optional: hover/pressed feedback, small state transitions, skeleton loading, and menu/sheet/dialog transitions.
+- Avoid animated backgrounds, cursor effects, 3D effects, large entrance animations, and motion that delays operational work.
+- Use hover only as enhancement; active, focus, labels, and persistent state must work on touch and keyboard.
+- Respect reduced-motion preferences and never make essential information dependent on animation.
 
-### Neutrals
+## 14. Platform Admin Boundary
 
-Use neutrals for:
+- Tenant-facing screens serve organization owners and employees. Platform-only lifecycle controls and audit information must not appear in normal tenant navigation or settings.
+- The tenant rebuild may reserve a clean `PLATFORM_OWNER` entry point if authorization requires it, but a simple Platform Admin Dashboard belongs to Milestone 6.
+- A limited audit-log view may be planned separately for platform-owner scope. It is not part of the tenant-facing design-system implementation.
+- Do not use this boundary to add billing, support, impersonation, or other unapproved administrative products.
 
-- Backgrounds
-- Cards
-- Borders
-- Muted text
-- Table rows
-- Disabled states
+## 15. Implementation Rules
 
-Neutral colors should feel consistent.
+- Preserve the existing React, Wouter, Tailwind, shadcn-style primitive, and generated API-client foundations unless an approved change requires otherwise.
+- Reuse existing `AppShell`, navigation, `PageContainer`, `PageHeader`, `SectionCard`, `StatusBadge`, form, and feedback primitives before creating replacements.
+- Create a product-level component only when a repeated domain pattern needs a stable API. Avoid one-off wrappers and duplicate variants.
+- New UI must use semantic tokens, logical RTL-safe utilities, existing formatting helpers, and generated API hooks/contracts where applicable.
+- Do not begin screen-specific rebuild work until the relevant shared layout/component pattern is approved.
+- Preserve existing test, typecheck, lint, and build expectations. Add tests with implementation work, not in this documentation-only step.
 
-Avoid mixing warm and cool gray families randomly.
+## 16. Verification Checklist
 
----
+Before accepting a rebuilt screen, verify:
 
-### Status Colors
-
-Status colors should communicate business meaning.
-
-Suggested direction:
-
-| Meaning               | Color direction                        |
-| --------------------- | -------------------------------------- |
-| Available / success   | Green                                  |
-| Active / primary      | Blue                                   |
-| Reserved / scheduled  | Blue or indigo                         |
-| Maintenance / warning | Amber                                  |
-| Overdue / danger      | Red                                    |
-| Cancelled / archived  | Muted gray                             |
-| Completed             | Green or neutral, depending on context |
-
-Rules:
-
-- Same status should use the same color everywhere.
-- Do not use status colors as decoration.
-- Do not rely only on color; labels must remain clear.
-
----
-
-# Typography
-
-## Font Direction
-
-The UI must use a font that works well for Arabic business software.
-
-Recommended Arabic-first options:
-
-- Cairo
-- IBM Plex Sans Arabic
-- Noto Sans Arabic
-
-If the current font is working well, keep it unless there is a clear reason to change.
-
-Future English/LTR support should use a compatible Latin font pairing.
-
----
-
-## Typography Rules
-
-Use a clear hierarchy:
-
-- Page title
-- Section title
-- Card title
-- Body text
-- Label text
-- Table text
-- Muted helper text
-- Numeric/KPI text
-
-Rules:
-
-- Use medium and semibold weights for hierarchy.
-- Avoid relying only on bold and regular.
-- Use readable line height.
-- Keep labels concise.
-- Use tabular numbers for money, KPIs, and tables.
-- Avoid huge marketing-style headings inside the app.
-
----
-
-# Spacing System
-
-Spacing should be consistent across the product.
-
-Use a clear spacing scale for:
-
-- Page gutters
-- Section gaps
-- Card padding
-- Form gaps
-- Table row height
-- Button spacing
-- Sidebar spacing
-
-Rules:
-
-- Mobile spacing should be compact but readable.
-- Desktop spacing should breathe without wasting space.
-- Similar components should use similar spacing.
-- Avoid random one-off padding values.
-- Avoid cards that are too large for their content.
-
----
-
-# Radius and Surfaces
-
-## Border Radius
-
-Use radius levels:
-
-- Small radius for inner controls
-- Medium radius for buttons/inputs
-- Larger radius for cards/panels
-- Largest radius only for major containers if needed
-
-Avoid:
-
-- Same radius on every element
-- Random radius values
-- Overly rounded “toy app” appearance
-
----
-
-## Cards and Panels
-
-Cards should be used when they help group related content.
-
-Good uses:
-
-- KPI cards
-- Dashboard sections
-- Detail panels
-- Entity summaries
-- Alerts
-- Related records
-
-Avoid:
-
-- Wrapping every small text block in a card
-- Strong shadow on every card
-- Deep card nesting
-- Generic border + shadow + white card everywhere
-
-Use elevation carefully.
-
-A SaaS product can feel polished with subtle borders, background contrast, and controlled shadows.
-
----
-
-# Components
-
-## Buttons
-
-Button variants should include:
-
-- Primary
-- Secondary
-- Tertiary/ghost
-- Destructive
-- Disabled
-- Loading
-
-Rules:
-
-- Primary action should be visually obvious.
-- Destructive actions must be clearly distinct.
-- Do not use too many primary buttons on one screen.
-- Buttons need hover, active, focus, and disabled states.
-
----
-
-## Tables
-
-Tables are important for this product.
-
-Use tables for:
-
-- Rentals
-- Customers
-- Payments
-- Expenses
-- Maintenance history
-- Tasks
-- Reports
-
-Rules:
-
-- Numeric values should align consistently.
-- Row actions should be predictable.
-- Empty states should be designed.
-- Loading should use table-shaped skeletons.
-- Mobile behavior must be defined.
-- Do not compress too many columns on mobile.
-
----
-
-## Cards
-
-Use cards for:
-
-- Vehicle summaries
-- KPI metrics
-- Dashboard blocks
-- Alerts
-- Detail sections
-
-Rules:
-
-- Cards must have consistent padding.
-- Similar card groups should align.
-- KPI cards should use consistent numeric styling.
-- Cards should not become huge empty boxes on desktop.
-
----
-
-## Forms
-
-Forms should be clear and fast.
-
-Rules:
-
-- Group related fields.
-- Use consistent label placement.
-- Show inline validation.
-- Keep submit/cancel actions predictable.
-- Avoid modals for large forms.
-- Use full pages or side panels for complex workflows.
-- Use two-column layouts on desktop where useful.
-- Use single-column layouts on mobile.
-
----
-
-## Status Badges
-
-Status badges should be consistent.
-
-Use for:
-
-- Vehicle status
-- Rental status
-- Maintenance status
-- Task status
-- Payment/balance state
-- Derived overdue/upcoming states
-
-Rules:
-
-- Same status = same label + same visual treatment.
-- Badge labels should be short.
-- Badges should not overload the screen.
-- Do not invent new persisted statuses in the UI.
-
----
-
-## Empty States
-
-Empty states should be specific and useful.
-
-Each empty state should include:
-
-1. What is missing
-2. Why it matters or where it will appear
-3. Next action if applicable
-
-Avoid generic empty text.
-
-Example:
-
-```text
-لا توجد مركبات بعد.
-أضف أول مركبة لبدء إدارة الأسطول.
-```
-
----
-
-## Loading States
-
-Use skeleton loaders that match the layout.
-
-Avoid:
-
-- Full-page spinner as default
-- Blank screens
-- Layout jumps
-- Loading states that hide navigation
-
----
-
-## Error States
-
-Error states should be calm, direct, and actionable.
-
-Examples:
-
-```text
-تعذر تحميل البيانات. تحقق من الاتصال.
-```
-
-```text
-تعذر حفظ التغييرات. حاول مرة أخرى.
-```
-
-Avoid:
-
-- “Oops”
-- Exclamation marks
-- Technical error dumps
-- Generic “Something went wrong” without recovery
-
----
-
-# Dashboard Design
-
-The dashboard should be dense and metrics-rich.
-
-It should help the business owner understand the current state of the business quickly.
-
-## Recommended Sections
-
-1. KPI overview
-2. Operational alerts
-3. Fleet status
-4. Rental activity
-5. Financial summary
-6. Outstanding balances
-7. Upcoming/overdue returns
-8. Maintenance summary
-9. Tasks due soon
-10. Recent activity
-11. Analytics/report shortcuts
-
-## Dashboard Rules
-
-- Show urgent operational issues clearly.
-- Keep KPI cards consistent.
-- Use charts only when they answer a business question.
-- Use tables/lists for recent activity.
-- Avoid decorative dashboard blocks.
-- On mobile, prioritize urgent and daily-use information first.
-
----
-
-# Vehicle Rental Domain UI
-
-## Vehicle UI
-
-Vehicle screens should prioritize:
-
-- Plate number
-- Make/model/year
-- Current status
-- Availability
-- Current rental if any
-- Maintenance history
-- Expenses
-- Documents/photos
-- Mileage
-
-## Customer UI
-
-Customer screens should prioritize:
-
-- Name
-- Phone
-- National ID
-- License number
-- Current rental if any
-- Rental history
-- Documents
-
-## Rental UI
-
-Rental screens should prioritize:
-
-- Rental status
-- Customer
-- Vehicle
-- Pickup date
-- Expected return date
-- Actual return date if available
-- Total amount
-- Paid amount
-- Outstanding balance
-- Contract actions
-- Workflow actions
-
-Important actions:
-
-- Pick up
-- Return
-- Extend
-- Cancel
-- Record payment
-- Generate/print contract
-
-## Maintenance UI
-
-Maintenance screens should prioritize:
-
-- Vehicle
-- Type
-- Status
-- Due date
-- Completion date
-- Vendor
-- Cost
-- Replaced parts
-- Notes
-
-## Financial UI
-
-Financial screens should clearly distinguish:
-
-- Revenue
-- Payments
-- Outstanding balances
-- Expenses
-- Maintenance costs
-- Net profit
-
-Do not mix financial concepts in a way that hides business meaning.
-
----
-
-# Arabic UI Copy
-
-The UI should use clear, concise Arabic.
-
-## Tone
-
-Use Arabic that is:
-
-- Professional
-- Direct
-- Practical
-- Calm
-- Business-like
-
-Avoid:
-
-- Marketing slogans
-- Overly formal phrases
-- Casual slang
-- Machine-translation style
-- Exclamation marks
-- Long button labels
-
-## Standard Module Labels
-
-Use:
-
-- لوحة التحكم
-- المركبات
-- العملاء
-- الإيجارات
-- الصيانة
-- المصاريف
-- المدفوعات
-- المهام
-- التحليلات
-- التقارير
-- الإعدادات
-
-## Standard Actions
-
-Use:
-
-- حفظ
-- إلغاء
-- تعديل
-- حذف
-- أرشفة
-- إضافة
-- بحث
-- تصفية
-- طباعة
-- تصدير
-- تسجيل دفعة
-- إضافة مركبة
-- إضافة عميل
-- إنشاء إيجار
-- إرجاع المركبة
-- تمديد الإيجار
-- إكمال الصيانة
-
----
-
-# Accessibility
-
-The UI must remain accessible.
-
-Requirements:
-
-- Visible focus states
-- Keyboard navigation
-- Clear labels
-- Readable contrast
-- Semantic HTML
-- Touch-friendly controls
-- Proper form errors
-- Reduced-motion support
-- No color-only status communication
-
-Accessibility is required, not optional.
-
----
-
-# Motion
-
-Motion should be minimal and useful.
-
-Allowed:
-
-- Subtle hover transitions
-- Active/pressed feedback
-- Loading skeletons
-- Small transitions between states
-- Reduced-motion-safe animations
-
-Avoid:
-
-- Heavy animated backgrounds
-- Cursor effects
-- 3D effects
-- Flashy landing-page motion
-- Decorative animations that slow workflow
-
-Motion should make the product feel responsive, not distracting.
-
----
-
-# Iconography
-
-Icons should support recognition.
-
-Rules:
-
-- Use a consistent icon set.
-- Use consistent icon size.
-- Use consistent stroke width.
-- Do not rely on icons without labels in primary navigation unless space requires it.
-- Keep directional icons RTL-safe.
-- Avoid cliché or decorative icons where text is clearer.
-
----
-
-# Implementation Rules
-
-## Use Existing Stack
-
-The UI rebuild must work with the existing frontend stack.
-
-Do not migrate frameworks or styling systems unless explicitly approved.
-
-## Reuse Before Creating
-
-Before creating a new component:
-
-1. Check if a reusable component already exists.
-2. Check if a shadcn component exists.
-3. Check if a product-level wrapper should be created.
-4. Only create a new one-off component when justified.
-
-## Product Components
-
-Prefer product-level components such as:
-
-- AppShell
-- Sidebar
-- PageHeader
-- PageContainer
-- SectionCard
-- KpiCard
-- DataTable
-- StatusBadge
-- EmptyState
-- LoadingState
-- ErrorState
-- FormSection
-- DetailPanel
-- ActionBar
-- FilterBar
-
-## Avoid Visual Drift
-
-Do not introduce:
-
-- One-off colors
-- One-off spacing
-- One-off card styles
-- One-off button styles
-- One-off status colors
-- Arbitrary z-index values
-- Duplicate components
-- New variants without repeated need
-
----
-
-# Verification Checklist
-
-Every rebuilt screen should be reviewed against this checklist.
-
-## Product Fit
-
-- Does it feel like a real SaaS product?
-- Does it fit vehicle rental business operations?
-- Does it avoid generic AI dashboard style?
-- Does it avoid landing-page patterns?
-
-## Layout
-
-- Does desktop use space properly?
-- Does mobile remain efficient?
-- Does tablet layout work naturally?
-- Is spacing consistent?
-- Is the content width controlled?
-
-## Components
-
-- Are buttons consistent?
-- Are cards consistent?
-- Are tables readable?
-- Are forms clear?
-- Are badges consistent?
-- Are empty/loading/error states present?
-
-## Responsiveness
-
-Check at:
-
-- 375px
-- 768px
-- 1024px
-- 1440px
-- 1920px
-
-Verify:
-
-- No horizontal overflow
-- No cramped content
-- No stretched mobile layouts
-- Primary actions remain visible
-- Navigation works correctly
-
-## Arabic RTL
-
-- Is alignment correct?
-- Are labels natural?
-- Are actions clear?
-- Are icons direction-safe?
-- Does text fit the available space?
-
-## Accessibility
-
-- Is keyboard navigation usable?
-- Are focus states visible?
-- Is contrast readable?
-- Are form errors clear?
-- Are controls properly labeled?
-
----
-
-# Definition of Done
-
-The UI design system is successful when:
-
-- Screens share a consistent visual language.
-- Components are reusable and predictable.
-- Desktop, tablet, and mobile layouts are intentionally designed.
-- Arabic RTL is clean and professional.
-- Future English/LTR support is not blocked.
-- The UI feels like a sellable SaaS product.
-- The design supports business workflows instead of decoration.
-- Codex can use this document as the source of truth for UI rebuild implementation and review.
-
----
-
-# Guiding Principle
-
-Every UI decision should answer one question:
-
-> Does this make the vehicle rental business easier to understand, manage, and operate while keeping the product professional, consistent, and production-ready?
+- It preserves approved business behavior and has one clear source of visible data.
+- The primary action, current status, and next useful action are immediately understandable.
+- Page, list, detail, form, and feedback patterns follow this document rather than introducing one-off styling.
+- Financial period, data scope, loading, unavailable, zero, and error states are truthful and visually distinct.
+- Arabic RTL alignment, mixed-direction values, labels, and directional icons work with real content.
+- Desktop, tablet, and mobile behavior pass at 375px, 768px, 1024px, 1440px, and 1920px with no unintended overflow, cramped controls, or stretched content.
+- Keyboard navigation, focus order, form error associations, dialogs/sheets, status labels, contrast, and reduced-motion behavior pass review.
+- No platform-only controls or deferred features have leaked into tenant workflows.
+- Relevant typecheck, lint, tests, production build, and manual visual review pass for the implementation phase.
