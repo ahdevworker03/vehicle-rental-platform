@@ -5,6 +5,7 @@ import type { MaintenanceResponse } from "@workspace/api-client-react";
 import { useListVehicles } from "@workspace/api-client-react";
 
 import { MaintenanceDataList, MaintenanceDataListSkeleton } from "@/features/maintenance/components/MaintenanceDataList";
+import { MaintenanceScheduleManager } from "@/features/maintenance/components/MaintenanceScheduleManager";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -99,7 +100,7 @@ export default function MaintenancePage() {
         )}
 
         <SectionCard title="جداول الصيانة" description="قواعد مواعيد الخدمة المستقبلية. لا تنشئ سجلات صيانة تلقائياً." className="shadow-none">
-          {schedulesQuery.isLoading ? <MaintenanceDataListSkeleton /> : schedulesQuery.isError ? <ErrorState title="تعذر تحميل جداول الصيانة" description={getApiErrorMessage(schedulesQuery.error).title} onRetry={() => void schedulesQuery.refetch()} /> : (schedulesQuery.data?.data ?? []).length === 0 ? <p className="text-sm text-muted-foreground">لا توجد جداول صيانة مضافة.</p> : <div className="divide-y divide-border">{(schedulesQuery.data?.data ?? []).map((schedule) => { const vehicle = vehiclesById.get(schedule.vehicleId); const basis = schedule.scheduleType === "DATE" ? `كل ${schedule.dateIntervalDays ?? "—"} يوم` : schedule.scheduleType === "MILEAGE" ? `كل ${schedule.mileageInterval ?? "—"} كم` : `تاريخ أو ${schedule.mileageInterval ?? "—"} كم`; return <div key={schedule.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div className="min-w-0"><div className="text-sm font-semibold text-foreground">{MAINTENANCE_TYPES[schedule.maintenanceType].label}</div><div dir="ltr" className="mt-1 text-xs text-muted-foreground">{vehicle ? `${vehicle.make} ${vehicle.model} · ${vehicle.plateNumber}` : "مركبة غير متاحة"}</div></div><div className="text-end text-xs text-muted-foreground"><div>{basis}</div><div className="mt-1">{schedule.isActive ? "مفعّل" : "متوقف"}</div></div></div>; })}</div>}
+          {schedulesQuery.isLoading ? <MaintenanceDataListSkeleton /> : schedulesQuery.isError ? <ErrorState title="تعذر تحميل جداول الصيانة" description={getApiErrorMessage(schedulesQuery.error).title} onRetry={() => void schedulesQuery.refetch()} /> : <MaintenanceScheduleManager schedules={schedulesQuery.data?.data ?? []} vehicles={vehiclesQuery.data?.data ?? []} isOwner={isOwner} />}
         </SectionCard>
       </div>
     </div>

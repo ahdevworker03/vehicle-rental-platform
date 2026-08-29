@@ -93,7 +93,7 @@ export default function ExpensesPage() {
                 const next = value as FilterValue;
                 setSearchParams(next === "all" ? {} : { filter: next }, { replace: true });
               }}
-              className="-mb-1 [&_button]:px-3 [&_button]:text-xs"
+              className="-mb-1 flex-wrap overflow-visible sm:flex-nowrap sm:overflow-x-auto [&_button]:px-3 [&_button]:text-xs"
             />
           </div>
         </SectionCard>

@@ -5,11 +5,15 @@ import {
   useGetMaintenance,
   useListVehicleMaintenance,
   useListMaintenanceSchedules,
+  useCreateMaintenanceSchedule,
+  useUpdateMaintenanceSchedule,
+  useDeleteMaintenanceSchedule,
   useCreateMaintenance,
   useCompleteMaintenance,
   useDeleteMaintenance,
   getListMaintenanceQueryKey,
   getGetMaintenanceQueryKey,
+  getListMaintenanceSchedulesQueryKey,
 } from "@workspace/api-client-react";
 
 export function useMaintenance() {
@@ -29,6 +33,16 @@ export function useMaintenanceForVehicle(vehicleId: string) {
 
 export function useMaintenanceSchedules() {
   return useListMaintenanceSchedules();
+}
+
+export function useMaintenanceScheduleMutations() {
+  const queryClient = useQueryClient();
+  const invalidate = () => void queryClient.invalidateQueries({ queryKey: getListMaintenanceSchedulesQueryKey() });
+  return {
+    create: useCreateMaintenanceSchedule({ mutation: { onSuccess: invalidate } }),
+    update: useUpdateMaintenanceSchedule({ mutation: { onSuccess: invalidate } }),
+    remove: useDeleteMaintenanceSchedule({ mutation: { onSuccess: invalidate } }),
+  };
 }
 
 export function useMaintenanceMutations() {
