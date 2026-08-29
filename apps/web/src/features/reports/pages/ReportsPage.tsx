@@ -16,7 +16,7 @@ import {
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PeriodSelector, periodLabel } from "@/features/reports/components/PeriodSelector";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { ErrorState, LoadingState } from "@/components/ui/FeedbackState";
+import { ErrorState, InfoBanner, LoadingState } from "@/components/ui/FeedbackState";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { Button } from "@/components/ui/button";
 import { getApiErrorMessage } from "@/lib/api-error";
@@ -78,12 +78,13 @@ function downloadCsv(filename: string, content: string): void {
   URL.revokeObjectURL(url);
 }
 
-function openPrintableWindow(html: string): void {
+function openPrintableWindow(html: string): boolean {
   const win = window.open("", "_blank");
-  if (!win) return;
+  if (!win) return false;
   win.document.open();
   win.document.write(html);
   win.document.close();
+  return true;
 }
 
 function ReportMetricCard({
@@ -200,6 +201,8 @@ export default function ReportsPage() {
   const [periodType, setPeriodType] = useState<ReportPeriodType>("month");
   const [month, setMonth] = useState(now.getMonth());
   const [year, setYear] = useState(now.getFullYear());
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const {
     payments,
     expenses,
@@ -230,12 +233,29 @@ export default function ReportsPage() {
   const hasNoActivity = isEmptySummary(summary);
 
   function handleExportCsv() {
-    const csv = buildSummaryCsv(summary, label);
-    downloadCsv(`report-${label.replace(/\s+/g, "-")}.csv`, csv);
+    setActionError(null);
+    try {
+      const csv = buildSummaryCsv(summary, label);
+      downloadCsv(`report-${label.replace(/\s+/g, "-")}.csv`, csv);
+      setActionFeedback(`تم تجهيز ملف CSV لتقرير ${label}.`);
+    } catch {
+      setActionFeedback(null);
+      setActionError(`تعذر تصدير تقرير ${label}. حاول مرة أخرى دون تغيير الفترة المحددة.`);
+    }
   }
 
   function handlePrint() {
-    openPrintableWindow(buildSummaryHtml(summary, label));
+    setActionError(null);
+    try {
+      if (!openPrintableWindow(buildSummaryHtml(summary, label))) {
+        setActionError(`تعذر فتح معاينة طباعة تقرير ${label}. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.`);
+        return;
+      }
+      setActionFeedback(`تم فتح معاينة طباعة تقرير ${label}.`);
+    } catch {
+      setActionFeedback(null);
+      setActionError(`تعذر فتح معاينة طباعة تقرير ${label}. حاول مرة أخرى دون تغيير الفترة المحددة.`);
+    }
   }
 
   const actions = (
@@ -278,6 +298,8 @@ export default function ReportsPage() {
             onYearChange={setYear}
           />
         </SectionCard>
+        {actionError && <ErrorState title="تعذر تنفيذ الإجراء" description={actionError} />}
+        {actionFeedback && !actionError && <InfoBanner>{actionFeedback}</InfoBanner>}
 
         {isLoading ? (
           <section

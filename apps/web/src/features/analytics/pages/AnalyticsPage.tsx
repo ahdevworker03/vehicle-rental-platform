@@ -71,10 +71,9 @@ import type {
   RentalResponse,
 } from "@workspace/api-client-react";
 
-const MOCK_MONTH = 0;
 const MOCK_YEAR = 2025;
-const PREV_MONTH = 11;
 const ANALYTICS_YEARS = [2026, 2025, 2024];
+const ANALYTICS_MONTHS = ["كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران", "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"];
 
 type AnalyticsVehicle = {
   id: string;
@@ -309,6 +308,15 @@ function PerformanceTrend({
         </span>
       </div>
       <p className="sr-only">اتجاه أداء الأعمال لسنة {year}</p>
+      <details className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
+        <summary className="cursor-pointer font-semibold text-foreground">عرض البيانات الشهرية كجدول</summary>
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full min-w-[34rem] text-right text-xs">
+            <thead className="border-b border-border text-muted-foreground"><tr><th className="pb-2 font-medium">الشهر</th><th className="pb-2 font-medium">الإيرادات</th><th className="pb-2 font-medium">المصروفات</th><th className="pb-2 font-medium">صافي الربح</th></tr></thead>
+            <tbody>{points.map((point) => <tr key={point.period} className="border-b border-border/60 last:border-0"><td className="py-2">{point.period}</td><td dir="ltr" className="py-2 tabular-nums">{formatCurrency(point.revenue)}</td><td dir="ltr" className="py-2 tabular-nums">{formatCurrency(point.expenses)}</td><td dir="ltr" className="py-2 tabular-nums">{formatCurrency(point.netProfit)}</td></tr>)}</tbody>
+          </table>
+        </div>
+      </details>
     </div>
   );
 }
@@ -329,21 +337,23 @@ function deriveAnalytics(
     { id: string; name: string; location: string }
   >,
   selectedYear: number,
+  selectedMonth: number,
 ) {
+  const previousPeriod = selectedMonth === 0 ? { month: 11, year: selectedYear - 1 } : { month: selectedMonth - 1, year: selectedYear };
   const thisMonthRevenue = getPaymentRevenueForPeriod(
     payments,
-    MOCK_MONTH,
+    selectedMonth,
     selectedYear,
   );
   const prevMonthRevenue = getPaymentRevenueForPeriod(
     payments,
-    PREV_MONTH,
-    selectedYear - 1,
+    previousPeriod.month,
+    previousPeriod.year,
   );
   const vehicleRevenueThisMonth = getPaymentRevenuePerVehicle(
     payments,
     apiRentals,
-    MOCK_MONTH,
+    selectedMonth,
     selectedYear,
   );
   const revenueChange =
@@ -396,7 +406,7 @@ function deriveAnalytics(
     .sort((a, b) => b.cost - a.cost);
   const expenseTotalForPeriod = getExpenseTotalForPeriod(
     expenses,
-    MOCK_MONTH,
+    selectedMonth,
     selectedYear,
   );
   const expensePerVehicleList = Object.entries(
@@ -453,6 +463,7 @@ function deriveAnalytics(
 export default function AnalyticsPage() {
   const [, navigate] = useLocation();
   const [selectedYear, setSelectedYear] = useState(MOCK_YEAR);
+  const [selectedMonth, setSelectedMonth] = useState(0);
   const vehicles = useVehicles();
   const rentals = useRentals();
   const customers = useCustomers();
@@ -497,6 +508,7 @@ export default function AnalyticsPage() {
     outstandingBalances,
     realCustomersById,
     selectedYear,
+    selectedMonth,
   );
   const financialLoading =
     paymentsQuery.isLoading ||
@@ -545,7 +557,7 @@ export default function AnalyticsPage() {
           </div>
           <label className="relative flex min-h-10 items-center gap-2 rounded-lg border border-border bg-card ps-3 pe-9 text-sm font-medium text-foreground shadow-xs focus-within:ring-2 focus-within:ring-ring/40">
             <CalendarDays className="size-4 text-primary" aria-hidden="true" />
-            <span>سنة التحليل</span>
+              <span>سنة التحليل</span>
             <select
               aria-label="سنة التحليل"
               value={selectedYear}
@@ -565,7 +577,15 @@ export default function AnalyticsPage() {
               ⌄
             </span>
           </label>
+          <label className="relative flex min-h-10 items-center gap-2 rounded-lg border border-border bg-card ps-3 pe-9 text-sm font-medium text-foreground shadow-xs focus-within:ring-2 focus-within:ring-ring/40">
+            <CalendarDays className="size-4 text-primary" aria-hidden="true" />
+            <span>شهر الملخص</span>
+            <select aria-label="شهر الملخص" value={selectedMonth} onChange={(event) => setSelectedMonth(Number(event.target.value))} className="appearance-none bg-transparent py-1 pe-1 outline-none">
+              {ANALYTICS_MONTHS.map((month, index) => <option key={month} value={index}>{month}</option>)}
+            </select>
+          </label>
         </div>
+        <InfoBanner>يعرض الملخص المالي شهر {ANALYTICS_MONTHS[selectedMonth]} {selectedYear}. تشمل رؤى المركبات بيانات السجلات المتاحة، وقد تختلف عن نطاق الشهر المحدد.</InfoBanner>
         {hasFinancialError && (
           <InfoBanner className="border-status-danger/25 bg-status-danger-bg text-status-danger">
             تعذر تحديث بعض البيانات المالية: {financialError}
@@ -577,7 +597,7 @@ export default function AnalyticsPage() {
         >
           <MetricCard
             label="إجمالي الإيرادات"
-            context={`كانون الثاني ${selectedYear}`}
+            context={`${ANALYTICS_MONTHS[selectedMonth]} ${selectedYear}`}
             value={analytics.thisMonthRevenue}
             icon={WalletCards}
             isLoading={financialLoading}
@@ -595,7 +615,7 @@ export default function AnalyticsPage() {
           />
           <MetricCard
             label="صافي الربح"
-            context={`كانون الثاني ${selectedYear}`}
+            context={`${ANALYTICS_MONTHS[selectedMonth]} ${selectedYear}`}
             value={analytics.netProfit}
             icon={TrendingUp}
             isLoading={financialLoading}
@@ -604,7 +624,7 @@ export default function AnalyticsPage() {
           />
           <MetricCard
             label="مصروفات الفترة"
-            context={`كانون الثاني ${selectedYear}`}
+            context={`${ANALYTICS_MONTHS[selectedMonth]} ${selectedYear}`}
             value={analytics.expenseTotalForPeriod}
             icon={TrendingDown}
             isLoading={expensesQuery.isLoading}

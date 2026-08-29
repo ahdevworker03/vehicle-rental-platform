@@ -99,6 +99,17 @@ describe("AnalyticsPage insights", () => {
     expect(screen.getByText("اتجاه أداء الأعمال 2024")).toBeInTheDocument();
   });
 
+  it("makes the financial summary month explicit and lets it change", () => {
+    render(<AnalyticsPage />);
+
+    expect(screen.getAllByText("كانون الثاني 2025").length).toBeGreaterThan(0);
+    fireEvent.change(screen.getByRole("combobox", { name: "شهر الملخص" }), {
+      target: { value: "2" },
+    });
+
+    expect(screen.getAllByText("آذار 2025").length).toBeGreaterThan(0);
+  });
+
   it("shows loading state instead of empty insight values", async () => {
     const { useMaintenance } = await import("@/features/maintenance/hooks");
     vi.mocked(useMaintenance).mockReturnValue({

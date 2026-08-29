@@ -128,6 +128,10 @@ export default function LoginPage() {
         >
           {submitting ? <Spinner /> : "دخول"}
         </button>
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <button type="button" className="text-primary" onClick={() => setLocation("/password-reset")}>نسيت كلمة المرور؟</button>
+          <button type="button" className="text-primary" onClick={() => setLocation("/register")}>إنشاء حساب الشركة</button>
+        </div>
       </div>
     </div>
   );

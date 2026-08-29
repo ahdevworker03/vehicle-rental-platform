@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { getCurrentUser, login as apiLogin, logout as apiLogout } from "@workspace/api-client-react";
+import { getCurrentUser, login as apiLogin, logout as apiLogout, refreshToken as apiRefreshToken } from "@workspace/api-client-react";
 import type { CurrentUserResponse } from "@workspace/api-client-react";
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "@/lib/auth-token";
 
@@ -45,9 +45,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null);
         }
       } catch {
-        if (cancelled) return;
-        clearTokens();
-        setUser(null);
+        const refreshToken = getRefreshToken();
+        if (!refreshToken) {
+          if (!cancelled) { clearTokens(); setUser(null); }
+          return;
+        }
+        try {
+          const refreshed = await apiRefreshToken({ refreshToken });
+          setTokens(refreshed.data.accessToken, refreshed.data.refreshToken);
+          const result = await getCurrentUser();
+          if (!cancelled) setUser(result?.data ?? null);
+        } catch {
+          if (!cancelled) { clearTokens(); setUser(null); }
+        }
       } finally {
         if (!cancelled) setIsLoading(false);
       }

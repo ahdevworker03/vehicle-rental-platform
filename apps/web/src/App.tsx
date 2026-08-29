@@ -8,7 +8,7 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 
-import { LoginPage } from '@/features/auth';
+import { AcceptInvitationPage, LoginPage, PasswordResetPage, RegisterPage } from '@/features/auth';
 import { DashboardPage } from '@/features/dashboard';
 import { AddVehiclePage, EditVehiclePage, VehicleDetailPage, VehiclesPage } from '@/features/vehicles';
 import { AddCustomerPage, CustomerDetailPage, CustomersPage, EditCustomerPage } from '@/features/customers';
@@ -69,7 +69,10 @@ function App() {
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
             <Switch>
               {/* Public routes */}
-              <Route path="/login" component={LoginPage} />
+               <Route path="/login" component={LoginPage} />
+               <Route path="/register" component={RegisterPage} />
+               <Route path="/password-reset" component={PasswordResetPage} />
+               <Route path="/accept-invitation" component={AcceptInvitationPage} />
 
               {/* Full-screen flows render outside AppShell (no bottom navigation) */}
               <Route path="/rentals/new">

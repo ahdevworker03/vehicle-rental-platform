@@ -128,6 +128,16 @@ describe("ReportsPage", () => {
     open.mockRestore();
   });
 
+  it("preserves the selected period when print preview is blocked", () => {
+    vi.spyOn(window, "open").mockReturnValue(null);
+    render(<ReportsPage />);
+    fireEvent.click(screen.getByRole("button", { name: /طباعة/ }));
+
+    expect(screen.getByText(/تعذر فتح معاينة طباعة تقرير/)).toBeInTheDocument();
+    expect(screen.getByText("تقرير الفترة المحددة")).toBeInTheDocument();
+    vi.mocked(window.open).mockRestore();
+  });
+
   it("exports the summary as a CSV download", () => {
     const createObjectURL = vi.fn(() => "blob:report");
     const revokeObjectURL = vi.fn();
@@ -142,6 +152,7 @@ describe("ReportsPage", () => {
     expect(createObjectURL).toHaveBeenCalledOnce();
     expect(click).toHaveBeenCalledOnce();
     expect(revokeObjectURL).toHaveBeenCalledWith("blob:report");
+    expect(screen.getByText(/تم تجهيز ملف CSV/)).toBeInTheDocument();
 
     click.mockRestore();
     vi.unstubAllGlobals();
