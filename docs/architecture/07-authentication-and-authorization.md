@@ -1,5 +1,41 @@
 # Authentication & Authorization
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [Authentication Goals](#authentication-goals) |
+| 3 | [Authentication Philosophy](#authentication-philosophy) |
+| 4 | [Supported Authentication Methods](#supported-authentication-methods) |
+| 5 | [Version 2](#version-2) |
+| 6 | [Future Enhancements](#future-enhancements) |
+| 7 | [Current Roles and User Creation](#current-roles-and-user-creation) |
+| 8 | [Manual QA Accounts](#manual-qa-accounts) |
+| 9 | [Authorization Model](#authorization-model) |
+| 10 | [Organization Isolation](#organization-isolation) |
+| 11 | [Organization Lifecycle Access Policy](#organization-lifecycle-access-policy) |
+| 12 | [Session Management](#session-management) |
+| 13 | [Token Strategy](#token-strategy) |
+| 14 | [Password Security](#password-security) |
+| 15 | [Password Recovery](#password-recovery) |
+| 16 | [Employee Invitations](#employee-invitations) |
+| 17 | [Login Flow](#login-flow) |
+| 18 | [Logout Flow](#logout-flow) |
+| 19 | [Authentication API](#authentication-api) |
+| 20 | [Registration](#registration) |
+| 21 | [Login](#login) |
+| 22 | [Refresh](#refresh) |
+| 23 | [Logout](#logout) |
+| 24 | [Password Reset](#password-reset) |
+| 25 | [Current User](#current-user) |
+| 26 | [Protected Resources](#protected-resources) |
+| 27 | [Offline Authentication](#offline-authentication) |
+| 28 | [Security Principles](#security-principles) |
+| 29 | [Future Expansion](#future-expansion) |
+| 30 | [Approved SaaS Role Model](#approved-saas-role-model) |
+| 31 | [Guiding Principle](#guiding-principle) |
+
 ## Purpose
 
 This document defines how users authenticate, how access is controlled, and how sessions are managed within the Vehicle Rental Management Platform.

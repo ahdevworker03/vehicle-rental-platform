@@ -1,5 +1,16 @@
 # Coding Standards
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Core Principles](#core-principles) |
+| 2 | [Code Organization](#code-organization) |
+| 3 | [Naming](#naming) |
+| 4 | [Error Handling](#error-handling) |
+| 5 | [Dependencies](#dependencies) |
+| 6 | [Maintainability](#maintainability) |
+
 These standards apply across the entire repository regardless of language or framework. Technology-specific guidance belongs in the corresponding skill.
 
 ## Core Principles

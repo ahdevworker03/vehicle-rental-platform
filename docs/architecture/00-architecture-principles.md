@@ -1,5 +1,28 @@
 # Architecture Principles
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [Core Philosophy](#core-philosophy) |
+| 3 | [Principle 1 — Business-Driven Design](#principle-1--business-driven-design) |
+| 4 | [Principle 2 — Simplicity First](#principle-2--simplicity-first) |
+| 5 | [Principle 3 — Modular Design](#principle-3--modular-design) |
+| 6 | [Principle 4 — Separation of Concerns](#principle-4--separation-of-concerns) |
+| 7 | [Principle 5 — Domain-Centered Development](#principle-5--domain-centered-development) |
+| 8 | [Principle 6 — API-First Communication](#principle-6--api-first-communication) |
+| 9 | [Principle 7 — Data Integrity](#principle-7--data-integrity) |
+| 10 | [Principle 8 — Security by Default](#principle-8--security-by-default) |
+| 11 | [Principle 9 — Offline-First Thinking](#principle-9--offline-first-thinking) |
+| 12 | [Principle 10 — Scalability Through Good Design](#principle-10--scalability-through-good-design) |
+| 13 | [Principle 11 — Documentation-Driven Development](#principle-11--documentation-driven-development) |
+| 14 | [Principle 12 — Testability](#principle-12--testability) |
+| 15 | [Principle 13 — Consistency](#principle-13--consistency) |
+| 16 | [Principle 14 — Continuous Improvement](#principle-14--continuous-improvement) |
+| 17 | [Architectural Decision Framework](#architectural-decision-framework) |
+| 18 | [Summary](#summary) |
+
 ## Purpose
 
 This document defines the architectural principles that guide the design and implementation of the Vehicle Rental Management Platform.

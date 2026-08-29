@@ -1,5 +1,36 @@
 # Backend Architecture
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [Architecture Goals](#architecture-goals) |
+| 3 | [Architectural Style](#architectural-style) |
+| 4 | [Why This Architecture?](#why-this-architecture) |
+| 5 | [Business-Driven](#business-driven) |
+| 6 | [Maintainability](#maintainability) |
+| 7 | [Scalability](#scalability) |
+| 8 | [Learnability](#learnability) |
+| 9 | [⭐ Project Organization](#project-organization) |
+| 10 | [⭐ Module Structure](#module-structure) |
+| 11 | [⭐ Dependency Rules](#dependency-rules) |
+| 12 | [High-Level Request Flow](#high-level-request-flow) |
+| 13 | [Backend Layers](#backend-layers) |
+| 14 | [Routing](#routing) |
+| 15 | [Controllers](#controllers) |
+| 16 | [Services](#services) |
+| 17 | [Repositories](#repositories) |
+| 18 | [Database](#database) |
+| 19 | [Validation Strategy](#validation-strategy) |
+| 20 | [Business Rule Ownership](#business-rule-ownership) |
+| 21 | [Security](#security) |
+| 22 | [Multi-Tenant Design](#multi-tenant-design) |
+| 23 | [Offline Support](#offline-support) |
+| 24 | [Logging](#logging) |
+| 25 | [Testing](#testing) |
+| 26 | [Guiding Principle](#guiding-principle) |
+
 ## Purpose
 
 This document defines the architecture of the backend for the Vehicle Rental Management Platform.

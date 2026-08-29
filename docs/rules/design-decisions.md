@@ -1,5 +1,15 @@
 # Design & Architecture
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Design Principles](#design-principles) |
+| 2 | [Architecture Consistency](#architecture-consistency) |
+| 3 | [Performance](#performance) |
+| 4 | [Future Growth](#future-growth) |
+| 5 | [Approval Required](#approval-required) |
+
 Apply these rules whenever a task affects architecture, module boundaries, system design, or long-term maintainability.
 
 ## Design Principles

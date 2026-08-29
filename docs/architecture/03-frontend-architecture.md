@@ -1,5 +1,26 @@
 # Frontend Architecture
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [Technology](#technology) |
+| 3 | [Source Layout](#source-layout) |
+| 4 | [Routing](#routing) |
+| 5 | [Layout and Navigation](#layout-and-navigation) |
+| 6 | [State and Data Flow](#state-and-data-flow) |
+| 7 | [Transitional Local Data](#transitional-local-data) |
+| 8 | [Component Ownership](#component-ownership) |
+| 9 | [Shared Layout](#shared-layout) |
+| 10 | [Shared UI](#shared-ui) |
+| 11 | [Feature Components](#feature-components) |
+| 12 | [Styling and RTL](#styling-and-rtl) |
+| 13 | [Forms and Feedback](#forms-and-feedback) |
+| 14 | [Testing](#testing) |
+| 15 | [Build and Development](#build-and-development) |
+| 16 | [Architectural Boundaries](#architectural-boundaries) |
+
 ## Purpose
 
 This document describes the active frontend application in `apps/web` (`@workspace/web`). It covers the source structure, routing, layout, state management, data flow, component ownership, styling, testing, and build workflow.

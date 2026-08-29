@@ -1,5 +1,11 @@
 # TypeScript Rules
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Repository Rules](#repository-rules) |
+
 These rules define how TypeScript is used in this repository. Language best practices and current syntax belong in the `typescript` skill.
 
 ## Repository Rules

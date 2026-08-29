@@ -1,5 +1,16 @@
 # Core AI Behavior
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Truthfulness](#truthfulness) |
+| 2 | [Task Execution](#task-execution) |
+| 3 | [Repository Discipline](#repository-discipline) |
+| 4 | [Decision Priority](#decision-priority) |
+| 5 | [Safety](#safety) |
+| 6 | [Long-Term Quality](#long-term-quality) |
+
 These behaviors apply to every task regardless of technology or framework.
 
 ## Truthfulness

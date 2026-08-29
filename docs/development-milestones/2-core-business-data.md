@@ -1,5 +1,86 @@
 # Milestone 2 — Core Business Data
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Phase 7 — Customer Management](#phase-7--customer-management) |
+| 2 | [Step 7.1 — Customer Model](#step-71--customer-model) |
+| 3 | [Must Read](#must-read) |
+| 4 | [Objectives](#objectives) |
+| 5 | [Deliverables](#deliverables) |
+| 6 | [Acceptance Criteria](#acceptance-criteria) |
+| 7 | [Step 7.2 — Customer Module (Backend)](#step-72--customer-module-backend) |
+| 8 | [Must Read](#must-read) |
+| 9 | [Objectives](#objectives) |
+| 10 | [Deliverables](#deliverables) |
+| 11 | [Acceptance Criteria](#acceptance-criteria) |
+| 12 | [Step 7.3 — Frontend Infrastructure](#step-73--frontend-infrastructure) |
+| 13 | [Must Read](#must-read) |
+| 14 | [Objectives](#objectives) |
+| 15 | [Deliverables](#deliverables) |
+| 16 | [Acceptance Criteria](#acceptance-criteria) |
+| 17 | [Step 7.4 — Customer Module (Frontend)](#step-74--customer-module-frontend) |
+| 18 | [Must Read](#must-read) |
+| 19 | [Objectives](#objectives) |
+| 20 | [Deliverables](#deliverables) |
+| 21 | [Acceptance Criteria](#acceptance-criteria) |
+| 22 | [Phase 8 — Vehicle Management](#phase-8--vehicle-management) |
+| 23 | [Step 8.1 — Vehicle Model](#step-81--vehicle-model) |
+| 24 | [Must Read](#must-read) |
+| 25 | [Objectives](#objectives) |
+| 26 | [Deliverables](#deliverables) |
+| 27 | [Acceptance Criteria](#acceptance-criteria) |
+| 28 | [Step 8.2 — Vehicle Module (Backend)](#step-82--vehicle-module-backend) |
+| 29 | [Must Read](#must-read) |
+| 30 | [Objectives](#objectives) |
+| 31 | [Deliverables](#deliverables) |
+| 32 | [Acceptance Criteria](#acceptance-criteria) |
+| 33 | [Step 8.3 — Vehicle Module (Frontend)](#step-83--vehicle-module-frontend) |
+| 34 | [Must Read](#must-read) |
+| 35 | [Objectives](#objectives) |
+| 36 | [Deliverables](#deliverables) |
+| 37 | [Acceptance Criteria](#acceptance-criteria) |
+| 38 | [Phase 9 — Documents & Photos](#phase-9--documents--photos) |
+| 39 | [Step 9.1 — Media Infrastructure](#step-91--media-infrastructure) |
+| 40 | [Must Read](#must-read) |
+| 41 | [Objectives](#objectives) |
+| 42 | [Deliverables](#deliverables) |
+| 43 | [Acceptance Criteria](#acceptance-criteria) |
+| 44 | [Step 9.2 — Vehicle Photos & Documents (Backend)](#step-92--vehicle-photos--documents-backend) |
+| 45 | [Must Read](#must-read) |
+| 46 | [Objectives](#objectives) |
+| 47 | [Deliverables](#deliverables) |
+| 48 | [Acceptance Criteria](#acceptance-criteria) |
+| 49 | [Step 9.3 — Customer Documents (Backend)](#step-93--customer-documents-backend) |
+| 50 | [Must Read](#must-read) |
+| 51 | [Objectives](#objectives) |
+| 52 | [Deliverables](#deliverables) |
+| 53 | [Acceptance Criteria](#acceptance-criteria) |
+| 54 | [Step 9.4 — Photos & Documents (Frontend)](#step-94--photos--documents-frontend) |
+| 55 | [Must Read](#must-read) |
+| 56 | [Objectives](#objectives) |
+| 57 | [Deliverables](#deliverables) |
+| 58 | [Acceptance Criteria](#acceptance-criteria) |
+| 59 | [Phase 10 — Search](#phase-10--search) |
+| 60 | [Step 10.1 — Customer Search (Backend)](#step-101--customer-search-backend) |
+| 61 | [Must Read](#must-read) |
+| 62 | [Objectives](#objectives) |
+| 63 | [Deliverables](#deliverables) |
+| 64 | [Acceptance Criteria](#acceptance-criteria) |
+| 65 | [Step 10.2 — Vehicle Search (Backend)](#step-102--vehicle-search-backend) |
+| 66 | [Must Read](#must-read) |
+| 67 | [Objectives](#objectives) |
+| 68 | [Deliverables](#deliverables) |
+| 69 | [Acceptance Criteria](#acceptance-criteria) |
+| 70 | [Step 10.3 — Search (Frontend)](#step-103--search-frontend) |
+| 71 | [Must Read](#must-read) |
+| 72 | [Objectives](#objectives) |
+| 73 | [Deliverables](#deliverables) |
+| 74 | [Acceptance Criteria](#acceptance-criteria) |
+| 75 | [Milestone 2 Completion Checklist](#milestone-2-completion-checklist) |
+| 76 | [Milestone Status](#milestone-status) |
+
 **Goal**
 
 Build the core business data capabilities that allow businesses to manage their customers and vehicles.

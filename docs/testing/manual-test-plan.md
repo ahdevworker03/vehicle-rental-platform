@@ -1,5 +1,37 @@
 # Vehicle Rental Platform — Manual QA Test Plan
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [1. Purpose and execution rules](#1-purpose-and-execution-rules) |
+| 2 | [When manual testing happens](#when-manual-testing-happens) |
+| 3 | [Implemented-scope guardrails](#implemented-scope-guardrails) |
+| 4 | [Common expected UI standards](#common-expected-ui-standards) |
+| 5 | [2. Test environment and controlled data](#2-test-environment-and-controlled-data) |
+| 6 | [Required setup](#required-setup) |
+| 7 | [Test accounts](#test-accounts) |
+| 8 | [Minimum seed data](#minimum-seed-data) |
+| 9 | [3. Sequential smoke tests](#3-sequential-smoke-tests) |
+| 10 | [4. Authentication and authorization](#4-authentication-and-authorization) |
+| 11 | [5. Dashboard](#5-dashboard) |
+| 12 | [6. Customers](#6-customers) |
+| 13 | [7. Vehicles](#7-vehicles) |
+| 14 | [8. Rentals and contracts](#8-rentals-and-contracts) |
+| 15 | [9. Payments (rental-contextual)](#9-payments-rental-contextual) |
+| 16 | [10. Maintenance](#10-maintenance) |
+| 17 | [11. Expenses](#11-expenses) |
+| 18 | [12. Tasks](#12-tasks) |
+| 19 | [13. Analytics](#13-analytics) |
+| 20 | [14. Reports](#14-reports) |
+| 21 | [15. Cross-module manual workflows](#15-cross-module-manual-workflows) |
+| 22 | [16. Responsive and UI verification checklist](#16-responsive-and-ui-verification-checklist) |
+| 23 | [17. Accessibility and keyboard checklist](#17-accessibility-and-keyboard-checklist) |
+| 24 | [18. Browser console, network, and regression checklist](#18-browser-console-network-and-regression-checklist) |
+| 25 | [19. Offline verification for Milestone 6](#19-offline-verification-for-milestone-6) |
+| 26 | [20. Release blockers and final verification](#20-release-blockers-and-final-verification) |
+| 27 | [21. Related testing documents](#21-related-testing-documents) |
+
 ## 1. Purpose and execution rules
 
 Manual testing complements automated and E2E testing by validating complete product workflows and qualities that need human judgment or a real browser. These include usability, Arabic RTL presentation, responsive behavior, accessibility, browser differences, files, print/PDF output, exploratory testing, and production smoke verification. It is not a substitute for automated regression coverage.

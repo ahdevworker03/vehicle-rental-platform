@@ -1,5 +1,22 @@
 # Product Vision
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [Problem Statement](#problem-statement) |
+| 3 | [Target Customers](#target-customers) |
+| 4 | [Vision](#vision) |
+| 5 | [Mission](#mission) |
+| 6 | [Product Principles](#product-principles) |
+| 7 | [Value Proposition](#value-proposition) |
+| 8 | [Competitive Position](#competitive-position) |
+| 9 | [Long-Term Direction](#long-term-direction) |
+| 10 | [Success Metrics](#success-metrics) |
+| 11 | [What We Will Not Build](#what-we-will-not-build) |
+| 12 | [Vision Summary](#vision-summary) |
+
 ## Purpose
 
 The purpose of this product is to simplify and modernize the daily operations of vehicle rental businesses through a single, reliable, and easy-to-use platform.

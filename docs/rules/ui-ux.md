@@ -1,5 +1,18 @@
 # UI / UX Rules
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Product Principles](#product-principles) |
+| 2 | [Language & Layout](#language--layout) |
+| 3 | [Mobile First](#mobile-first) |
+| 4 | [Design System](#design-system) |
+| 5 | [User Experience](#user-experience) |
+| 6 | [Accessibility](#accessibility) |
+| 7 | [User Feedback](#user-feedback) |
+| 8 | [Separation of Concerns](#separation-of-concerns) |
+
 Apply these rules to every user-facing change.
 
 ## Product Principles

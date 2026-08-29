@@ -1,5 +1,78 @@
 # Milestone 1 — Implementation
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Phase 1 — Project Foundation](#phase-1--project-foundation) |
+| 2 | [Step 1.1 — Backend Project Bootstrap](#step-11--backend-project-bootstrap) |
+| 3 | [Read](#read) |
+| 4 | [Objectives](#objectives) |
+| 5 | [Deliverables](#deliverables) |
+| 6 | [Acceptance Criteria](#acceptance-criteria) |
+| 7 | [Step 1.2 — Prisma Foundation](#step-12--prisma-foundation) |
+| 8 | [Read](#read) |
+| 9 | [Objectives](#objectives) |
+| 10 | [Deliverables](#deliverables) |
+| 11 | [Acceptance Criteria](#acceptance-criteria) |
+| 12 | [Phase 2 — Core SaaS Models](#phase-2--core-saas-models) |
+| 13 | [Step 2.1 — Organization Model](#step-21--organization-model) |
+| 14 | [Read](#read) |
+| 15 | [Objectives](#objectives) |
+| 16 | [Deliverables](#deliverables) |
+| 17 | [Acceptance Criteria](#acceptance-criteria) |
+| 18 | [Step 2.2 — User Model](#step-22--user-model) |
+| 19 | [Read](#read) |
+| 20 | [Objectives](#objectives) |
+| 21 | [Deliverables](#deliverables) |
+| 22 | [Acceptance Criteria](#acceptance-criteria) |
+| 23 | [Step 2.3 — Authentication Database Models](#step-23--authentication-database-models) |
+| 24 | [Read](#read) |
+| 25 | [Objectives](#objectives) |
+| 26 | [Deliverables](#deliverables) |
+| 27 | [Acceptance Criteria](#acceptance-criteria) |
+| 28 | [Phase 3 — Backend Foundation](#phase-3--backend-foundation) |
+| 29 | [Step 3.1 — Database Layer](#step-31--database-layer) |
+| 30 | [Read](#read) |
+| 31 | [Objectives](#objectives) |
+| 32 | [Deliverables](#deliverables) |
+| 33 | [Acceptance Criteria](#acceptance-criteria) |
+| 34 | [Step 3.2 — Shared Backend Infrastructure](#step-32--shared-backend-infrastructure) |
+| 35 | [Read](#read) |
+| 36 | [Objectives](#objectives) |
+| 37 | [Deliverables](#deliverables) |
+| 38 | [Acceptance Criteria](#acceptance-criteria) |
+| 39 | [Phase 4 — Authentication](#phase-4--authentication) |
+| 40 | [Step 4.1 — Authentication Services](#step-41--authentication-services) |
+| 41 | [Read](#read) |
+| 42 | [Objectives](#objectives) |
+| 43 | [Deliverables](#deliverables) |
+| 44 | [Acceptance Criteria](#acceptance-criteria) |
+| 45 | [Step 4.2 — Authentication API](#step-42--authentication-api) |
+| 46 | [Read](#read) |
+| 47 | [Objectives](#objectives) |
+| 48 | [Deliverables](#deliverables) |
+| 49 | [Acceptance Criteria](#acceptance-criteria) |
+| 50 | [Step 4.3 — Authorization](#step-43--authorization) |
+| 51 | [Read](#read) |
+| 52 | [Objectives](#objectives) |
+| 53 | [Deliverables](#deliverables) |
+| 54 | [Acceptance Criteria](#acceptance-criteria) |
+| 55 | [Phase 5 — Organization Management](#phase-5--organization-management) |
+| 56 | [Step 5.1 — Organization Module](#step-51--organization-module) |
+| 57 | [Read](#read) |
+| 58 | [Objectives](#objectives) |
+| 59 | [Deliverables](#deliverables) |
+| 60 | [Acceptance Criteria](#acceptance-criteria) |
+| 61 | [Phase 6 — User Management](#phase-6--user-management) |
+| 62 | [Step 6.1 — User Module](#step-61--user-module) |
+| 63 | [Read](#read) |
+| 64 | [Objectives](#objectives) |
+| 65 | [Deliverables](#deliverables) |
+| 66 | [Acceptance Criteria](#acceptance-criteria) |
+| 67 | [Milestone 1 Completion Checklist](#milestone-1-completion-checklist) |
+| 68 | [Milestone Status](#milestone-status) |
+
 **Goal**
 
 Build the production-ready SaaS foundation that every future module will rely on.

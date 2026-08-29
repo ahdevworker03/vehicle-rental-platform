@@ -1,5 +1,70 @@
 # Milestone 3 — Rental Operations
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Phase 11 — Rental Management](#phase-11--rental-management) |
+| 2 | [Step 11.1 — Rental Model](#step-111--rental-model) |
+| 3 | [Must Read](#must-read) |
+| 4 | [Objectives](#objectives) |
+| 5 | [Deliverables](#deliverables) |
+| 6 | [Acceptance Criteria](#acceptance-criteria) |
+| 7 | [Step 11.2 — Contract Model](#step-112--contract-model) |
+| 8 | [Must Read](#must-read) |
+| 9 | [Objectives](#objectives) |
+| 10 | [Deliverables](#deliverables) |
+| 11 | [Acceptance Criteria](#acceptance-criteria) |
+| 12 | [Step 11.3 — Rental Module (Backend)](#step-113--rental-module-backend) |
+| 13 | [Must Read](#must-read) |
+| 14 | [Objectives](#objectives) |
+| 15 | [Deliverables](#deliverables) |
+| 16 | [Acceptance Criteria](#acceptance-criteria) |
+| 17 | [Step 11.4 — Rental Workflow (Backend)](#step-114--rental-workflow-backend) |
+| 18 | [Must Read](#must-read) |
+| 19 | [Objectives](#objectives) |
+| 20 | [Deliverables](#deliverables) |
+| 21 | [Acceptance Criteria](#acceptance-criteria) |
+| 22 | [Step 11.5 — Rental Module (Frontend)](#step-115--rental-module-frontend) |
+| 23 | [Must Read](#must-read) |
+| 24 | [Objectives](#objectives) |
+| 25 | [Deliverables](#deliverables) |
+| 26 | [Acceptance Criteria](#acceptance-criteria) |
+| 27 | [Phase 12 — Contracts](#phase-12--contracts) |
+| 28 | [Step 12.1 — Contract Module (Backend)](#step-121--contract-module-backend) |
+| 29 | [Must Read](#must-read) |
+| 30 | [Objectives](#objectives) |
+| 31 | [Deliverables](#deliverables) |
+| 32 | [Acceptance Criteria](#acceptance-criteria) |
+| 33 | [Step 12.2 — Contract Generation](#step-122--contract-generation) |
+| 34 | [Must Read](#must-read) |
+| 35 | [Objectives](#objectives) |
+| 36 | [Deliverables](#deliverables) |
+| 37 | [Acceptance Criteria](#acceptance-criteria) |
+| 38 | [Step 12.3 — Contracts (Frontend)](#step-123--contracts-frontend) |
+| 39 | [Must Read](#must-read) |
+| 40 | [Objectives](#objectives) |
+| 41 | [Deliverables](#deliverables) |
+| 42 | [Acceptance Criteria](#acceptance-criteria) |
+| 43 | [Phase 13 — Rental History & Availability](#phase-13--rental-history--availability) |
+| 44 | [Step 13.1 — Rental History (Backend)](#step-131--rental-history-backend) |
+| 45 | [Must Read](#must-read) |
+| 46 | [Objectives](#objectives) |
+| 47 | [Deliverables](#deliverables) |
+| 48 | [Acceptance Criteria](#acceptance-criteria) |
+| 49 | [Step 13.2 — Vehicle Availability (Backend)](#step-132--vehicle-availability-backend) |
+| 50 | [Must Read](#must-read) |
+| 51 | [Objectives](#objectives) |
+| 52 | [Deliverables](#deliverables) |
+| 53 | [Acceptance Criteria](#acceptance-criteria) |
+| 54 | [Step 13.3 — Rental History & Availability (Frontend)](#step-133--rental-history--availability-frontend) |
+| 55 | [Must Read](#must-read) |
+| 56 | [Objectives](#objectives) |
+| 57 | [Deliverables](#deliverables) |
+| 58 | [Acceptance Criteria](#acceptance-criteria) |
+| 59 | [Milestone 3 Completion Checklist](#milestone-3-completion-checklist) |
+| 60 | [Milestone Status](#milestone-status) |
+
 **Goal**
 
 Build the rental operations capabilities that allow businesses to manage daily rental operations, including the rental workflow, contracts, vehicle availability, and rental history.

@@ -1,5 +1,21 @@
 # Git Conventions
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Commits](#commits) |
+| 2 | [Milestone Workflow](#milestone-workflow) |
+| 3 | [Definition of Done](#definition-of-done) |
+| 4 | [Commit Format](#commit-format) |
+| 5 | [Before Every Commit](#before-every-commit) |
+| 6 | [AI Responsibilities](#ai-responsibilities) |
+| 7 | [Branches](#branches) |
+| 8 | [Pull Requests](#pull-requests) |
+| 9 | [History](#history) |
+| 10 | [Synchronization](#synchronization) |
+| 11 | [Repository Safety](#repository-safety) |
+
 These conventions define how version control is used in this repository. General Git workflows and tooling belong in the `git` skill.
 
 ## Commits

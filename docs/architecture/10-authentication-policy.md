@@ -1,5 +1,22 @@
 # Authentication Policy
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Authentication Method](#authentication-method) |
+| 2 | [JWT Policy](#jwt-policy) |
+| 3 | [Token Lifetimes](#token-lifetimes) |
+| 4 | [Password Policy](#password-policy) |
+| 5 | [Secret Management](#secret-management) |
+| 6 | [Refresh Token Policy](#refresh-token-policy) |
+| 7 | [Refresh Token Storage](#refresh-token-storage) |
+| 8 | [Authorization](#authorization) |
+| 9 | [Organization Isolation](#organization-isolation) |
+| 10 | [Security Principles](#security-principles) |
+| 11 | [Tenant Context Rule](#tenant-context-rule) |
+| 12 | [Future Authentication Features](#future-authentication-features) |
+
 This document defines the approved authentication architecture and implementation policies for the platform.
 
 It is the single source of truth for authentication and security decisions. All authentication-related implementation must follow this document.

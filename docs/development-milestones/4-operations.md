@@ -1,5 +1,109 @@
 # Milestone 4 — Operations
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Phase 14 — Maintenance](#phase-14--maintenance) |
+| 2 | [Step 14.1 — Maintenance Model](#step-141--maintenance-model) |
+| 3 | [Must Read](#must-read) |
+| 4 | [Objectives](#objectives) |
+| 5 | [Deliverables](#deliverables) |
+| 6 | [Acceptance Criteria](#acceptance-criteria) |
+| 7 | [Step 14.2 — Maintenance Module (Backend)](#step-142--maintenance-module-backend) |
+| 8 | [Must Read](#must-read) |
+| 9 | [Objectives](#objectives) |
+| 10 | [Deliverables](#deliverables) |
+| 11 | [Acceptance Criteria](#acceptance-criteria) |
+| 12 | [Step 14.3 — Maintenance Module (Frontend)](#step-143--maintenance-module-frontend) |
+| 13 | [Must Read](#must-read) |
+| 14 | [Objectives](#objectives) |
+| 15 | [Deliverables](#deliverables) |
+| 16 | [Acceptance Criteria](#acceptance-criteria) |
+| 17 | [Step 14.4 — Maintenance (Dashboard and Analytics Integration)](#step-144--maintenance-dashboard-and-analytics-integration) |
+| 18 | [Must Read](#must-read) |
+| 19 | [Objectives](#objectives) |
+| 20 | [Deliverables](#deliverables) |
+| 21 | [Acceptance Criteria](#acceptance-criteria) |
+| 22 | [Phase 15 — Expenses](#phase-15--expenses) |
+| 23 | [Step 15.1 — Expense Model](#step-151--expense-model) |
+| 24 | [Must Read](#must-read) |
+| 25 | [Objectives](#objectives) |
+| 26 | [Deliverables](#deliverables) |
+| 27 | [Acceptance Criteria](#acceptance-criteria) |
+| 28 | [Step 15.2 — Expense Module (Backend)](#step-152--expense-module-backend) |
+| 29 | [Must Read](#must-read) |
+| 30 | [Objectives](#objectives) |
+| 31 | [Deliverables](#deliverables) |
+| 32 | [Acceptance Criteria](#acceptance-criteria) |
+| 33 | [Step 15.3 — Expense Module (Frontend)](#step-153--expense-module-frontend) |
+| 34 | [Must Read](#must-read) |
+| 35 | [Objectives](#objectives) |
+| 36 | [Deliverables](#deliverables) |
+| 37 | [Acceptance Criteria](#acceptance-criteria) |
+| 38 | [Step 15.4 — Expenses (Dashboard and Analytics Integration)](#step-154--expenses-dashboard-and-analytics-integration) |
+| 39 | [Must Read](#must-read) |
+| 40 | [Objectives](#objectives) |
+| 41 | [Deliverables](#deliverables) |
+| 42 | [Acceptance Criteria](#acceptance-criteria) |
+| 43 | [Phase 16 — Payments](#phase-16--payments) |
+| 44 | [Step 16.1 — Payment Model](#step-161--payment-model) |
+| 45 | [Must Read](#must-read) |
+| 46 | [Objectives](#objectives) |
+| 47 | [Deliverables](#deliverables) |
+| 48 | [Acceptance Criteria](#acceptance-criteria) |
+| 49 | [Step 16.2 — Payment Module (Backend)](#step-162--payment-module-backend) |
+| 50 | [Must Read](#must-read) |
+| 51 | [Objectives](#objectives) |
+| 52 | [Deliverables](#deliverables) |
+| 53 | [Acceptance Criteria](#acceptance-criteria) |
+| 54 | [Step 16.3 — Payment Module (Frontend)](#step-163--payment-module-frontend) |
+| 55 | [Must Read](#must-read) |
+| 56 | [Objectives](#objectives) |
+| 57 | [Deliverables](#deliverables) |
+| 58 | [Acceptance Criteria](#acceptance-criteria) |
+| 59 | [Step 16.4 — Payments (Dashboard and Analytics Integration)](#step-164--payments-dashboard-and-analytics-integration) |
+| 60 | [Must Read](#must-read) |
+| 61 | [Objectives](#objectives) |
+| 62 | [Deliverables](#deliverables) |
+| 63 | [Acceptance Criteria](#acceptance-criteria) |
+| 64 | [Phase 17 — Tasks](#phase-17--tasks) |
+| 65 | [Step 17.1 — Task Model](#step-171--task-model) |
+| 66 | [Must Read](#must-read) |
+| 67 | [Objectives](#objectives) |
+| 68 | [Deliverables](#deliverables) |
+| 69 | [Acceptance Criteria](#acceptance-criteria) |
+| 70 | [Step 17.2 — Task Module (Backend)](#step-172--task-module-backend) |
+| 71 | [Must Read](#must-read) |
+| 72 | [Objectives](#objectives) |
+| 73 | [Deliverables](#deliverables) |
+| 74 | [Acceptance Criteria](#acceptance-criteria) |
+| 75 | [Step 17.3 — Task Module (Frontend)](#step-173--task-module-frontend) |
+| 76 | [Must Read](#must-read) |
+| 77 | [Objectives](#objectives) |
+| 78 | [Deliverables](#deliverables) |
+| 79 | [Acceptance Criteria](#acceptance-criteria) |
+| 80 | [Step 17.4 — Tasks (Dashboard Integration)](#step-174--tasks-dashboard-integration) |
+| 81 | [Must Read](#must-read) |
+| 82 | [Objectives](#objectives) |
+| 83 | [Deliverables](#deliverables) |
+| 84 | [Acceptance Criteria](#acceptance-criteria) |
+| 85 | [Phase 18 — Operations Verification](#phase-18--operations-verification) |
+| 86 | [Step 18.1 — Cross-Entity Operational Integrity (Backend)](#step-181--cross-entity-operational-integrity-backend) |
+| 87 | [Must Read](#must-read) |
+| 88 | [Objectives](#objectives) |
+| 89 | [Deliverables](#deliverables) |
+| 90 | [Acceptance Criteria](#acceptance-criteria) |
+| 91 | [Step 18.2 — Operations Manual Testing & Verification](#step-182--operations-manual-testing--verification) |
+| 92 | [Must Read](#must-read) |
+| 93 | [Objectives](#objectives) |
+| 94 | [Deliverables](#deliverables) |
+| 95 | [Acceptance Criteria](#acceptance-criteria) |
+| 96 | [Dependencies Between Steps](#dependencies-between-steps) |
+| 97 | [Architectural and Product Ambiguities Requiring Approval](#architectural-and-product-ambiguities-requiring-approval) |
+| 98 | [Milestone 4 Completion Checklist](#milestone-4-completion-checklist) |
+| 99 | [Milestone Status](#milestone-status) |
+
 **Goal**
 
 Build the operations capabilities that allow businesses to manage operational activities, including vehicle maintenance, business expenses, rental payments, and operational tasks.

@@ -1,5 +1,87 @@
 # User Flows
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Introduction](#introduction) |
+| 2 | [Authentication](#authentication) |
+| 3 | [Login](#login) |
+| 4 | [Goal](#goal) |
+| 5 | [Flow](#flow) |
+| 6 | [Alternative Flows](#alternative-flows) |
+| 7 | [Customer Management](#customer-management) |
+| 8 | [Add Customer](#add-customer) |
+| 9 | [Goal](#goal) |
+| 10 | [Flow](#flow) |
+| 11 | [Search Customer](#search-customer) |
+| 12 | [Goal](#goal) |
+| 13 | [Flow](#flow) |
+| 14 | [Edit Customer](#edit-customer) |
+| 15 | [Goal](#goal) |
+| 16 | [Flow](#flow) |
+| 17 | [Vehicle Management](#vehicle-management) |
+| 18 | [Register Vehicle](#register-vehicle) |
+| 19 | [Goal](#goal) |
+| 20 | [Flow](#flow) |
+| 21 | [Search Vehicle](#search-vehicle) |
+| 22 | [Goal](#goal) |
+| 23 | [Flow](#flow) |
+| 24 | [Update Vehicle Status](#update-vehicle-status) |
+| 25 | [Goal](#goal) |
+| 26 | [Flow](#flow) |
+| 27 | [Rental Management](#rental-management) |
+| 28 | [Create Rental](#create-rental) |
+| 29 | [Goal](#goal) |
+| 30 | [Flow](#flow) |
+| 31 | [Alternative Flows](#alternative-flows) |
+| 32 | [Return Vehicle](#return-vehicle) |
+| 33 | [Goal](#goal) |
+| 34 | [Flow](#flow) |
+| 35 | [Extend Rental](#extend-rental) |
+| 36 | [Goal](#goal) |
+| 37 | [Flow](#flow) |
+| 38 | [Cancel Rental](#cancel-rental) |
+| 39 | [Goal](#goal) |
+| 40 | [Flow](#flow) |
+| 41 | [Contract Management](#contract-management) |
+| 42 | [Generate Rental Contract](#generate-rental-contract) |
+| 43 | [Goal](#goal) |
+| 44 | [Flow](#flow) |
+| 45 | [Maintenance Management](#maintenance-management) |
+| 46 | [Record Maintenance](#record-maintenance) |
+| 47 | [Goal](#goal) |
+| 48 | [Flow](#flow) |
+| 49 | [Complete Maintenance](#complete-maintenance) |
+| 50 | [Goal](#goal) |
+| 51 | [Flow](#flow) |
+| 52 | [Financial Management](#financial-management) |
+| 53 | [Record Rental Payment](#record-rental-payment) |
+| 54 | [Goal](#goal) |
+| 55 | [Flow](#flow) |
+| 56 | [Record Expense](#record-expense) |
+| 57 | [Goal](#goal) |
+| 58 | [Flow](#flow) |
+| 59 | [Task Management](#task-management) |
+| 60 | [Create Task](#create-task) |
+| 61 | [Goal](#goal) |
+| 62 | [Flow](#flow) |
+| 63 | [Complete Task](#complete-task) |
+| 64 | [Goal](#goal) |
+| 65 | [Flow](#flow) |
+| 66 | [Dashboard](#dashboard) |
+| 67 | [Review Daily Operations](#review-daily-operations) |
+| 68 | [Goal](#goal) |
+| 69 | [Flow](#flow) |
+| 70 | [Offline Workflow](#offline-workflow) |
+| 71 | [Continue Working Without Internet](#continue-working-without-internet) |
+| 72 | [Goal](#goal) |
+| 73 | [Flow](#flow) |
+| 74 | [Future Vehicle Sales](#future-vehicle-sales) |
+| 75 | [Sell Fleet Vehicle](#sell-fleet-vehicle) |
+| 76 | [Goal](#goal) |
+| 77 | [Flow](#flow) |
+
 ## Introduction
 
 This document describes the primary workflows supported by the Vehicle Rental Management Platform.

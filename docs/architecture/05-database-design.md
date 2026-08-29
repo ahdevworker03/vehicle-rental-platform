@@ -1,5 +1,34 @@
 # Database Design
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [Design Goals](#design-goals) |
+| 3 | [Database Philosophy](#database-philosophy) |
+| 4 | [Source of Truth](#source-of-truth) |
+| 5 | [Multi-Tenant Strategy](#multi-tenant-strategy) |
+| 6 | [Entity Overview](#entity-overview) |
+| 7 | [Organization Lifecycle and Profile](#organization-lifecycle-and-profile) |
+| 8 | [Relationships](#relationships) |
+| 9 | [Primary Keys](#primary-keys) |
+| 10 | [Foreign Keys](#foreign-keys) |
+| 11 | [Audit Fields](#audit-fields) |
+| 12 | [Platform and Security Audit Log](#platform-and-security-audit-log) |
+| 13 | [Employee Invitations](#employee-invitations) |
+| 14 | [Password Reset Tokens](#password-reset-tokens) |
+| 15 | [Task Recurrence](#task-recurrence) |
+| 16 | [Maintenance Schedules](#maintenance-schedules) |
+| 17 | [Soft Deletes](#soft-deletes) |
+| 18 | [Transactions](#transactions) |
+| 19 | [Indexing Strategy](#indexing-strategy) |
+| 20 | [Data Integrity](#data-integrity) |
+| 21 | [Offline Synchronization](#offline-synchronization) |
+| 22 | [Naming Conventions](#naming-conventions) |
+| 23 | [Future Expansion](#future-expansion) |
+| 24 | [Guiding Principle](#guiding-principle) |
+
 ## Purpose
 
 This document defines how business data is stored and managed within the Vehicle Rental Management Platform.

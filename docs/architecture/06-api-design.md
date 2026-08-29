@@ -1,5 +1,45 @@
 # API Design
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [Design Goals](#design-goals) |
+| 3 | [API Philosophy](#api-philosophy) |
+| 4 | [Architectural Style](#architectural-style) |
+| 5 | [Resource Naming](#resource-naming) |
+| 6 | [HTTP Methods](#http-methods) |
+| 7 | [Request Structure](#request-structure) |
+| 8 | [Response Structure](#response-structure) |
+| 9 | [Error Responses](#error-responses) |
+| 10 | [HTTP Status Codes](#http-status-codes) |
+| 11 | [Validation](#validation) |
+| 12 | [Authentication](#authentication) |
+| 13 | [Authentication Endpoints](#authentication-endpoints) |
+| 14 | [POST /api/auth/register](#post-apiauthregister) |
+| 15 | [POST /api/auth/login](#post-apiauthlogin) |
+| 16 | [POST /api/auth/refresh](#post-apiauthrefresh) |
+| 17 | [POST /api/auth/logout](#post-apiauthlogout) |
+| 18 | [GET /api/auth/me](#get-apiauthme) |
+| 19 | [Organization Endpoints](#organization-endpoints) |
+| 20 | [Organization Identity From Authentication](#organization-identity-from-authentication) |
+| 21 | [GET /api/organizations/me](#get-apiorganizationsme) |
+| 22 | [PATCH /api/organizations/me](#patch-apiorganizationsme) |
+| 23 | [PATCH /api/platform/organizations/:organizationId/status](#patch-apiplatformorganizationsorganizationidstatus) |
+| 24 | [DELETE /api/organizations/me](#delete-apiorganizationsme) |
+| 25 | [Authorization](#authorization) |
+| 26 | [Pagination](#pagination) |
+| 27 | [Filtering](#filtering) |
+| 28 | [Sorting](#sorting) |
+| 29 | [Searching](#searching) |
+| 30 | [Versioning](#versioning) |
+| 31 | [Offline Synchronization](#offline-synchronization) |
+| 32 | [Security](#security) |
+| 33 | [Consistency](#consistency) |
+| 34 | [Future Expansion](#future-expansion) |
+| 35 | [Guiding Principle](#guiding-principle) |
+
 ## Purpose
 
 This document defines the design principles and communication standards for the Vehicle Rental Management Platform API.

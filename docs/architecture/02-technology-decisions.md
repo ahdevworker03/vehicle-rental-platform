@@ -1,5 +1,51 @@
 # Technology Decisions
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [Decision Principles](#decision-principles) |
+| 3 | [Technology Stack Overview](#technology-stack-overview) |
+| 4 | [Language](#language) |
+| 5 | [Decision](#decision) |
+| 6 | [Why](#why) |
+| 7 | [Alternatives Considered](#alternatives-considered) |
+| 8 | [Why Not JavaScript](#why-not-javascript) |
+| 9 | [Frontend](#frontend) |
+| 10 | [Decision](#decision) |
+| 11 | [Why](#why) |
+| 12 | [Future](#future) |
+| 13 | [JavaScript Runtime](#javascript-runtime) |
+| 14 | [Decision](#decision) |
+| 15 | [Alternatives Considered](#alternatives-considered) |
+| 16 | [Why Node.js](#why-node-js) |
+| 17 | [Why Not Bun (for now)](#why-not-bun-for-now) |
+| 18 | [Backend Framework](#backend-framework) |
+| 19 | [Decision](#decision) |
+| 20 | [Alternatives Considered](#alternatives-considered) |
+| 21 | [Why Express](#why-express) |
+| 22 | [Trade-offs](#trade-offs) |
+| 23 | [Why Not NestJS](#why-not-nestjs) |
+| 24 | [Database](#database) |
+| 25 | [Decision](#decision) |
+| 26 | [Alternatives Considered](#alternatives-considered) |
+| 27 | [Why PostgreSQL](#why-postgresql) |
+| 28 | [Why Not MongoDB](#why-not-mongodb) |
+| 29 | [ORM](#orm) |
+| 30 | [Decision](#decision) |
+| 31 | [Why](#why) |
+| 32 | [Learning Philosophy](#learning-philosophy) |
+| 33 | [API Style](#api-style) |
+| 34 | [Decision](#decision) |
+| 35 | [Alternatives Considered](#alternatives-considered) |
+| 36 | [Why REST](#why-rest) |
+| 37 | [Authentication](#authentication) |
+| 38 | [Decision](#decision) |
+| 39 | [Why](#why) |
+| 40 | [Future Review](#future-review) |
+| 41 | [Guiding Principle](#guiding-principle) |
+
 ## Purpose
 
 This document records the reasoning behind the technologies chosen for the project.

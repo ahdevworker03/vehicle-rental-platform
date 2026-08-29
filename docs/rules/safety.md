@@ -1,5 +1,19 @@
 # Safety Rules
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Destructive Operations](#destructive-operations) |
+| 2 | [Repository Protection](#repository-protection) |
+| 3 | [Architecture Protection](#architecture-protection) |
+| 4 | [Database Safety](#database-safety) |
+| 5 | [Generated Code](#generated-code) |
+| 6 | [Secrets & Security](#secrets--security) |
+| 7 | [External Systems](#external-systems) |
+| 8 | [Git Safety](#git-safety) |
+| 9 | [Stop and Ask](#stop-and-ask) |
+
 These are hard constraints. Safety always takes priority over speed or convenience.
 
 ## Destructive Operations

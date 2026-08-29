@@ -1,5 +1,19 @@
 # Backend Rules
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Architecture](#architecture) |
+| 2 | [Module Structure](#module-structure) |
+| 3 | [Layer Responsibilities](#layer-responsibilities) |
+| 4 | [Requests and Responses](#requests-and-responses) |
+| 5 | [Validation](#validation) |
+| 6 | [Transactions](#transactions) |
+| 7 | [Business Rule Ownership](#business-rule-ownership) |
+| 8 | [Scope](#scope) |
+| 9 | [Contracts and Types](#contracts-and-types) |
+
 These rules govern backend structure and request flow in `apps/api`. Framework and language specifics belong in the corresponding skills.
 
 ## Architecture

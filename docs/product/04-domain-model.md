@@ -1,5 +1,49 @@
 # Domain Model
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Introduction](#introduction) |
+| 2 | [Core Domain](#core-domain) |
+| 3 | [Organization](#organization) |
+| 4 | [Responsibilities](#responsibilities) |
+| 5 | [Relationships](#relationships) |
+| 6 | [User](#user) |
+| 7 | [Responsibilities](#responsibilities) |
+| 8 | [Relationships](#relationships) |
+| 9 | [Customer](#customer) |
+| 10 | [Responsibilities](#responsibilities) |
+| 11 | [Relationships](#relationships) |
+| 12 | [Vehicle](#vehicle) |
+| 13 | [Responsibilities](#responsibilities) |
+| 14 | [Lifecycle](#lifecycle) |
+| 15 | [Relationships](#relationships) |
+| 16 | [Rental](#rental) |
+| 17 | [Responsibilities](#responsibilities) |
+| 18 | [Relationships](#relationships) |
+| 19 | [Contract](#contract) |
+| 20 | [Responsibilities](#responsibilities) |
+| 21 | [Relationships](#relationships) |
+| 22 | [Payment](#payment) |
+| 23 | [Responsibilities](#responsibilities) |
+| 24 | [Relationships](#relationships) |
+| 25 | [Notes](#notes) |
+| 26 | [Expense](#expense) |
+| 27 | [Responsibilities](#responsibilities) |
+| 28 | [Relationships](#relationships) |
+| 29 | [Maintenance](#maintenance) |
+| 30 | [Responsibilities](#responsibilities) |
+| 31 | [Relationships](#relationships) |
+| 32 | [Task](#task) |
+| 33 | [Responsibilities](#responsibilities) |
+| 34 | [Relationships](#relationships) |
+| 35 | [Notification](#notification) |
+| 36 | [Relationships](#relationships) |
+| 37 | [Business Rules](#business-rules) |
+| 38 | [Future Domain Expansion](#future-domain-expansion) |
+| 39 | [Ubiquitous Language](#ubiquitous-language) |
+
 ## Introduction
 
 The Domain Model defines the core business entities of the Vehicle Rental Management Platform and the relationships between them.

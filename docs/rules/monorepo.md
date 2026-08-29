@@ -1,5 +1,17 @@
 # Monorepo Rules
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Package Boundaries](#package-boundaries) |
+| 2 | [Dependency Direction](#dependency-direction) |
+| 3 | [Shared Code](#shared-code) |
+| 4 | [Package Ownership](#package-ownership) |
+| 5 | [Source of Truth](#source-of-truth) |
+| 6 | [Cross-Package Changes](#cross-package-changes) |
+| 7 | [Repository Consistency](#repository-consistency) |
+
 These rules define how packages are organized and interact within this repository.
 
 ## Package Boundaries

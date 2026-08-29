@@ -1,5 +1,40 @@
 # End-to-End Test Plan
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [1. Purpose](#1-purpose) |
+| 2 | [Current Capability](#current-capability) |
+| 3 | [2. E2E Testing Principles](#2-e2e-testing-principles) |
+| 4 | [3. Workflows That Deserve E2E Coverage](#3-workflows-that-deserve-e2e-coverage) |
+| 5 | [Authentication and Access](#authentication-and-access) |
+| 6 | [Customer and Vehicle Setup](#customer-and-vehicle-setup) |
+| 7 | [Rental Critical Path](#rental-critical-path) |
+| 8 | [Rental Availability Conflict](#rental-availability-conflict) |
+| 9 | [Contracts](#contracts) |
+| 10 | [Payments](#payments) |
+| 11 | [Maintenance](#maintenance) |
+| 12 | [Tasks](#tasks) |
+| 13 | [Authorization and Tenant Access](#authorization-and-tenant-access) |
+| 14 | [4. What Should Not Be E2E Tested](#4-what-should-not-be-e2e-tested) |
+| 15 | [5. Priority Levels](#5-priority-levels) |
+| 16 | [P0: Release Critical](#p0-release-critical) |
+| 17 | [P1: Important](#p1-important) |
+| 18 | [P2: Add Later If Valuable](#p2-add-later-if-valuable) |
+| 19 | [6. When E2E Tests Are Implemented](#6-when-e2e-tests-are-implemented) |
+| 20 | [Now](#now) |
+| 21 | [Milestone 6: Production Readiness](#milestone-6-production-readiness) |
+| 22 | [Later Versions](#later-versions) |
+| 23 | [7. Offline E2E Testing](#7-offline-e2e-testing) |
+| 24 | [8. Test Environment](#8-test-environment) |
+| 25 | [9. Test Data and Isolation](#9-test-data-and-isolation) |
+| 26 | [10. Execution Strategy](#10-execution-strategy) |
+| 27 | [11. Failure Expectations](#11-failure-expectations) |
+| 28 | [12. Relationship to Manual Testing](#12-relationship-to-manual-testing) |
+| 29 | [13. Deferred E2E Areas](#13-deferred-e2e-areas) |
+| 30 | [14. Initial Milestone 6 E2E Suite](#14-initial-milestone-6-e2e-suite) |
+
 ## 1. Purpose
 
 End-to-end (E2E) testing verifies complete user workflows through the real application stack:

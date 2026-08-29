@@ -1,5 +1,17 @@
 # Documentation Standards
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [What to Document](#what-to-document) |
+| 2 | [Code Comments](#code-comments) |
+| 3 | [Project Documentation](#project-documentation) |
+| 4 | [Source of Truth](#source-of-truth) |
+| 5 | [Breaking Changes](#breaking-changes) |
+| 6 | [Documentation Style](#documentation-style) |
+| 7 | [Documentation Quality](#documentation-quality) |
+
 Document only information that other developers, packages, or future contributors cannot reliably infer from the code.
 
 ## What to Document

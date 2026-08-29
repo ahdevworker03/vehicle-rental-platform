@@ -1,5 +1,26 @@
 # Offline First
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [Offline Goals](#offline-goals) |
+| 3 | [Offline Philosophy](#offline-philosophy) |
+| 4 | [Offline Architecture](#offline-architecture) |
+| 5 | [First Authentication](#first-authentication) |
+| 6 | [Local Data Storage](#local-data-storage) |
+| 7 | [Offline Operations](#offline-operations) |
+| 8 | [Synchronization Strategy](#synchronization-strategy) |
+| 9 | [Conflict Resolution](#conflict-resolution) |
+| 10 | [Synchronization Triggers](#synchronization-triggers) |
+| 11 | [Synchronization Status](#synchronization-status) |
+| 12 | [Data Ownership](#data-ownership) |
+| 13 | [Security Considerations](#security-considerations) |
+| 14 | [Limitations](#limitations) |
+| 15 | [Future Expansion](#future-expansion) |
+| 16 | [Guiding Principle](#guiding-principle) |
+
 ## Purpose
 
 This document defines how the Vehicle Rental Management Platform operates when internet connectivity is unavailable.

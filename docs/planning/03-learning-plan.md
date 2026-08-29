@@ -1,5 +1,41 @@
 # Learning Plan
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [Learning Philosophy](#learning-philosophy) |
+| 3 | [Primary Learning Goals](#primary-learning-goals) |
+| 4 | [Software Engineering](#software-engineering) |
+| 5 | [Backend Development](#backend-development) |
+| 6 | [Database Design](#database-design) |
+| 7 | [Authentication & Security](#authentication--security) |
+| 8 | [Frontend Integration](#frontend-integration) |
+| 9 | [SaaS Development](#saas-development) |
+| 10 | [Deployment](#deployment) |
+| 11 | [Learning Roadmap](#learning-roadmap) |
+| 12 | [Stage 1 — Project Foundation](#stage-1--project-foundation) |
+| 13 | [Stage 2 — Database Fundamentals](#stage-2--database-fundamentals) |
+| 14 | [Stage 3 — Backend Fundamentals](#stage-3--backend-fundamentals) |
+| 15 | [Stage 4 — Authentication & Authorization](#stage-4--authentication--authorization) |
+| 16 | [Stage 5 — Business Modules](#stage-5--business-modules) |
+| 17 | [Stage 6 — Advanced Development](#stage-6--advanced-development) |
+| 18 | [Stage 7 — Production Deployment](#stage-7--production-deployment) |
+| 19 | [Learning Workflow](#learning-workflow) |
+| 20 | [Step 1 — Understand the Business](#step-1--understand-the-business) |
+| 21 | [Step 2 — Understand the Domain](#step-2--understand-the-domain) |
+| 22 | [Step 3 — Design the Database](#step-3--design-the-database) |
+| 23 | [Step 4 — Build the Backend](#step-4--build-the-backend) |
+| 24 | [Step 5 — Connect the Frontend](#step-5--connect-the-frontend) |
+| 25 | [Step 6 — Test](#step-6--test) |
+| 26 | [Step 7 — Document](#step-7--document) |
+| 27 | [AI-Assisted Learning Principles](#ai-assisted-learning-principles) |
+| 28 | [Best Practices](#best-practices) |
+| 29 | [Measuring Progress](#measuring-progress) |
+| 30 | [Completion Goals](#completion-goals) |
+| 31 | [Continuous Improvement](#continuous-improvement) |
+
 ## Purpose
 
 This document defines the learning strategy for developing the Vehicle Rental Management Platform.

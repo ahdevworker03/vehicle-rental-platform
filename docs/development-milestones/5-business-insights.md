@@ -1,5 +1,40 @@
 # Milestone 5 — Business Insights
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Phase 19 — Reports](#phase-19--reports) |
+| 2 | [Step 19.1 — Reports Selectors & Data Layer (Frontend)](#step-191--reports-selectors--data-layer-frontend) |
+| 3 | [Must Read](#must-read) |
+| 4 | [Objectives](#objectives) |
+| 5 | [Deliverables](#deliverables) |
+| 6 | [Acceptance Criteria](#acceptance-criteria) |
+| 7 | [Step 19.2 — Reports (Frontend)](#step-192--reports-frontend) |
+| 8 | [Must Read](#must-read) |
+| 9 | [Objectives](#objectives) |
+| 10 | [Deliverables](#deliverables) |
+| 11 | [Acceptance Criteria](#acceptance-criteria) |
+| 12 | [Phase 20 — Analytics & Insights](#phase-20--analytics--insights) |
+| 13 | [Step 20.1 — Analytics Expansion (Frontend Selectors)](#step-201--analytics-expansion-frontend-selectors) |
+| 14 | [Must Read](#must-read) |
+| 15 | [Objectives](#objectives) |
+| 16 | [Deliverables](#deliverables) |
+| 17 | [Acceptance Criteria](#acceptance-criteria) |
+| 18 | [Step 20.2 — Analytics & Dashboard Insights (Frontend)](#step-202--analytics--dashboard-insights-frontend) |
+| 19 | [Must Read](#must-read) |
+| 20 | [Objectives](#objectives) |
+| 21 | [Deliverables](#deliverables) |
+| 22 | [Acceptance Criteria](#acceptance-criteria) |
+| 23 | [Phase 21 — Insights Verification](#phase-21--insights-verification) |
+| 24 | [Step 21.1 — Manual & Automated Verification](#step-211--manual--automated-verification) |
+| 25 | [Objectives](#objectives) |
+| 26 | [Deliverables](#deliverables) |
+| 27 | [Acceptance Criteria](#acceptance-criteria) |
+| 28 | [Architectural and Product Decisions — Approved](#architectural-and-product-decisions--approved) |
+| 29 | [Milestone 5 Completion Checklist](#milestone-5-completion-checklist) |
+| 30 | [Milestone Status](#milestone-status) |
+
 **Goal**
 
 Give business owners visibility into business performance through a richer Dashboard, Reports, and expanded Analytics.

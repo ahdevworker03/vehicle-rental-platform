@@ -1,5 +1,49 @@
 # UI Design System
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [1. Purpose](#1-purpose) |
+| 2 | [2. Product UI Principles](#2-product-ui-principles) |
+| 3 | [3. Scope and Non-Goals](#3-scope-and-non-goals) |
+| 4 | [Scope](#scope) |
+| 5 | [Non-goals](#non-goals) |
+| 6 | [4. Visual Direction](#4-visual-direction) |
+| 7 | [5. Design Tokens](#5-design-tokens) |
+| 8 | [5.1 Color](#51-color) |
+| 9 | [5.2 Typography](#52-typography) |
+| 10 | [5.3 Spacing](#53-spacing) |
+| 11 | [5.4 Radius, Borders, and Shadows](#54-radius-borders-and-shadows) |
+| 12 | [5.5 Status Semantics](#55-status-semantics) |
+| 13 | [6. Responsive Layout System](#6-responsive-layout-system) |
+| 14 | [7. App Shell and Navigation](#7-app-shell-and-navigation) |
+| 15 | [Desktop and Tablet](#desktop-and-tablet) |
+| 16 | [Mobile](#mobile) |
+| 17 | [Boundary Rules](#boundary-rules) |
+| 18 | [8. Page Archetypes](#8-page-archetypes) |
+| 19 | [8.1 Dashboard](#81-dashboard) |
+| 20 | [8.2 List Pages](#82-list-pages) |
+| 21 | [8.3 Detail Pages](#83-detail-pages) |
+| 22 | [8.4 Forms and Create/Edit Flows](#84-forms-and-createedit-flows) |
+| 23 | [8.5 Reports and Analytics](#85-reports-and-analytics) |
+| 24 | [8.6 Account and Auth Flows](#86-account-and-auth-flows) |
+| 25 | [9. Core Components](#9-core-components) |
+| 26 | [9.1 Buttons and Actions](#91-buttons-and-actions) |
+| 27 | [9.2 Cards](#92-cards) |
+| 28 | [9.3 Tables and Mobile Cards](#93-tables-and-mobile-cards) |
+| 29 | [9.4 Forms](#94-forms) |
+| 30 | [9.5 Status Badges](#95-status-badges) |
+| 31 | [9.6 Dialogs and Sheets](#96-dialogs-and-sheets) |
+| 32 | [9.7 Feedback States](#97-feedback-states) |
+| 33 | [10. Arabic RTL Guidelines](#10-arabic-rtl-guidelines) |
+| 34 | [11. Accessibility Requirements](#11-accessibility-requirements) |
+| 35 | [12. Data and API State Rules](#12-data-and-api-state-rules) |
+| 36 | [13. Motion and Interaction](#13-motion-and-interaction) |
+| 37 | [14. Platform Admin Boundary](#14-platform-admin-boundary) |
+| 38 | [15. Implementation Rules](#15-implementation-rules) |
+| 39 | [16. Verification Checklist](#16-verification-checklist) |
+
 ## 1. Purpose
 
 This document is the implementation baseline for the Vehicle Rental Management Platform UI. It translates the frontend audit and Milestone 5.5 direction into reusable rules for `apps/web`.

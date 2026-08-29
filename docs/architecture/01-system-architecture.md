@@ -1,5 +1,25 @@
 # System Architecture
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [System Overview](#system-overview) |
+| 3 | [High-Level Architecture](#high-level-architecture) |
+| 4 | [Core Components](#core-components) |
+| 5 | [React Application](#react-application) |
+| 6 | [Offline Layer](#offline-layer) |
+| 7 | [Backend API](#backend-api) |
+| 8 | [Database](#database) |
+| 9 | [Data Flow](#data-flow) |
+| 10 | [Online](#online) |
+| 11 | [Offline](#offline) |
+| 12 | [Multi-Tenant Architecture](#multi-tenant-architecture) |
+| 13 | [Design Principles](#design-principles) |
+| 14 | [Supporting Architecture Documents](#supporting-architecture-documents) |
+| 15 | [Guiding Principle](#guiding-principle) |
+
 ## Purpose
 
 This document provides a high-level overview of the entire system.

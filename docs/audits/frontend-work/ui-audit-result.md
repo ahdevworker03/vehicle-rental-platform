@@ -1,5 +1,63 @@
 # Frontend UI Audit Result
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [1. Scope and Status](#1-scope-and-status) |
+| 2 | [2. Source Inventory](#2-source-inventory) |
+| 3 | [3. Reference Product Review](#3-reference-product-review) |
+| 4 | [4. Current Frontend Baseline](#4-current-frontend-baseline) |
+| 5 | [5. Shell and Navigation](#5-shell-and-navigation) |
+| 6 | [Strengths](#strengths) |
+| 7 | [Findings](#findings) |
+| 8 | [Priority](#priority) |
+| 9 | [6. Dashboard](#6-dashboard) |
+| 10 | [Strengths](#strengths) |
+| 11 | [Findings](#findings) |
+| 12 | [Priority](#priority) |
+| 13 | [7. Vehicles](#7-vehicles) |
+| 14 | [Strengths](#strengths) |
+| 15 | [Findings](#findings) |
+| 16 | [Priority](#priority) |
+| 17 | [8. Customers](#8-customers) |
+| 18 | [Strengths](#strengths) |
+| 19 | [Findings](#findings) |
+| 20 | [Priority](#priority) |
+| 21 | [9. Rentals, Contracts, and Payments](#9-rentals-contracts-and-payments) |
+| 22 | [Strengths](#strengths) |
+| 23 | [Findings](#findings) |
+| 24 | [Priority](#priority) |
+| 25 | [10. Maintenance, Expenses, and Tasks](#10-maintenance-expenses-and-tasks) |
+| 26 | [Strengths](#strengths) |
+| 27 | [Findings](#findings) |
+| 28 | [Priority](#priority) |
+| 29 | [11. Analytics and Reports](#11-analytics-and-reports) |
+| 30 | [Strengths](#strengths) |
+| 31 | [Findings](#findings) |
+| 32 | [Priority](#priority) |
+| 33 | [12. Authentication and Account UX](#12-authentication-and-account-ux) |
+| 34 | [Current State](#current-state) |
+| 35 | [Gaps](#gaps) |
+| 36 | [Priority](#priority) |
+| 37 | [13. Organization and Platform Administration](#13-organization-and-platform-administration) |
+| 38 | [14. Design System and Visual Language](#14-design-system-and-visual-language) |
+| 39 | [Existing Foundation](#existing-foundation) |
+| 40 | [Required Consolidation](#required-consolidation) |
+| 41 | [15. Responsive Behavior](#15-responsive-behavior) |
+| 42 | [16. Accessibility and Interaction Quality](#16-accessibility-and-interaction-quality) |
+| 43 | [Strengths](#strengths) |
+| 44 | [Findings](#findings) |
+| 45 | [17. Data and API UX Gaps](#17-data-and-api-ux-gaps) |
+| 46 | [Frontend-to-API gaps](#frontend-to-api-gaps) |
+| 47 | [Integration risks](#integration-risks) |
+| 48 | [18. Risk Register](#18-risk-register) |
+| 49 | [19. Prioritized Rebuild Recommendation](#19-prioritized-rebuild-recommendation) |
+| 50 | [P0: Before visual polish](#p0-before-visual-polish) |
+| 51 | [P1: Core UI rebuild](#p1-core-ui-rebuild) |
+| 52 | [P2: Quality and consistency](#p2-quality-and-consistency) |
+| 53 | [Definition of ready for the next implementation phase](#definition-of-ready-for-the-next-implementation-phase) |
+
 ## 1. Scope and Status
 
 This is the frontend readiness audit for `apps/web`, based on the approved Milestone 5.5 UI rebuild direction and the current post-Milestone 5.7 backend/API state. It is a documentation-only review. No frontend behavior, API contract, or backend code is changed by this audit.

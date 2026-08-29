@@ -1,5 +1,49 @@
 # Domain Model Specification
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [1. Purpose](#1-purpose) |
+| 2 | [2. Source of Truth and Scope](#2-source-of-truth-and-scope) |
+| 3 | [3. Shared Conventions](#3-shared-conventions) |
+| 4 | [3.1 IDs, Names, and Audit Fields](#31-ids-names-and-audit-fields) |
+| 5 | [3.2 Tenant Isolation](#32-tenant-isolation) |
+| 6 | [3.3 Soft Deletes](#33-soft-deletes) |
+| 7 | [3.4 Foreign Keys, Deletes, and Indexes](#34-foreign-keys-deletes-and-indexes) |
+| 8 | [3.5 Validation and API Boundaries](#35-validation-and-api-boundaries) |
+| 9 | [4. Shared Enums](#4-shared-enums) |
+| 10 | [5. Core SaaS and Security Models](#5-core-saas-and-security-models) |
+| 11 | [5.1 Organization](#51-organization) |
+| 12 | [5.2 User](#52-user) |
+| 13 | [5.3 RefreshToken](#53-refreshtoken) |
+| 14 | [5.4 EmployeeInvitation](#54-employeeinvitation) |
+| 15 | [5.5 PasswordResetToken](#55-passwordresettoken) |
+| 16 | [5.6 AuditLog](#56-auditlog) |
+| 17 | [6. Core Business Models](#6-core-business-models) |
+| 18 | [6.1 Customer](#61-customer) |
+| 19 | [6.2 Vehicle](#62-vehicle) |
+| 20 | [6.3 Rental](#63-rental) |
+| 21 | [6.4 Contract](#64-contract) |
+| 22 | [6.5 Payment](#65-payment) |
+| 23 | [6.6 Expense](#66-expense) |
+| 24 | [6.7 Maintenance](#67-maintenance) |
+| 25 | [6.8 MaintenanceSchedule](#68-maintenanceschedule) |
+| 26 | [6.9 Task](#69-task) |
+| 27 | [7. Media Models](#7-media-models) |
+| 28 | [7.1 Shared Media Rules](#71-shared-media-rules) |
+| 29 | [7.2 Document](#72-document) |
+| 30 | [7.3 Photo](#73-photo) |
+| 31 | [8. Reporting and Derived Concepts](#8-reporting-and-derived-concepts) |
+| 32 | [9. Deferred or Future Models](#9-deferred-or-future-models) |
+| 33 | [9.1 Notifications and Reminder Delivery](#91-notifications-and-reminder-delivery) |
+| 34 | [9.2 Online Payment Processing](#92-online-payment-processing) |
+| 35 | [9.3 SaaS Billing and Subscriptions](#93-saas-billing-and-subscriptions) |
+| 36 | [9.4 Platform Administration UI](#94-platform-administration-ui) |
+| 37 | [9.5 Future Product Modules](#95-future-product-modules) |
+| 38 | [10. Open Decisions](#10-open-decisions) |
+| 39 | [11. Implementation Contract](#11-implementation-contract) |
+
 ## 1. Purpose
 
 This is the implementation-ready specification for the Vehicle Rental Management Platform domain. It defines the implemented PostgreSQL/Prisma model, application validation, relationship ownership, and business rules that repositories, services, APIs, and tests must preserve.

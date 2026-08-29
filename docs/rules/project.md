@@ -1,5 +1,19 @@
 # Project
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Product Vision](#product-vision) |
+| 2 | [Current Stage](#current-stage) |
+| 3 | [Repository Architecture](#repository-architecture) |
+| 4 | [Repository Structure](#repository-structure) |
+| 5 | [Source of Truth](#source-of-truth) |
+| 6 | [Development Principles](#development-principles) |
+| 7 | [Generated Artifacts](#generated-artifacts) |
+| 8 | [Repository Rules](#repository-rules) |
+| 9 | [Long-Term Goal](#long-term-goal) |
+
 This repository contains the production codebase for the Vehicle Rental Management Platform.
 
 The project follows a documentation-first, API-first, and monorepo architecture. Repository documentation is the primary source of truth for architecture, workflows, and development decisions.

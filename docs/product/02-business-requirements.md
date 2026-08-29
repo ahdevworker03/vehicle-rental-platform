@@ -1,5 +1,41 @@
 # Business Requirements
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [1. Introduction](#1-introduction) |
+| 2 | [2. Organization Management](#2-organization-management) |
+| 3 | [Requirements](#requirements) |
+| 4 | [3. User Management](#3-user-management) |
+| 5 | [Requirements](#requirements) |
+| 6 | [4. Customer Management](#4-customer-management) |
+| 7 | [Requirements](#requirements) |
+| 8 | [5. Vehicle Management](#5-vehicle-management) |
+| 9 | [Requirements](#requirements) |
+| 10 | [6. Rental Management](#6-rental-management) |
+| 11 | [Requirements](#requirements) |
+| 12 | [7. Contract Management](#7-contract-management) |
+| 13 | [Requirements](#requirements) |
+| 14 | [8. Financial Management](#8-financial-management) |
+| 15 | [Requirements](#requirements) |
+| 16 | [9. Maintenance Management](#9-maintenance-management) |
+| 17 | [Requirements](#requirements) |
+| 18 | [10. Task Management](#10-task-management) |
+| 19 | [Requirements](#requirements) |
+| 20 | [11. Dashboard & Analytics](#11-dashboard--analytics) |
+| 21 | [Requirements](#requirements) |
+| 22 | [12. Search](#12-search) |
+| 23 | [Requirements](#requirements) |
+| 24 | [13. Notifications & Reminders](#13-notifications--reminders) |
+| 25 | [Requirements](#requirements) |
+| 26 | [14. Offline Capability](#14-offline-capability) |
+| 27 | [Requirements](#requirements) |
+| 28 | [15. Performance](#15-performance) |
+| 29 | [Requirements](#requirements) |
+| 30 | [16. Business Rules](#16-business-rules) |
+| 31 | [17. Future Expansion](#17-future-expansion) |
+
 ## 1. Introduction
 
 This document defines the functional business requirements for the Vehicle Rental Management Platform. The requirements are based on interviews and discussions with vehicle rental business owners, combined with additional analysis of common operational workflows.

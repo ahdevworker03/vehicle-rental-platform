@@ -1,5 +1,33 @@
 # Testing Strategy
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [1. Purpose](#1-purpose) |
+| 2 | [2. Testing Principles](#2-testing-principles) |
+| 3 | [3. Testing Layers](#3-testing-layers) |
+| 4 | [Unit Testing](#unit-testing) |
+| 5 | [Backend Integration and API Testing](#backend-integration-and-api-testing) |
+| 6 | [Frontend Unit and Component Testing](#frontend-unit-and-component-testing) |
+| 7 | [End-to-End Testing](#end-to-end-testing) |
+| 8 | [Manual Testing](#manual-testing) |
+| 9 | [4. Risk-Based Testing](#4-risk-based-testing) |
+| 10 | [High Risk](#high-risk) |
+| 11 | [Medium Risk](#medium-risk) |
+| 12 | [Low Risk](#low-risk) |
+| 13 | [5. When Testing Happens](#5-when-testing-happens) |
+| 14 | [During Feature Development](#during-feature-development) |
+| 15 | [During Bug Fixes](#during-bug-fixes) |
+| 16 | [During Milestone 6: Production Readiness](#during-milestone-6-production-readiness) |
+| 17 | [After Production](#after-production) |
+| 18 | [6. Responsibilities by Change Type](#6-responsibilities-by-change-type) |
+| 19 | [7. Critical Product Areas](#7-critical-product-areas) |
+| 20 | [8. Definition of Testing Complete](#8-definition-of-testing-complete) |
+| 21 | [9. Release Strategy](#9-release-strategy) |
+| 22 | [10. Deferred Testing Needs](#10-deferred-testing-needs) |
+| 23 | [11. Related Testing Documents](#11-related-testing-documents) |
+
 ## 1. Purpose
 
 Testing provides enough evidence that the Vehicle Rental Management Platform is correct, secure, reliable, and usable by real rental businesses. The platform stores operational and financial data in a shared multi-tenant system, so failures can expose another organization's data, corrupt business records, misstate money, or prevent daily rental work.

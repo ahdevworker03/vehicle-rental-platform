@@ -1,5 +1,16 @@
 # API Contract & Generated Code Rules
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Source of Truth](#source-of-truth) |
+| 2 | [Contract First](#contract-first) |
+| 3 | [Generated Artifacts](#generated-artifacts) |
+| 4 | [Compatibility](#compatibility) |
+| 5 | [Shared Types](#shared-types) |
+| 6 | [Validation](#validation) |
+
 These rules govern API contracts and all generated code and artifacts throughout the repository.
 
 ## Source of Truth

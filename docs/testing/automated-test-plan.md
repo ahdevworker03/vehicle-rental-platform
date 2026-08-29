@@ -1,5 +1,29 @@
 # Automated Test Plan
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [1. Purpose](#1-purpose) |
+| 2 | [2. Testing Levels](#2-testing-levels) |
+| 3 | [Unit Tests](#unit-tests) |
+| 4 | [Backend Integration and API Tests](#backend-integration-and-api-tests) |
+| 5 | [Frontend Unit and Component Tests](#frontend-unit-and-component-tests) |
+| 6 | [End-to-End Tests](#end-to-end-tests) |
+| 7 | [3. Current Automated Coverage](#3-current-automated-coverage) |
+| 8 | [4. High-Risk Regression Areas](#4-high-risk-regression-areas) |
+| 9 | [5. When Tests Are Implemented](#5-when-tests-are-implemented) |
+| 10 | [During Normal Feature Development](#during-normal-feature-development) |
+| 11 | [During Milestone 6: Production Readiness](#during-milestone-6-production-readiness) |
+| 12 | [Later or Only When Justified](#later-or-only-when-justified) |
+| 13 | [6. Test Ownership During Development](#6-test-ownership-during-development) |
+| 14 | [7. Test Environment and Data](#7-test-environment-and-data) |
+| 15 | [Backend](#backend) |
+| 16 | [Frontend](#frontend) |
+| 17 | [8. Verification Commands](#8-verification-commands) |
+| 18 | [9. Release Verification](#9-release-verification) |
+| 19 | [10. Boundaries](#10-boundaries) |
+
 ## 1. Purpose
 
 Automated testing in this project means executable checks that verify product behavior repeatedly as the code changes. It protects the business rules and public contracts of the Vehicle Rental Management Platform rather than attempting to test every function or component.

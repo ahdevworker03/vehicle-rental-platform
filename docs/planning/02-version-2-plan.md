@@ -1,5 +1,51 @@
 # Version 2 Development Plan
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [Primary Goal](#primary-goal) |
+| 3 | [Success Criteria](#success-criteria) |
+| 4 | [Product Scope](#product-scope) |
+| 5 | [Included in Version 2](#included-in-version-2) |
+| 6 | [Organization Management](#organization-management) |
+| 7 | [User Management](#user-management) |
+| 8 | [Customer Management](#customer-management) |
+| 9 | [Vehicle Management](#vehicle-management) |
+| 10 | [Rental Management](#rental-management) |
+| 11 | [Contract Management](#contract-management) |
+| 12 | [Financial Management](#financial-management) |
+| 13 | [Maintenance Management](#maintenance-management) |
+| 14 | [Task Management](#task-management) |
+| 15 | [Dashboard & Analytics](#dashboard--analytics) |
+| 16 | [Offline Capability](#offline-capability) |
+| 17 | [Performance](#performance) |
+| 18 | [Features Postponed](#features-postponed) |
+| 19 | [Vehicle Sales](#vehicle-sales) |
+| 20 | [Online Reservations](#online-reservations) |
+| 21 | [Customer Portal](#customer-portal) |
+| 22 | [Accounting Integration](#accounting-integration) |
+| 23 | [Advanced Analytics](#advanced-analytics) |
+| 24 | [Branch Management](#branch-management) |
+| 25 | [Public Website](#public-website) |
+| 26 | [Development Milestones](#development-milestones) |
+| 27 | [Milestone 1 — Foundation](#milestone-1--foundation) |
+| 28 | [Milestone 2 — Core Business Data](#milestone-2--core-business-data) |
+| 29 | [Milestone 3 — Rental Operations](#milestone-3--rental-operations) |
+| 30 | [Milestone 4 — Operations](#milestone-4--operations) |
+| 31 | [Milestone 5 — Business Insights](#milestone-5--business-insights) |
+| 32 | [Milestone 6 — Production Readiness](#milestone-6--production-readiness) |
+| 33 | [Development Priorities](#development-priorities) |
+| 34 | [Risks](#risks) |
+| 35 | [Learning New Technologies](#learning-new-technologies) |
+| 36 | [Scope Creep](#scope-creep) |
+| 37 | [Offline Synchronization Complexity](#offline-synchronization-complexity) |
+| 38 | [Limited Development Time](#limited-development-time) |
+| 39 | [Definition of Done](#definition-of-done) |
+| 40 | [Learning Objectives](#learning-objectives) |
+| 41 | [Transition to Future Versions](#transition-to-future-versions) |
+
 ## Purpose
 
 Version 2 represents the first production-ready release of the Vehicle Rental Management Platform.

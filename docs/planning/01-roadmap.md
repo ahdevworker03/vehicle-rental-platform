@@ -1,5 +1,26 @@
 # Product Roadmap
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [Current Status](#current-status) |
+| 3 | [Frontend MVP ✅](#frontend-mvp-) |
+| 4 | [Phase 1 — Production Foundation](#phase-1--production-foundation) |
+| 5 | [Goal](#goal) |
+| 6 | [Phase 2 — Production Launch](#phase-2--production-launch) |
+| 7 | [Goal](#goal) |
+| 8 | [Phase 3 — Product Improvement](#phase-3--product-improvement) |
+| 9 | [Goal](#goal) |
+| 10 | [Phase 4 — Platform Expansion](#phase-4--platform-expansion) |
+| 11 | [Goal](#goal) |
+| 12 | [Phase 5 — SaaS Growth](#phase-5--saas-growth) |
+| 13 | [Goal](#goal) |
+| 14 | [Long-Term Vision](#long-term-vision) |
+| 15 | [Roadmap Principles](#roadmap-principles) |
+| 16 | [Living Roadmap](#living-roadmap) |
+
 ## Purpose
 
 This roadmap defines the long-term evolution of the Vehicle Rental Management Platform. It provides a strategic direction for the product while allowing flexibility as customer feedback and market needs evolve.

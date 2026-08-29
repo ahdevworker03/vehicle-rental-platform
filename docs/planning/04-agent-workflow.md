@@ -1,5 +1,28 @@
 # Agent Workflow
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Purpose](#purpose) |
+| 2 | [Development Philosophy](#development-philosophy) |
+| 3 | [Standard Development Lifecycle](#standard-development-lifecycle) |
+| 4 | [Documentation Workflow](#documentation-workflow) |
+| 5 | [Feature Development Workflow](#feature-development-workflow) |
+| 6 | [Step 1 — Understand the Problem](#step-1--understand-the-problem) |
+| 7 | [Step 2 — Review Existing Documentation](#step-2--review-existing-documentation) |
+| 8 | [Step 3 — Design](#step-3--design) |
+| 9 | [Step 4 — Implement](#step-4--implement) |
+| 10 | [Step 5 — Test](#step-5--test) |
+| 11 | [Step 6 — Document](#step-6--document) |
+| 12 | [Step 7 — Commit](#step-7--commit) |
+| 13 | [AI Collaboration Guidelines](#ai-collaboration-guidelines) |
+| 14 | [Code Quality Standards](#code-quality-standards) |
+| 15 | [Git Workflow](#git-workflow) |
+| 16 | [Testing Workflow](#testing-workflow) |
+| 17 | [Definition of Done](#definition-of-done) |
+| 18 | [Continuous Improvement](#continuous-improvement) |
+
 ## Purpose
 
 This document defines the standard development workflow for the Vehicle Rental Management Platform.

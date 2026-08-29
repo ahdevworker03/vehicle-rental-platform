@@ -1,5 +1,16 @@
 # Authentication & Authorization Rules
 
+## Table of Contents
+
+| # | Section |
+| - | ------- |
+| 1 | [Roles](#roles) |
+| 2 | [Tokens](#tokens) |
+| 3 | [Passwords and Secrets](#passwords-and-secrets) |
+| 4 | [Authorization](#authorization) |
+| 5 | [Tenant Context](#tenant-context) |
+| 6 | [Changes](#changes) |
+
 These rules define how authentication and access control work in this repository. The full policy lives in `docs/architecture/10-authentication-policy.md`.
 
 ## Roles
