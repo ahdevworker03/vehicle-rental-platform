@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
+  Building2,
   Car,
   ClipboardList,
   FileText,
@@ -85,6 +86,13 @@ const reports: NavigationItem = {
   icon: FileText,
 };
 
+const account: NavigationItem = {
+  label: "حساب المؤسسة",
+  shortLabel: "الحساب",
+  route: "/account",
+  icon: Building2,
+};
+
 /**
  * Existing application routes only. Payments remains rental-contextual because
  * the product has no organization-wide payments review route to expose.
@@ -101,6 +109,10 @@ export const NAVIGATION_GROUPS = [
   {
     label: "متابعة الأعمال",
     items: [analytics, reports],
+  },
+  {
+    label: "الحساب",
+    items: [account],
   },
 ] as const satisfies readonly NavigationGroup[];
 

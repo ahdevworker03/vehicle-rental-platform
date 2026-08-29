@@ -32,6 +32,7 @@ export function MediaGallery({
 }: MediaGalleryProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
   const [contentUrls, setContentUrls] = useState<Record<string, string>>({});
   const { user } = useAuth();
   const canMutate = user?.role === "OWNER" || isOwner;
@@ -72,12 +73,25 @@ export function MediaGallery({
     if (!file) return;
 
     setUploadError(null);
+    setFeedback(null);
     try {
       await onUpload(file);
+      setFeedback("تمت إضافة الصورة بنجاح.");
     } catch (err) {
       setUploadError(getApiErrorMessage(err).title);
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  async function handleDelete(photoId: string) {
+    setUploadError(null);
+    setFeedback(null);
+    try {
+      await onDelete(photoId);
+      setFeedback("تم حذف الصورة.");
+    } catch (err) {
+      setUploadError(getApiErrorMessage(err).title);
     }
   }
 
@@ -105,9 +119,12 @@ export function MediaGallery({
         onChange={handleFileChange}
       />
 
-      {uploadError && (
-        <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-2.5 text-sm text-destructive mb-3">
-          {uploadError}
+      {(uploadError || feedback) && (
+        <div className={cn(
+          "rounded-xl px-4 py-2.5 text-sm mb-3",
+          uploadError ? "bg-destructive/10 border border-destructive/30 text-destructive" : "bg-muted text-muted-foreground",
+        )}>
+          {uploadError ?? feedback}
         </div>
       )}
 
@@ -144,7 +161,7 @@ export function MediaGallery({
               )}
               {canMutate && (
                 <button
-                  onClick={() => onDelete(photo.id)}
+                  onClick={() => void handleDelete(photo.id)}
                   disabled={deleting}
                   className={cn(
                     "absolute bottom-1.5 left-1.5 p-1.5 rounded-full bg-black/50 text-white active:scale-95 transition-transform",

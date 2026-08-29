@@ -79,6 +79,8 @@ export function useOrgOutstandingBalances() {
 
   const loading =
     rentalsQuery.isLoading || balanceQueries.some((q) => q.isLoading);
+  const isFetching =
+    rentalsQuery.isFetching || balanceQueries.some((q) => q.isFetching);
   const error = rentalsQuery.error ?? balanceQueries.find((q) => q.isError)?.error ?? null;
   const isError = Boolean(error);
   const isSuccess = !loading && !isError && balanceQueries.every((q) => q.isSuccess);
@@ -102,7 +104,14 @@ export function useOrgOutstandingBalances() {
     totalOutstanding,
     rentals,
     isLoading: loading,
+    isFetching,
     isError,
     error,
+    refetch: async () => {
+      await Promise.all([
+        rentalsQuery.refetch(),
+        ...balanceQueries.map((query) => query.refetch()),
+      ]);
+    },
   };
 }

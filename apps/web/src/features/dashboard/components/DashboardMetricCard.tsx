@@ -70,8 +70,8 @@ export function DashboardMetricCard({
   );
 
   const className = cn(
-    "min-h-[132px] rounded-xl border border-card-border bg-card p-4 text-start shadow-sm transition-colors",
-    onClick && "hover:bg-muted/40 active:bg-muted/70",
+    "min-h-[116px] rounded-xl border border-card-border bg-card p-3.5 text-start shadow-sm transition-colors sm:p-4",
+    onClick && "hover:bg-muted/40 active:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
   );
 
   if (onClick) {

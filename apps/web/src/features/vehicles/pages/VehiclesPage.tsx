@@ -55,7 +55,7 @@ export default function VehiclesPage() {
                 const nextFilter = value as FilterValue;
                 setSearchParams(nextFilter === "all" ? {} : { filter: nextFilter }, { replace: true });
               }}
-              className="-mb-1 [&_button]:px-3 [&_button]:text-xs"
+              className="-mb-1 flex-wrap overflow-visible sm:flex-nowrap sm:overflow-x-auto [&_button]:px-3 [&_button]:text-xs"
             />
           </div>
         </SectionCard>

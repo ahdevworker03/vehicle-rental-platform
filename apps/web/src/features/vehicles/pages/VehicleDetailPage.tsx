@@ -54,6 +54,10 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
     await documents.remove.mutateAsync({ vehicleId: id, id: documentId });
   }
 
+  async function handleUpdateDocumentExpiry(documentId: string, expiryDate: string | null) {
+    await documents.update.mutateAsync({ vehicleId: id, id: documentId, data: { expiryDate } });
+  }
+
   async function handleDownloadDocument(fileDocument: { id: string; originalFilename: string }) {
     const blob = await documents.download(fileDocument.id);
     const url = URL.createObjectURL(blob);
@@ -154,7 +158,7 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
               <MediaGallery photos={photos.query.data?.data ?? []} isLoading={photos.query.isLoading} isError={photos.query.isError} error={photos.query.error} isOwner={isOwner} uploading={photos.upload.isPending} deleting={photos.remove.isPending} onUpload={handleUploadPhoto} onDelete={handleDeletePhoto} onLoadContent={handleLoadPhotoContent} />
             </DetailSection>
 
-            <DetailSection><DocumentList documents={documents.query.data?.data ?? []} isLoading={documents.query.isLoading} isError={documents.query.isError} error={documents.query.error} isOwner={isOwner} uploading={documents.upload.isPending} deleting={documents.remove.isPending} onUpload={handleUploadDocument} onDelete={handleDeleteDocument} onDownload={handleDownloadDocument} /></DetailSection>
+            <DetailSection><DocumentList documents={documents.query.data?.data ?? []} isLoading={documents.query.isLoading} isError={documents.query.isError} error={documents.query.error} isOwner={isOwner} uploading={documents.upload.isPending} updating={documents.update.isPending} deleting={documents.remove.isPending} onUpload={handleUploadDocument} onDelete={handleDeleteDocument} onDownload={handleDownloadDocument} onUpdateExpiry={handleUpdateDocumentExpiry} /></DetailSection>
             <RentalHistorySection rentals={vehicleRentals.rentals} isLoading={vehicleRentals.isLoading} isError={vehicleRentals.isError} error={vehicleRentals.error} title="سجل الإيجارات" emptyMessage="لا توجد إيجارات لهذه المركبة" />
             <MaintenanceHistorySection vehicleId={vehicle.id} />
           </section>

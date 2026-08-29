@@ -7,6 +7,7 @@ import {
   serveVehiclePhoto,
   useListVehicleDocuments,
   useUploadVehicleDocument,
+  useUpdateVehicleDocument,
   useDeleteVehicleDocument,
   getListVehicleDocumentsQueryKey,
   downloadVehicleDocument,
@@ -50,6 +51,13 @@ export function useVehicleDocuments(vehicleId: string) {
       },
     },
   });
+  const update = useUpdateVehicleDocument({
+    mutation: {
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: getListVehicleDocumentsQueryKey(vehicleId) });
+      },
+    },
+  });
   const remove = useDeleteVehicleDocument({
     mutation: {
       onSuccess: () => {
@@ -59,7 +67,7 @@ export function useVehicleDocuments(vehicleId: string) {
   });
   const download = (documentId: string) => downloadVehicleDocument(vehicleId, documentId);
 
-  return { query, upload, remove, download };
+  return { query, upload, update, remove, download };
 }
 
 export function useCustomerDocuments(customerId: string) {

@@ -2,6 +2,8 @@ import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AppShell } from '@/components/layout/AppShell';
+import { FocusedFlow } from '@/components/layout/FocusedFlow';
+import { OrganizationStatusGate } from '@/components/layout/OrganizationStatusGate';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
@@ -16,6 +18,7 @@ import { AddExpensePage, ExpenseDetailPage, ExpensesPage } from '@/features/expe
 import { AnalyticsPage } from '@/features/analytics';
 import { ReportsPage } from '@/features/reports';
 import { AddTaskPage, TaskDetailPage, TasksPage } from '@/features/tasks';
+import { AccountPage } from '@/features/account';
 import NotFound from '@/app/NotFoundPage';
 
 function Router() {
@@ -40,6 +43,7 @@ function Router() {
       <Route path="/reports" component={ReportsPage} />
       <Route path="/tasks" component={TasksPage} />
       <Route path="/tasks/:id" component={TaskDetailPage} />
+      <Route path="/account" component={AccountPage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -48,9 +52,11 @@ function Router() {
 function ProtectedShell() {
   return (
     <ProtectedRoute>
-      <AppShell>
-        <Router />
-      </AppShell>
+      <OrganizationStatusGate>
+        <AppShell>
+          <Router />
+        </AppShell>
+      </OrganizationStatusGate>
     </ProtectedRoute>
   );
 }
@@ -68,38 +74,38 @@ function App() {
               {/* Full-screen flows render outside AppShell (no bottom navigation) */}
               <Route path="/rentals/new">
                 <ProtectedRoute>
-                  <div className="h-[100dvh] flex flex-col bg-background relative overflow-hidden">
-                    <div className="flex-1 flex flex-col min-h-0 mx-auto w-full max-w-5xl">
+                  <OrganizationStatusGate>
+                    <FocusedFlow maxWidth="wide">
                       <NewRentalPage />
-                    </div>
-                  </div>
+                    </FocusedFlow>
+                  </OrganizationStatusGate>
                 </ProtectedRoute>
               </Route>
               <Route path="/maintenance/add">
                 <ProtectedRoute>
-                  <div className="h-[100dvh] flex flex-col bg-background relative overflow-hidden">
-                    <div className="flex-1 flex flex-col min-h-0 mx-auto w-full max-w-3xl">
+                  <OrganizationStatusGate>
+                    <FocusedFlow>
                       <AddMaintenancePage />
-                    </div>
-                  </div>
+                    </FocusedFlow>
+                  </OrganizationStatusGate>
                 </ProtectedRoute>
               </Route>
               <Route path="/expenses/add">
                 <ProtectedRoute>
-                  <div className="h-[100dvh] flex flex-col bg-background relative overflow-hidden">
-                    <div className="flex-1 flex flex-col min-h-0 mx-auto w-full max-w-3xl">
+                  <OrganizationStatusGate>
+                    <FocusedFlow>
                       <AddExpensePage />
-                    </div>
-                  </div>
+                    </FocusedFlow>
+                  </OrganizationStatusGate>
                 </ProtectedRoute>
               </Route>
               <Route path="/tasks/add">
                 <ProtectedRoute>
-                  <div className="h-[100dvh] flex flex-col bg-background relative overflow-hidden">
-                    <div className="flex-1 flex flex-col min-h-0 mx-auto w-full max-w-3xl">
+                  <OrganizationStatusGate>
+                    <FocusedFlow>
                       <AddTaskPage />
-                    </div>
-                  </div>
+                    </FocusedFlow>
+                  </OrganizationStatusGate>
                 </ProtectedRoute>
               </Route>
 

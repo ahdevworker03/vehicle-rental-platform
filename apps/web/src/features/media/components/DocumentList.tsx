@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Plus, FileText, Trash2, Download, Loader2 } from "lucide-react";
+import { Plus, FileText, Trash2, Download, Loader2, Pencil } from "lucide-react";
 import type { DocumentResponse } from "@workspace/api-client-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { getApiErrorMessage } from "@/lib/api-error";
@@ -13,9 +13,11 @@ interface DocumentListProps {
   isOwner: boolean;
   uploading: boolean;
   deleting: boolean;
+  updating?: boolean;
   onUpload: (file: File, category: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onDownload: (doc: DocumentResponse) => Promise<void>;
+  onUpdateExpiry?: (id: string, expiryDate: string | null) => Promise<void>;
 }
 
 export function DocumentList({
@@ -26,14 +28,19 @@ export function DocumentList({
   isOwner,
   uploading,
   deleting,
+  updating = false,
   onUpload,
   onDelete,
   onDownload,
+  onUpdateExpiry,
 }: DocumentListProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [category, setCategory] = useState("OTHER");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [editingExpiryId, setEditingExpiryId] = useState<string | null>(null);
+  const [expiryDate, setExpiryDate] = useState("");
+  const [feedback, setFeedback] = useState<string | null>(null);
   const { user } = useAuth();
   const canMutate = user?.role === "OWNER" || isOwner;
 
@@ -42,8 +49,10 @@ export function DocumentList({
     if (!file) return;
 
     setUploadError(null);
+    setFeedback(null);
     try {
       await onUpload(file, category);
+      setFeedback("تمت إضافة المستند بنجاح.");
     } catch (err) {
       setUploadError(getApiErrorMessage(err).title);
     } finally {
@@ -60,6 +69,30 @@ export function DocumentList({
       setUploadError(getApiErrorMessage(err).title);
     } finally {
       setDownloadingId(null);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    setUploadError(null);
+    setFeedback(null);
+    try {
+      await onDelete(id);
+      setFeedback("تم حذف المستند.");
+    } catch (err) {
+      setUploadError(getApiErrorMessage(err).title);
+    }
+  }
+
+  async function handleUpdateExpiry(id: string) {
+    if (!onUpdateExpiry) return;
+    setUploadError(null);
+    setFeedback(null);
+    try {
+      await onUpdateExpiry(id, expiryDate || null);
+      setEditingExpiryId(null);
+      setFeedback("تم تحديث تاريخ الانتهاء.");
+    } catch (err) {
+      setUploadError(getApiErrorMessage(err).title);
     }
   }
 
@@ -102,7 +135,7 @@ export function DocumentList({
         onChange={handleFileChange}
       />
 
-      {(uploadError || downloadingId) && (
+      {(uploadError || feedback || downloadingId) && (
         <div
           className={
             uploadError
@@ -110,7 +143,7 @@ export function DocumentList({
               : "bg-muted rounded-xl px-4 py-2.5 text-sm text-muted-foreground mb-3"
           }
         >
-          {uploadError ? uploadError : "جاري التحميل..."}
+          {uploadError ?? feedback ?? "جاري التحميل..."}
         </div>
       )}
 
@@ -146,6 +179,11 @@ export function DocumentList({
                 <div className="text-xs text-muted-foreground mt-0.5">
                   {DOCUMENT_CATEGORY_LABELS[doc.category] ?? doc.category} · {formatFileSize(doc.fileSize)} · {formatDate(doc.createdAt)}
                 </div>
+                {onUpdateExpiry && (
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    تاريخ الانتهاء: {doc.expiryDate ? formatDate(doc.expiryDate) : "غير محدد"}
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => handleDownload(doc)}
@@ -160,9 +198,33 @@ export function DocumentList({
                 )}
               </button>
               {canMutate && (
+                onUpdateExpiry && editingExpiryId === doc.id ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      aria-label="تاريخ انتهاء المستند"
+                      type="date"
+                      className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
+                      value={expiryDate}
+                      onChange={(event) => setExpiryDate(event.target.value)}
+                    />
+                    <button type="button" onClick={() => void handleUpdateExpiry(doc.id)} disabled={updating} className="rounded-lg px-2 py-1.5 text-xs font-semibold text-primary">حفظ</button>
+                    <button type="button" onClick={() => setEditingExpiryId(null)} disabled={updating} className="rounded-lg px-2 py-1.5 text-xs text-muted-foreground">إلغاء</button>
+                  </div>
+                ) : (
+                  onUpdateExpiry && <button
+                    type="button"
+                    onClick={() => { setEditingExpiryId(doc.id); setExpiryDate(doc.expiryDate ?? ""); }}
+                    className="w-9 h-9 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground active:scale-95 transition-transform flex-shrink-0"
+                    aria-label="تعديل تاريخ الانتهاء"
+                  >
+                    <Pencil className="size-4" />
+                  </button>
+                )
+              )}
+              {canMutate && (
                 <button
-                  onClick={() => onDelete(doc.id)}
-                  disabled={deleting}
+                  onClick={() => void handleDelete(doc.id)}
+                  disabled={deleting || updating}
                   className="w-9 h-9 flex items-center justify-center rounded-full text-destructive active:scale-95 transition-transform flex-shrink-0"
                   aria-label="حذف المستند"
                 >
