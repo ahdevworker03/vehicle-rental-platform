@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearchParams } from "wouter";
 import { Plus, Users } from "lucide-react";
 import { useCustomersList } from "@/features/customers/api-hooks";
 
@@ -16,7 +16,8 @@ import { useAuth } from "@/providers/AuthProvider";
 
 export default function CustomersPage() {
   const [, setLocation] = useLocation();
-  const [search, setSearch] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams.get("search") ?? "");
   const { user } = useAuth();
   const isOwner = user?.role === "OWNER";
   const debouncedSearch = useDebouncedValue(search.trim(), 300);
@@ -33,7 +34,7 @@ export default function CustomersPage() {
 
       <div className="space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
         <SectionCard title="قائمة العملاء" description="ابحث عن المستأجرين وراجع بيانات الهوية والرخصة بسرعة." className="shadow-none">
-          <SearchBar placeholder="ابحث بالاسم أو الهوية أو رقم الرخصة أو الهاتف..." value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch("")} />
+          <SearchBar placeholder="ابحث بالاسم أو الهوية أو رقم الرخصة أو الهاتف..." value={search} onChange={(event) => { const value = event.target.value; setSearch(value); setSearchParams(value ? { search: value } : {}, { replace: true }); }} onClear={() => { setSearch(""); setSearchParams({}, { replace: true }); }} />
         </SectionCard>
 
         {customersQuery.isLoading ? (

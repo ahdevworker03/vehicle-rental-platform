@@ -13,6 +13,7 @@ import {
   downloadVehicleDocument,
   useListCustomerDocuments,
   useUploadCustomerDocument,
+  useUpdateCustomerDocument,
   useDeleteCustomerDocument,
   getListCustomerDocumentsQueryKey,
   downloadCustomerDocument,
@@ -80,6 +81,13 @@ export function useCustomerDocuments(customerId: string) {
       },
     },
   });
+  const update = useUpdateCustomerDocument({
+    mutation: {
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: getListCustomerDocumentsQueryKey(customerId) });
+      },
+    },
+  });
   const remove = useDeleteCustomerDocument({
     mutation: {
       onSuccess: () => {
@@ -89,7 +97,7 @@ export function useCustomerDocuments(customerId: string) {
   });
   const download = (documentId: string) => downloadCustomerDocument(customerId, documentId);
 
-  return { query, upload, remove, download };
+  return { query, upload, update, remove, download };
 }
 
 export type { DocumentResponseCategory };

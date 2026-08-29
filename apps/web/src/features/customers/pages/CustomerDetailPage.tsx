@@ -9,6 +9,7 @@ import { DocumentList } from "@/features/media";
 import { ErrorState, InlineError, LoadingState } from "@/components/ui/FeedbackState";
 import { RentalHistorySection } from "@/features/rentals";
 import { DetailSection, SummaryActionPanel } from "@/components/ui/SectionCard";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useCustomerDocuments } from "@/features/media/hooks";
 import { useRentalsForCustomer } from "@/features/rentals/api-hooks";
 import { getApiErrorMessage } from "@/lib/api-error";
@@ -48,6 +49,10 @@ export default function CustomerDetailPage({ params }: DetailPageParams) {
     await documents.remove.mutateAsync({ customerId: id, id: documentId });
   }
 
+  async function handleUpdateDocumentExpiry(documentId: string, expiryDate: string | null) {
+    await documents.update.mutateAsync({ customerId: id, id: documentId, data: { expiryDate } });
+  }
+
   async function handleDownloadDocument(fileDocument: { id: string; originalFilename: string }) {
     const blob = await documents.download(fileDocument.id);
     const url = URL.createObjectURL(blob);
@@ -75,6 +80,9 @@ export default function CustomerDetailPage({ params }: DetailPageParams) {
   if (customerQuery.isError || !customer) return <div className="min-h-full"><PageHeader title="تفاصيل العميل" showBack /><ErrorState className="py-16" title="تعذر تحميل العميل" description={customerQuery.error ? getApiErrorMessage(customerQuery.error).title : "لم يتم العثور على هذا العميل."} onRetry={() => void customerQuery.refetch()} /></div>;
 
   const fullName = `${customer.firstName} ${customer.lastName}`.trim();
+  const currentRental = customerRentals.rentals.find((rental) => rental.status === "ACTIVE" || rental.status === "RESERVED");
+  const licenseExpiresAt = new Date(customer.licenseExpiryDate);
+  const licenseExpired = !Number.isNaN(licenseExpiresAt.getTime()) && licenseExpiresAt < new Date();
 
   return (
     <div className="min-h-full pb-8">
@@ -96,6 +104,15 @@ export default function CustomerDetailPage({ params }: DetailPageParams) {
             <SummaryActionPanel title="إجراءات العميل" description="إدارة بيانات العميل وسجل إجارته.">
               <div className="space-y-3">
                 {isOwner && !confirmingDelete && <Button type="button" variant="outline" className="w-full" onClick={() => setLocation(`/customers/${customer.id}/edit`)}><Pencil className="size-4" aria-hidden="true" />تعديل العميل</Button>}
+                {currentRental && (
+                  <div className="rounded-lg bg-muted/45 p-3">
+                    <div className="ui-label">الإيجار الحالي</div>
+                    <div className="mt-1 flex items-center justify-between gap-3">
+                      <StatusBadge status={currentRental.status} />
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setLocation(`/rentals/${currentRental.id}`)}>عرض الإيجار</Button>
+                    </div>
+                  </div>
+                )}
                 {isOwner && (confirmingDelete ? (
                   <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
                     <p className="text-sm text-foreground">هل تريد حذف هذا العميل؟</p>
@@ -115,7 +132,7 @@ export default function CustomerDetailPage({ params }: DetailPageParams) {
                 <KeyValue label="العنوان" value={customer.address} />
                 <KeyValue label="رقم الهوية" value={customer.nationalId} numeric />
                 <KeyValue label="رقم الرخصة" value={customer.licenseNumber} numeric />
-                <KeyValue label="انتهاء الرخصة" value={formatDate(customer.licenseExpiryDate)} numeric />
+                <KeyValue label={licenseExpired ? "الرخصة منتهية" : "انتهاء الرخصة"} value={formatDate(customer.licenseExpiryDate)} numeric />
               </div>
             </DetailSection>
 
@@ -127,10 +144,12 @@ export default function CustomerDetailPage({ params }: DetailPageParams) {
                 error={documents.query.error}
                 isOwner={isOwner}
                 uploading={documents.upload.isPending}
+                updating={documents.update.isPending}
                 deleting={documents.remove.isPending}
                 onUpload={handleUploadDocument}
                 onDelete={handleDeleteDocument}
                 onDownload={handleDownloadDocument}
+                onUpdateExpiry={handleUpdateDocumentExpiry}
               />
             </DetailSection>
 
