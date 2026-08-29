@@ -12,7 +12,7 @@ import { ErrorState } from "@/components/ui/FeedbackState";
 import { FilterChips } from "@/components/ui/FilterChips";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { SectionCard } from "@/components/ui/SectionCard";
-import { useMaintenance } from "@/features/maintenance/hooks";
+import { useMaintenance, useMaintenanceSchedules } from "@/features/maintenance/hooks";
 import { getDisplayStatus, getOverdueCount } from "@/features/maintenance/selectors";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getApiErrorMessage } from "@/lib/api-error";
@@ -45,6 +45,7 @@ export default function MaintenancePage() {
   const debouncedSearch = useDebouncedValue(search.trim(), 300);
   const filter = (searchParams.get("filter") as FilterValue) || "all";
   const maintenanceQuery = useMaintenance();
+  const schedulesQuery = useMaintenanceSchedules();
   const vehiclesQuery = useListVehicles();
   const records = useMemo(() => maintenanceQuery.data?.data ?? [], [maintenanceQuery.data]);
   const vehiclesById = useMemo(() => {
@@ -83,7 +84,7 @@ export default function MaintenancePage() {
         <SectionCard title="سجل الصيانة" description="تابع المواعيد وحالة الأعمال وتكاليف الصيانة." className="shadow-none">
           <div className="space-y-3">
             <SearchBar placeholder="ابحث بالمركبة أو نوع الصيانة..." value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch("")} />
-            <FilterChips options={FILTER_OPTIONS} value={filter} onChange={(value) => { const next = value as FilterValue; setSearchParams(next === "all" ? {} : { filter: next }, { replace: true }); }} className="-mb-1 [&_button]:px-3 [&_button]:text-xs" />
+            <FilterChips options={FILTER_OPTIONS} value={filter} onChange={(value) => { const next = value as FilterValue; setSearchParams(next === "all" ? {} : { filter: next }, { replace: true }); }} className="-mb-1 flex-wrap overflow-visible sm:flex-nowrap sm:overflow-x-auto [&_button]:px-3 [&_button]:text-xs" />
           </div>
         </SectionCard>
 
@@ -96,6 +97,10 @@ export default function MaintenancePage() {
         ) : (
           <SectionCard title="السجلات" action={<span className="text-xs font-medium text-muted-foreground">{countLabel}</span>} className="overflow-hidden p-0 shadow-none"><MaintenanceDataList items={items} onOpen={(maintenanceId) => setLocation(`/maintenance/${maintenanceId}`)} /></SectionCard>
         )}
+
+        <SectionCard title="جداول الصيانة" description="قواعد مواعيد الخدمة المستقبلية. لا تنشئ سجلات صيانة تلقائياً." className="shadow-none">
+          {schedulesQuery.isLoading ? <MaintenanceDataListSkeleton /> : schedulesQuery.isError ? <ErrorState title="تعذر تحميل جداول الصيانة" description={getApiErrorMessage(schedulesQuery.error).title} onRetry={() => void schedulesQuery.refetch()} /> : (schedulesQuery.data?.data ?? []).length === 0 ? <p className="text-sm text-muted-foreground">لا توجد جداول صيانة مضافة.</p> : <div className="divide-y divide-border">{(schedulesQuery.data?.data ?? []).map((schedule) => { const vehicle = vehiclesById.get(schedule.vehicleId); const basis = schedule.scheduleType === "DATE" ? `كل ${schedule.dateIntervalDays ?? "—"} يوم` : schedule.scheduleType === "MILEAGE" ? `كل ${schedule.mileageInterval ?? "—"} كم` : `تاريخ أو ${schedule.mileageInterval ?? "—"} كم`; return <div key={schedule.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div className="min-w-0"><div className="text-sm font-semibold text-foreground">{MAINTENANCE_TYPES[schedule.maintenanceType].label}</div><div dir="ltr" className="mt-1 text-xs text-muted-foreground">{vehicle ? `${vehicle.make} ${vehicle.model} · ${vehicle.plateNumber}` : "مركبة غير متاحة"}</div></div><div className="text-end text-xs text-muted-foreground"><div>{basis}</div><div className="mt-1">{schedule.isActive ? "مفعّل" : "متوقف"}</div></div></div>; })}</div>}
+        </SectionCard>
       </div>
     </div>
   );

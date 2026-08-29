@@ -21,7 +21,7 @@ import { SectionCard } from "@/components/ui/SectionCard";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { RENTAL_STATUS_FILTER_OPTIONS } from "@/lib/rental-labels";
-import { usePayments } from "@/features/payments/hooks";
+import { useOrgOutstandingBalances } from "@/features/payments/hooks";
 import { useAuth } from "@/providers/AuthProvider";
 
 type RentalFilter = "all" | "RESERVED" | "ACTIVE" | "RETURNED" | "CANCELLED";
@@ -39,7 +39,7 @@ export default function RentalsPage() {
   );
   const { data: customersData } = useListCustomers();
   const { data: vehiclesData } = useListVehicles();
-  const paymentsQuery = usePayments();
+  const outstandingQuery = useOrgOutstandingBalances();
 
   const rentals = useMemo(() => rentalsQuery.data?.data ?? [], [rentalsQuery.data]);
 
@@ -55,14 +55,10 @@ export default function RentalsPage() {
     return map;
   }, [vehiclesData]);
 
-  const paidAmountByRental = useMemo(() => {
-    if (paymentsQuery.isLoading || paymentsQuery.isError) return null;
-
-    return paymentsQuery.payments.reduce((amounts, payment) => {
-      amounts.set(payment.rentalId, (amounts.get(payment.rentalId) ?? 0) + payment.amount);
-      return amounts;
-    }, new Map<string, number>());
-  }, [paymentsQuery.isError, paymentsQuery.isLoading, paymentsQuery.payments]);
+  const outstandingBalanceByRental = useMemo(() => {
+    if (outstandingQuery.isLoading || outstandingQuery.isError) return null;
+    return new Map(outstandingQuery.balances.map((balance) => [balance.rentalId, balance.outstandingBalance]));
+  }, [outstandingQuery.balances, outstandingQuery.isError, outstandingQuery.isLoading]);
 
   const items = useMemo<RentalListItem[]>(() => {
     return rentals
@@ -70,7 +66,7 @@ export default function RentalsPage() {
       .map((rental) => {
         const customer = customerById.get(rental.customerId);
         const vehicle = vehicleById.get(rental.vehicleId);
-        const paidAmount = paidAmountByRental?.get(rental.id) ?? 0;
+        const outstandingBalance = outstandingBalanceByRental?.get(rental.id);
 
         return {
           rental,
@@ -78,14 +74,10 @@ export default function RentalsPage() {
           customerPhone: customer?.phone,
           vehicleName: vehicle ? `${vehicle.make} ${vehicle.model}` : "—",
           vehiclePlate: vehicle?.plateNumber ?? "—",
-          paidAmount: paidAmountByRental === null ? null : paidAmount,
-          outstandingBalance:
-            paidAmountByRental === null
-              ? null
-              : Math.max(0, rental.totalAmount - paidAmount),
+          outstandingBalance: outstandingBalanceByRental === null ? null : (outstandingBalance ?? null),
         };
       });
-  }, [customerById, paidAmountByRental, rentals, statusFilter, vehicleById]);
+  }, [customerById, outstandingBalanceByRental, rentals, statusFilter, vehicleById]);
 
   const listCount = `${items.length} ${items.length === 1 ? "عقد" : "عقود"}`;
 
@@ -120,7 +112,7 @@ export default function RentalsPage() {
               options={RENTAL_STATUS_FILTER_OPTIONS}
               value={statusFilter}
               onChange={(value) => setStatusFilter(value as RentalFilter)}
-              className="-mb-1 [&_button]:px-3 [&_button]:text-xs"
+              className="-mb-1 flex-wrap overflow-visible sm:flex-nowrap sm:overflow-x-auto [&_button]:px-3 [&_button]:text-xs"
             />
           </div>
         </SectionCard>

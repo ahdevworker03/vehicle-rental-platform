@@ -4,6 +4,7 @@ import {
   useListMaintenance,
   useGetMaintenance,
   useListVehicleMaintenance,
+  useListMaintenanceSchedules,
   useCreateMaintenance,
   useCompleteMaintenance,
   useDeleteMaintenance,
@@ -24,6 +25,10 @@ export function useMaintenanceRecord(id: string) {
 export function useMaintenanceForVehicle(vehicleId: string) {
   const query = useListVehicleMaintenance(vehicleId);
   return query;
+}
+
+export function useMaintenanceSchedules() {
+  return useListMaintenanceSchedules();
 }
 
 export function useMaintenanceMutations() {

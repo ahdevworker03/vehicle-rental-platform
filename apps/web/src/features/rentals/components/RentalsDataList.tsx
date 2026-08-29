@@ -20,7 +20,6 @@ export interface RentalListItem {
   customerPhone?: string;
   vehicleName: string;
   vehiclePlate: string;
-  paidAmount: number | null;
   outstandingBalance: number | null;
 }
 
@@ -66,7 +65,7 @@ function RentalStatusCluster({ rental }: { rental: RentalResponse }) {
 }
 
 function PaymentSummary({ item, compact = false }: { item: RentalListItem; compact?: boolean }) {
-  if (item.outstandingBalance === null || item.paidAmount === null) {
+  if (item.outstandingBalance === null) {
     return (
       <span className="text-xs text-muted-foreground" aria-label="جارٍ تحميل حالة الدفع">
         جارٍ تحميل الرصيد
@@ -74,12 +73,7 @@ function PaymentSummary({ item, compact = false }: { item: RentalListItem; compa
     );
   }
 
-  const paymentStatus =
-    item.outstandingBalance === 0
-      ? "PAID"
-      : item.paidAmount > 0
-        ? "PARTIAL"
-        : "OUTSTANDING";
+  const paymentStatus = item.outstandingBalance === 0 ? "PAID" : "OUTSTANDING";
 
   return (
     <div className={cn("min-w-0", compact ? "space-y-1" : "space-y-1.5")}>
@@ -87,7 +81,7 @@ function PaymentSummary({ item, compact = false }: { item: RentalListItem; compa
         {formatCurrency(item.rental.totalAmount)}
       </div>
       <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-        <span className="number-ltr">المدفوع {formatCurrency(item.paidAmount)}</span>
+        <span className="number-ltr">الرصيد المتبقي {formatCurrency(item.outstandingBalance)}</span>
         <StatusBadge status={paymentStatus} />
       </div>
       <div
