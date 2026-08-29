@@ -33,6 +33,8 @@ function makeTask(overrides: Partial<TaskResponse>): TaskResponse {
     id: "task-1",
     dueDate: "2026-09-01T12:00:00Z",
     status: "PENDING",
+    recurrenceType: "NONE",
+    predecessorId: null,
     notes: "تجديد التأمين",
     createdAt: "2026-08-01T12:00:00Z",
     updatedAt: "2026-08-01T12:00:00Z",
@@ -65,10 +67,36 @@ function mockComplete() {
   return complete;
 }
 
+function mockUpdate() {
+  const update = { isPending: false, mutateAsync: vi.fn().mockResolvedValue(undefined) };
+  mockedUseTaskMutations.mockReturnValue({
+    complete: { isPending: false, mutateAsync: vi.fn().mockResolvedValue(undefined) },
+    update,
+  } as unknown as ReturnType<typeof useTaskMutations>);
+  return update;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockAuth();
   mockComplete();
+});
+
+it("edits a pending task with one of the supported recurrence values", async () => {
+  const update = mockUpdate();
+  mockTask(makeTask({ recurrenceType: "DAILY" }));
+  render(<TaskDetailPage params={{ id: "task-1" }} />);
+
+  fireEvent.click(screen.getByText("تعديل المهمة"));
+  fireEvent.change(screen.getByLabelText("التكرار"), { target: { value: "MONTHLY" } });
+  fireEvent.click(screen.getByText("حفظ التعديلات"));
+
+  await waitFor(() => {
+    expect(update.mutateAsync).toHaveBeenCalledWith({
+      id: "task-1",
+      data: expect.objectContaining({ recurrence_type: "MONTHLY" }),
+    });
+  });
 });
 
 describe("TaskDetailPage", () => {

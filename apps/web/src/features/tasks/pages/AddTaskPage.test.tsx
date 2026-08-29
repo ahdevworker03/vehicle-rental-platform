@@ -66,7 +66,27 @@ describe("AddTaskPage", () => {
         data: {
           due_date: "2026-09-01T12:00:00.000Z",
           notes: "تجديد التأمين",
+          recurrence_type: "NONE",
         },
+      });
+    });
+  });
+
+  it("submits the selected supported recurrence", async () => {
+    const create = mockCreate();
+    render(<AddTaskPage />);
+
+    fireEvent.change(screen.getByLabelText(/تاريخ الاستحقاق/), {
+      target: { value: "2026-09-01" },
+    });
+    fireEvent.change(screen.getByLabelText("التكرار"), {
+      target: { value: "WEEKLY" },
+    });
+    fireEvent.click(screen.getByText("إنشاء المهمة"));
+
+    await waitFor(() => {
+      expect(create.mutateAsync).toHaveBeenCalledWith({
+        data: expect.objectContaining({ recurrence_type: "WEEKLY" }),
       });
     });
   });

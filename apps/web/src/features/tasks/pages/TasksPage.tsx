@@ -47,7 +47,7 @@ export default function TasksPage() {
         <SectionCard title="قائمة المهام" description="تابع المواعيد والاستحقاقات وأكمل المهام من سجلها.">
           <div className="space-y-3">
             <SearchBar placeholder="ابحث في الملاحظات..." value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch("")} />
-            <div className="flex flex-wrap items-center justify-between gap-3"><FilterChips options={FILTER_OPTIONS} value={filter} onChange={(value) => { const next = value as TaskStatusFilter; setSearchParams(next === "all" ? {} : { filter: next }, { replace: true }); }} className="-mb-1 [&_button]:px-3 [&_button]:text-xs" />{pendingCount > 0 && <span className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-muted-foreground"><AlertTriangle className="size-3.5 text-status-warning" aria-hidden="true" />{pendingCount} {pendingCount === 1 ? "مهمة معلّقة" : "مهام معلّقة"}</span>}</div>
+            <div className="flex flex-wrap items-center justify-between gap-3"><FilterChips options={FILTER_OPTIONS} value={filter} onChange={(value) => { const next = value as TaskStatusFilter; setSearchParams(next === "all" ? {} : { filter: next }, { replace: true }); }} className="-mb-1 flex-wrap overflow-visible sm:flex-nowrap sm:overflow-x-auto [&_button]:px-3 [&_button]:text-xs" />{pendingCount > 0 && <span className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-muted-foreground"><AlertTriangle className="size-3.5 text-status-warning" aria-hidden="true" />{pendingCount} {pendingCount === 1 ? "مهمة معلّقة" : "مهام معلّقة"}</span>}</div>
           </div>
         </SectionCard>
 

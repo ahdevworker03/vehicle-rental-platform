@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Check, ClipboardList } from "lucide-react";
+import type { CreateTaskRequestRecurrenceType } from "@workspace/api-client-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export default function AddTaskPage() {
   const mutations = useTaskMutations();
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [recurrenceType, setRecurrenceType] = useState<CreateTaskRequestRecurrenceType>("NONE");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -43,7 +45,7 @@ export default function AddTaskPage() {
     if (mutations.create.isPending || !validate()) return;
     setFormError(null);
     try {
-      await mutations.create.mutateAsync({ data: { due_date: toISO(dueDate), ...(notes.trim() ? { notes: notes.trim() } : {}) } });
+      await mutations.create.mutateAsync({ data: { due_date: toISO(dueDate), recurrence_type: recurrenceType, ...(notes.trim() ? { notes: notes.trim() } : {}) } });
       setSaved(true);
       setTimeout(() => setLocation("/tasks"), 1200);
     } catch (error) {
@@ -65,6 +67,7 @@ export default function AddTaskPage() {
         <FormSection title="تفاصيل المهمة" description="المهمة الجديدة تُسجل بحالة قيد الانتظار حتى إكمالها.">
           <FormField label="تاريخ الاستحقاق" required error={errors.dueDate} htmlFor="task-due-date"><input id="task-due-date" type="date" value={dueDate} onChange={(event) => { setDueDate(event.target.value); clearError("dueDate"); }} className={errors.dueDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass} /></FormField>
           <FormField label="ملاحظات" hint="اختياري" className="md:col-span-2" htmlFor="task-notes"><textarea id="task-notes" rows={4} className={`${inputClass} resize-none`} placeholder="مثال: تجديد التأمين" value={notes} onChange={(event) => setNotes(event.target.value)} /></FormField>
+          <FormField label="التكرار" hint="يُنشئ الخادم المهمة التالية عند الإكمال فقط." className="md:col-span-2" htmlFor="task-recurrence"><select id="task-recurrence" className={inputClass} value={recurrenceType} onChange={(event) => setRecurrenceType(event.target.value as CreateTaskRequestRecurrenceType)}><option value="NONE">بدون تكرار</option><option value="DAILY">يومي</option><option value="WEEKLY">أسبوعي</option><option value="MONTHLY">شهري</option></select></FormField>
         </FormSection>
 
         <div className="sticky bottom-3 z-10 flex flex-wrap justify-end gap-2 rounded-xl border border-card-border bg-card/95 p-3 shadow-sm backdrop-blur sm:px-4"><Button type="button" variant="outline" onClick={() => setLocation("/tasks")} disabled={isSubmitting}>إلغاء</Button><Button type="submit" disabled={isSubmitting}><ClipboardList className="size-4" aria-hidden="true" />{isSubmitting ? "جارٍ الحفظ" : "إنشاء المهمة"}</Button></div>

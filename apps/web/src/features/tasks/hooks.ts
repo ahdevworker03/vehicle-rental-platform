@@ -4,6 +4,7 @@ import {
   useListTasks,
   useGetTask,
   useCreateTask,
+  useUpdateTask,
   useCompleteTask,
   useDeleteTask,
   getListTasksQueryKey,
@@ -44,6 +45,15 @@ export function useTaskMutations() {
     },
   });
 
+  const update = useUpdateTask({
+    mutation: {
+      onSuccess: (_data, variables) => {
+        invalidateAll();
+        void queryClient.invalidateQueries({ queryKey: getGetTaskQueryKey(variables.id) });
+      },
+    },
+  });
+
   const remove = useDeleteTask({
     mutation: {
       onSuccess: (_data, variables) => {
@@ -55,7 +65,7 @@ export function useTaskMutations() {
     },
   });
 
-  return { create, complete, remove };
+  return { create, update, complete, remove };
 }
 
 export function useTasksList() {
