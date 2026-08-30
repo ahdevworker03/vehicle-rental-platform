@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { getCurrentUser, login as apiLogin, logout as apiLogout, refreshToken as apiRefreshToken } from "@workspace/api-client-react";
+import { getCurrentUser, login as apiLogin, logout as apiLogout, refreshToken as apiRefreshToken, setAuthRefreshHandler } from "@workspace/api-client-react";
 import type { CurrentUserResponse } from "@workspace/api-client-react";
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "@/lib/auth-token";
 
@@ -21,6 +21,25 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<CurrentUserResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const refreshSession = useCallback(async (): Promise<boolean> => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) return false;
+    try {
+      const refreshed = await apiRefreshToken({ refreshToken });
+      setTokens(refreshed.data.accessToken, refreshed.data.refreshToken, refreshed.data.expiresAt);
+      return true;
+    } catch {
+      clearTokens();
+      setUser(null);
+      return false;
+    }
+  }, []);
+
+  useEffect(() => {
+    setAuthRefreshHandler(refreshSession);
+    return () => setAuthRefreshHandler(null);
+  }, [refreshSession]);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,18 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null);
         }
       } catch {
-        const refreshToken = getRefreshToken();
-        if (!refreshToken) {
-          if (!cancelled) { clearTokens(); setUser(null); }
-          return;
-        }
-        try {
-          const refreshed = await apiRefreshToken({ refreshToken });
-          setTokens(refreshed.data.accessToken, refreshed.data.refreshToken);
+        if (await refreshSession()) {
           const result = await getCurrentUser();
           if (!cancelled) setUser(result?.data ?? null);
-        } catch {
-          if (!cancelled) { clearTokens(); setUser(null); }
+        } else if (!cancelled) {
+          clearTokens();
+          setUser(null);
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -68,12 +81,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshSession]);
 
   const login = useCallback(async ({ email, password }: LoginParams) => {
     const result = await apiLogin({ email, password });
 
-    setTokens(result.data.accessToken, result.data.refreshToken);
+    setTokens(result.data.accessToken, result.data.refreshToken, result.data.expiresAt);
 
     const me = await getCurrentUser();
     setUser(me?.data ?? null);

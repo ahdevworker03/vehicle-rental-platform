@@ -1,5 +1,6 @@
 export type CustomFetchOptions = RequestInit & {
   responseType?: "json" | "text" | "blob" | "auto";
+  retryAfterRefresh?: boolean;
 };
 
 export type ErrorType<T = unknown> = ApiError<T>;
@@ -7,6 +8,7 @@ export type ErrorType<T = unknown> = ApiError<T>;
 export type BodyType<T> = T;
 
 export type AuthTokenGetter = () => Promise<string | null> | string | null;
+export type AuthRefreshHandler = () => Promise<boolean>;
 
 const NO_BODY_STATUS = new Set([204, 205, 304]);
 const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
@@ -17,6 +19,8 @@ const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 
 let _baseUrl: string | null = null;
 let _authTokenGetter: AuthTokenGetter | null = null;
+let _authRefreshHandler: AuthRefreshHandler | null = null;
+let _refreshInFlight: Promise<boolean> | null = null;
 
 /**
  * Set a base URL that is prepended to every relative request URL
@@ -42,6 +46,12 @@ export function setBaseUrl(url: string | null): void {
  */
 export function setAuthTokenGetter(getter: AuthTokenGetter | null): void {
   _authTokenGetter = getter;
+}
+
+/** Register the single-flight refresh operation used after an authenticated 401. */
+export function setAuthRefreshHandler(handler: AuthRefreshHandler | null): void {
+  _authRefreshHandler = handler;
+  if (!handler) _refreshInFlight = null;
 }
 
 function isRequest(input: RequestInfo | URL): input is Request {
@@ -327,7 +337,7 @@ export async function customFetch<T = unknown>(
   options: CustomFetchOptions = {},
 ): Promise<T> {
   input = applyBaseUrl(input);
-  const { responseType = "auto", headers: headersInit, ...init } = options;
+  const { responseType = "auto", retryAfterRefresh = false, headers: headersInit, ...init } = options;
 
   const method = resolveMethod(input, init.method);
 
@@ -360,7 +370,27 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  // Authenticated responses are user-specific and must not be satisfied by a
+  // stale browser cache (notably `/auth/me` returning a body-less 304).
+  const response = await fetch(input, {
+    ...init,
+    method,
+    headers,
+    cache: headers.has("authorization") ? "no-store" : init.cache,
+  });
+
+  const isAuthRequest = headers.has("authorization");
+  const isRefreshRequest = requestInfo.url.endsWith("/auth/refresh");
+  if (response.status === 401 && isAuthRequest && !isRefreshRequest && !retryAfterRefresh && _authRefreshHandler) {
+    _refreshInFlight ??= _authRefreshHandler().finally(() => {
+      _refreshInFlight = null;
+    });
+    if (await _refreshInFlight) {
+      const retryHeaders = new Headers(headers);
+      retryHeaders.delete("authorization");
+      return customFetch<T>(input, { ...options, headers: retryHeaders, retryAfterRefresh: true });
+    }
+  }
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

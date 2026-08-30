@@ -8,7 +8,7 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
 
-import { AcceptInvitationPage, LoginPage, PasswordResetPage, RegisterPage } from '@/features/auth';
+import { AcceptInvitationPage, LoginPage, PasswordResetPage } from '@/features/auth';
 import { DashboardPage } from '@/features/dashboard';
 import { AddVehiclePage, EditVehiclePage, VehicleDetailPage, VehiclesPage } from '@/features/vehicles';
 import { AddCustomerPage, CustomerDetailPage, CustomersPage, EditCustomerPage } from '@/features/customers';
@@ -70,7 +70,6 @@ function App() {
             <Switch>
               {/* Public routes */}
                <Route path="/login" component={LoginPage} />
-               <Route path="/register" component={RegisterPage} />
                <Route path="/password-reset" component={PasswordResetPage} />
                <Route path="/accept-invitation" component={AcceptInvitationPage} />
 

@@ -65,13 +65,13 @@ export function MaintenanceDataList({ items, onOpen }: MaintenanceDataListProps)
   return (
     <>
       <div className="hidden xl:block">
-        <Table>
-          <TableHeader className="bg-muted/45"><TableRow><TableHead>المركبة</TableHead><TableHead>نوع الصيانة</TableHead><TableHead>الحالة</TableHead><TableHead>الموعد</TableHead><TableHead className="text-end">التكلفة</TableHead><TableHead>الورشة / المزوّد</TableHead><TableHead className="text-end">الإجراء</TableHead></TableRow></TableHeader>
+        <Table className="table-fixed">
+          <TableHeader className="bg-muted/45"><TableRow><TableHead className="w-[24%]">المركبة</TableHead><TableHead className="w-[15%]">نوع الصيانة</TableHead><TableHead className="w-[13%]">الحالة</TableHead><TableHead className="w-[15%]">الموعد</TableHead><TableHead className="w-[11%] text-end">التكلفة</TableHead><TableHead className="w-[12%]">الورشة / المزوّد</TableHead><TableHead className="w-[10%] text-end">الإجراء</TableHead></TableRow></TableHeader>
           <TableBody>
             {items.map((item) => (
-              <TableRow key={item.record.id} className="cursor-pointer" onClick={() => onOpen(item.record.id)}>
-                <TableCell className="min-w-[17rem]"><VehicleIdentity item={item} /></TableCell>
-                <TableCell className="min-w-[10rem]"><TypeValue record={item.record} /></TableCell>
+              <TableRow key={item.record.id}>
+                <TableCell><VehicleIdentity item={item} /></TableCell>
+                <TableCell><TypeValue record={item.record} /></TableCell>
                 <TableCell><StatusBadge status={item.record.status} /></TableCell>
                 <TableCell><DateValue record={item.record} /></TableCell>
                 <TableCell className="text-end"><CostValue record={item.record} /></TableCell>

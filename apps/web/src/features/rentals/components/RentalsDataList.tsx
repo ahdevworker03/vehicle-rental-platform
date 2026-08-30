@@ -154,16 +154,16 @@ export function RentalsDataList({ items, onOpen }: RentalsDataListProps) {
   return (
     <>
       <div className="hidden xl:block">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader className="bg-muted/45">
             <TableRow>
-              <TableHead>الحالة</TableHead>
-              <TableHead>العميل</TableHead>
-              <TableHead>المركبة</TableHead>
-              <TableHead>الاستلام</TableHead>
-              <TableHead>الإرجاع المتوقع</TableHead>
-              <TableHead>المبلغ والدفع</TableHead>
-              <TableHead className="text-end">الإجراء</TableHead>
+              <TableHead className="w-[12%] text-start">الحالة</TableHead>
+              <TableHead className="w-[16%] text-start">العميل</TableHead>
+              <TableHead className="w-[16%] text-start">المركبة</TableHead>
+              <TableHead className="w-[13%] text-start">الاستلام</TableHead>
+              <TableHead className="w-[13%] text-start">الإرجاع المتوقع</TableHead>
+              <TableHead className="w-[20%] text-start">المبلغ والدفع</TableHead>
+              <TableHead className="w-[10%] text-end">الإجراء</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -180,8 +180,8 @@ export function RentalsDataList({ items, onOpen }: RentalsDataListProps) {
                     <div className="number-ltr mt-1 text-xs text-muted-foreground">{item.vehiclePlate}</div>
                   </div>
                 </TableCell>
-                <TableCell className="number-ltr whitespace-nowrap font-medium">{formatDate(item.rental.pickupDate)}</TableCell>
-                <TableCell className="number-ltr whitespace-nowrap font-medium">{formatDate(item.rental.expectedReturnDate)}</TableCell>
+                <TableCell dir="ltr" className="number-ltr whitespace-nowrap text-start font-medium">{formatDate(item.rental.pickupDate)}</TableCell>
+                <TableCell dir="ltr" className="number-ltr whitespace-nowrap text-start font-medium">{formatDate(item.rental.expectedReturnDate)}</TableCell>
                 <TableCell><PaymentSummary item={item} /></TableCell>
                 <TableCell className="text-end"><PrimaryAction rental={item.rental} onOpen={() => onOpen(item.rental.id)} /></TableCell>
               </TableRow>

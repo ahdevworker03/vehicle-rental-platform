@@ -5,10 +5,10 @@ import { useVehicleMutations, useVehicleRecord } from "@/features/vehicles/api-h
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { DocumentList, MediaGallery } from "@/features/media";
-import { ErrorState, InfoBanner, InlineError, LoadingState } from "@/components/ui/FeedbackState";
+import { ErrorState, InlineError, LoadingState } from "@/components/ui/FeedbackState";
 import { MaintenanceHistorySection } from "@/features/maintenance";
 import { RentalHistorySection } from "@/features/rentals";
-import { DetailSection, SummaryActionPanel } from "@/components/ui/SectionCard";
+import { DetailSection } from "@/components/ui/SectionCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useVehicleDocuments, useVehiclePhotos } from "@/features/media/hooks";
 import { useRentalsForVehicle } from "@/features/rentals/api-hooks";
@@ -91,55 +91,29 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
       <PageHeader
         title="تفاصيل المركبة"
         showBack
-        action={isOwner ? <Button type="button" size="sm" onClick={() => setLocation(`/vehicles/${vehicle.id}/edit`)}><Pencil className="size-4" aria-hidden="true" />تعديل</Button> : undefined}
+        action={isOwner ? (
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {confirmingDelete ? <><Button type="button" variant="outline" size="sm" onClick={() => { setConfirmingDelete(false); setDeleteError(null); }} disabled={deleteMutation.isPending}>إلغاء</Button><Button type="button" variant="destructive" size="sm" onClick={handleDelete} disabled={deleteMutation.isPending}>{deleteMutation.isPending ? "جارٍ الحذف" : "تأكيد الحذف"}</Button></> : <><Button type="button" size="sm" onClick={() => setLocation(`/vehicles/${vehicle.id}/edit`)}><Pencil className="size-4" aria-hidden="true" />تعديل</Button><Button type="button" variant="destructive" size="sm" onClick={() => setConfirmingDelete(true)}><Trash2 className="size-4" aria-hidden="true" />حذف</Button></>}
+          </div>
+        ) : undefined}
       />
 
       <div className="space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
         <DetailSection className="shadow-none">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><Car className="size-7" aria-hidden="true" /></span>
               <div className="min-w-0"><div dir="ltr" className="truncate text-lg font-bold text-foreground">{vehicle.make} {vehicle.model}</div><div dir="ltr" className="number-ltr mt-1 text-sm text-muted-foreground">{vehicle.plateNumber} · {vehicle.year}</div></div>
             </div>
-            <div><div className="ui-label mb-1">حالة المركبة</div><StatusBadge status={vehicle.status} /></div>
+            <div className="flex flex-wrap items-center gap-3 rounded-lg bg-muted/45 px-3 py-2.5"><div><div className="ui-label mb-1">حالة المركبة</div><StatusBadge status={vehicle.status} /></div>{currentRental ? <div className="border-s border-border ps-3"><div className="ui-label mb-1">الإيجار الحالي</div><Button type="button" variant="ghost" size="sm" onClick={() => setLocation(`/rentals/${currentRental.id}`)}>عرض الإيجار</Button></div> : <p className="border-s border-border ps-3 text-sm text-muted-foreground">لا يوجد إيجار نشط أو حجز مرتبط.</p>}</div>
           </div>
         </DetailSection>
 
-        <div className="grid gap-4 xl:grid-cols-12 xl:items-start">
-          <aside className="order-1 xl:order-2 xl:col-span-4">
-            <SummaryActionPanel title="إجراءات المركبة" description="إدارة بيانات المركبة وسجلها التشغيلي.">
-              <div className="space-y-3">
-                {isOwner && !confirmingDelete && (
-                  <Button type="button" variant="outline" className="w-full" onClick={() => setLocation("/vehicles/" + vehicle.id + "/edit")}>
-                    <Pencil className="size-4" aria-hidden="true" />
-                    تعديل المركبة
-                  </Button>
-                )}
-                {currentRental ? (
-                  <div className="rounded-lg bg-muted/45 p-3">
-                    <div className="ui-label">الإيجار الحالي</div>
-                    <div className="mt-1 flex items-center justify-between gap-3">
-                      <StatusBadge status={currentRental.status} />
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setLocation("/rentals/" + currentRental.id)}>عرض الإيجار</Button>
-                    </div>
-                  </div>
-                ) : <InfoBanner>لا يوجد إيجار نشط أو حجز مرتبط بهذه المركبة.</InfoBanner>}
-                {isOwner && (
-                  confirmingDelete ? (
-                    <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
-                      <p className="text-sm text-foreground">هل تريد حذف هذه المركبة؟</p>
-                      {deleteError && <InlineError>{deleteError}</InlineError>}
-                      <div className="grid grid-cols-2 gap-2"><Button type="button" variant="outline" onClick={() => setConfirmingDelete(false)} disabled={deleteMutation.isPending}>إلغاء</Button><Button type="button" variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>{deleteMutation.isPending ? "جارٍ الحذف" : "حذف"}</Button></div>
-                    </div>
-                  ) : <Button type="button" variant="outline" className="w-full border-destructive/40 text-destructive hover:bg-destructive/5" onClick={() => setConfirmingDelete(true)}><Trash2 className="size-4" aria-hidden="true" />حذف المركبة</Button>
-                )}
-              </div>
-            </SummaryActionPanel>
-          </aside>
-
-          <section aria-label="بيانات المركبة" className="order-2 space-y-4 xl:order-1 xl:col-span-8">
+        {confirmingDelete && <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-foreground">سيتم أرشفة المركبة وإخفاؤها من السجلات النشطة. أكد الحذف للمتابعة.</div>}
+        {deleteError && <InlineError>{deleteError}</InlineError>}
+        <section aria-label="بيانات المركبة" className="space-y-4">
             <DetailSection title="بيانات المركبة" description="الهوية والمواصفات الأساسية للمركبة.">
-              <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-3 lg:grid-cols-4">
                 <KeyValue label="الشركة المصنعة" value={vehicle.make} ltr />
                 <KeyValue label="الطراز" value={vehicle.model} ltr />
                 <KeyValue label="رقم اللوحة" value={vehicle.plateNumber} ltr />
@@ -161,13 +135,12 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
             <DetailSection><DocumentList documents={documents.query.data?.data ?? []} isLoading={documents.query.isLoading} isError={documents.query.isError} error={documents.query.error} isOwner={isOwner} uploading={documents.upload.isPending} updating={documents.update.isPending} deleting={documents.remove.isPending} onUpload={handleUploadDocument} onDelete={handleDeleteDocument} onDownload={handleDownloadDocument} onUpdateExpiry={handleUpdateDocumentExpiry} /></DetailSection>
             <RentalHistorySection rentals={vehicleRentals.rentals} isLoading={vehicleRentals.isLoading} isError={vehicleRentals.isError} error={vehicleRentals.error} title="سجل الإيجارات" emptyMessage="لا توجد إيجارات لهذه المركبة" />
             <MaintenanceHistorySection vehicleId={vehicle.id} />
-          </section>
-        </div>
+        </section>
       </div>
     </div>
   );
 }
 
 function KeyValue({ label, value, numeric = false, ltr = false }: { label: string; value: string | number; numeric?: boolean; ltr?: boolean }) {
-  return <div className="min-w-0"><div className="ui-label">{label}</div><div dir={ltr ? "ltr" : undefined} className={`mt-1.5 truncate text-sm font-semibold text-foreground ${numeric ? "number-ltr" : ""}`}>{value}</div></div>;
+  return <div className="min-w-0 text-right"><div className="ui-label">{label}</div><div dir={ltr ? "ltr" : undefined} className={`mt-1.5 break-words text-sm font-semibold text-foreground ${numeric ? "number-ltr" : ""}`}>{value}</div></div>;
 }

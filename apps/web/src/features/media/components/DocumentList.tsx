@@ -3,7 +3,8 @@ import { Plus, FileText, Trash2, Download, Loader2, Pencil } from "lucide-react"
 import type { DocumentResponse } from "@workspace/api-client-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { getApiErrorMessage } from "@/lib/api-error";
-import { DOCUMENT_CATEGORY_LABELS, formatFileSize, formatDate } from "@/lib/media-labels";
+import { DOCUMENT_CATEGORY_LABELS } from "@/lib/media-labels";
+import { formatDate } from "@/lib/format";
 
 interface DocumentListProps {
   documents: DocumentResponse[];
@@ -177,11 +178,11 @@ export function DocumentList({
                   {doc.originalFilename}
                 </div>
                 <div className="text-xs text-muted-foreground mt-0.5">
-                  {DOCUMENT_CATEGORY_LABELS[doc.category] ?? doc.category} · {formatFileSize(doc.fileSize)} · {formatDate(doc.createdAt)}
+                  {DOCUMENT_CATEGORY_LABELS[doc.category] ?? doc.category} · <span dir="ltr" className="number-ltr">{formatDate(doc.createdAt)}</span>
                 </div>
                 {onUpdateExpiry && (
                   <div className="mt-1 text-xs text-muted-foreground">
-                    تاريخ الانتهاء: {doc.expiryDate ? formatDate(doc.expiryDate) : "غير محدد"}
+                    تاريخ الانتهاء: {doc.expiryDate ? <span dir="ltr" className="number-ltr">{formatDate(doc.expiryDate)}</span> : "غير محدد"}
                   </div>
                 )}
               </div>

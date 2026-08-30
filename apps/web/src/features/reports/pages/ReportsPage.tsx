@@ -15,6 +15,7 @@ import {
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PeriodSelector, periodLabel } from "@/features/reports/components/PeriodSelector";
+import { buildBusinessReportHtml } from "@/features/reports/printable";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState, InfoBanner, LoadingState } from "@/components/ui/FeedbackState";
 import { SectionCard } from "@/components/ui/SectionCard";
@@ -27,7 +28,6 @@ import {
   buildReportSummary,
   getReportPeriodRange,
   toCsv,
-  toPrintableHtml,
   type ReportPeriodType,
   type ReportSummary,
 } from "@/features/reports/selectors";
@@ -45,23 +45,6 @@ function buildSummaryCsv(summary: ReportSummary, label: string): string {
     ["عدد المدفوعات", summary.paymentCount],
     ["عدد المهام المكتملة", summary.completedTaskCount],
   ]);
-}
-
-function buildSummaryHtml(summary: ReportSummary, label: string): string {
-  return toPrintableHtml(
-    `تقرير — ${label}`,
-    ["البند", "القيمة"],
-    [
-      ["الإيرادات", formatCurrency(summary.revenue)],
-      ["المصروفات", formatCurrency(summary.expenses)],
-      ["صافي الربح", formatCurrency(summary.netProfit)],
-      ["تكلفة الصيانة", formatCurrency(summary.maintenanceCost)],
-      ["عدد الإيجارات", summary.rentalCount],
-      ["عدد سجلات الصيانة", summary.maintenanceCount],
-      ["عدد المدفوعات", summary.paymentCount],
-      ["عدد المهام المكتملة", summary.completedTaskCount],
-    ],
-  );
 }
 
 function downloadCsv(filename: string, content: string): void {
@@ -209,6 +192,9 @@ export default function ReportsPage() {
     maintenance,
     rentals,
     tasks,
+    vehicles = [],
+    vehiclesUnavailable = true,
+    organizationName = null,
     isLoading,
     isError,
     error,
@@ -247,7 +233,7 @@ export default function ReportsPage() {
   function handlePrint() {
     setActionError(null);
     try {
-      if (!openPrintableWindow(buildSummaryHtml(summary, label))) {
+      if (!openPrintableWindow(buildBusinessReportHtml({ summary, label, range, rentals, tasks, vehicles, vehiclesUnavailable, companyName: organizationName }))) {
         setActionError(`تعذر فتح معاينة طباعة تقرير ${label}. اسمح بالنوافذ المنبثقة ثم أعد المحاولة.`);
         return;
       }
@@ -284,7 +270,7 @@ export default function ReportsPage() {
     <div className="min-h-full">
       <PageHeader title="التقارير" action={actions} />
 
-      <main className="space-y-5 px-4 pb-8 pt-4 sm:px-6 lg:space-y-6 lg:pt-6">
+      <main className="mx-auto max-w-[1600px] space-y-5 px-4 pb-8 pt-4 sm:px-6 lg:space-y-6 lg:pt-6">
         <SectionCard
           title="إعداد التقرير"
           description="اختر الفترة لعرض ملخص مالي وتشغيلي قابل للطباعة والتصدير."

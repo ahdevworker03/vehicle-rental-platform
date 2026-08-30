@@ -57,6 +57,9 @@ export default function VehiclesPage() {
               }}
               className="-mb-1 flex-wrap overflow-visible sm:flex-nowrap sm:overflow-x-auto [&_button]:px-3 [&_button]:text-xs"
             />
+            <div className="border-t border-border pt-3">
+              <VehicleAvailabilitySection compact />
+            </div>
           </div>
         </SectionCard>
 
@@ -79,9 +82,6 @@ export default function VehiclesPage() {
           </SectionCard>
         )}
 
-        <div className="max-w-4xl">
-          <VehicleAvailabilitySection />
-        </div>
       </div>
     </div>
   );

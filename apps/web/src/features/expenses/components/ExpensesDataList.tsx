@@ -45,34 +45,34 @@ function DescriptionValue({ expense }: { expense: ExpenseResponse }) {
 }
 
 function DateValue({ expense }: { expense: ExpenseResponse }) {
-  return <span className="number-ltr whitespace-nowrap text-sm font-semibold text-foreground">{formatDate(expense.expenseDate)}</span>;
+  return <span className="number-ltr whitespace-nowrap text-base font-semibold text-foreground">{formatDate(expense.expenseDate)}</span>;
 }
 
 function AmountValue({ expense }: { expense: ExpenseResponse }) {
-  return <span className="number-ltr whitespace-nowrap text-sm font-semibold text-foreground">{formatUsd(expense.amount)}</span>;
+  return <span className="number-ltr whitespace-nowrap text-base font-bold text-foreground">{formatUsd(expense.amount)}</span>;
 }
 
 export function ExpensesDataList({ items, onOpen }: ExpensesDataListProps) {
   return (
     <>
       <div className="hidden xl:block">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader className="bg-muted/45">
             <TableRow>
-              <TableHead>التاريخ</TableHead>
-              <TableHead>الفئة</TableHead>
-              <TableHead>المركبة</TableHead>
-              <TableHead>الوصف</TableHead>
-              <TableHead className="text-end">المبلغ</TableHead>
-              <TableHead className="text-end">الإجراء</TableHead>
+              <TableHead className="w-[14%]">التاريخ</TableHead>
+              <TableHead className="w-[15%]">الفئة</TableHead>
+              <TableHead className="w-[23%]">المركبة</TableHead>
+              <TableHead className="w-[24%]">الوصف</TableHead>
+              <TableHead className="w-[13%] text-end">المبلغ</TableHead>
+              <TableHead className="w-[11%] text-end">الإجراء</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.map((item) => (
-              <TableRow key={item.expense.id} className="cursor-pointer" onClick={() => onOpen(item.expense.id)}>
+              <TableRow key={item.expense.id}>
                 <TableCell><DateValue expense={item.expense} /></TableCell>
                 <TableCell><ExpenseCategoryBadge category={item.expense.category} /></TableCell>
-                <TableCell className="min-w-[15rem]"><VehicleValue item={item} /></TableCell>
+                <TableCell><VehicleValue item={item} /></TableCell>
                 <TableCell><DescriptionValue expense={item.expense} /></TableCell>
                 <TableCell className="text-end"><AmountValue expense={item.expense} /></TableCell>
                 <TableCell className="text-end"><Button type="button" variant="outline" size="sm" onClick={(event) => { event.stopPropagation(); onOpen(item.expense.id); }}>عرض التفاصيل<ChevronLeft className="size-4" aria-hidden="true" /></Button></TableCell>

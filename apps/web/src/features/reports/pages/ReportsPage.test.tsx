@@ -121,8 +121,10 @@ describe("ReportsPage", () => {
     expect(open).toHaveBeenCalledWith("", "_blank");
     expect(document.open).toHaveBeenCalledOnce();
     expect(document.write).toHaveBeenCalledWith(
-      expect.stringContaining("<!DOCTYPE html>"),
+      expect.stringContaining("1. الملخص العام"),
     );
+    expect(document.write).toHaveBeenCalledWith(expect.stringContaining("حالة الأسطول الحالية"));
+    expect(document.write).toHaveBeenCalledWith(expect.stringContaining("تاريخ إنشاء التقرير"));
     expect(document.close).toHaveBeenCalledOnce();
 
     open.mockRestore();

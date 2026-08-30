@@ -56,7 +56,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-dvh flex items-center justify-center px-4 py-8 bg-background">
-      <div className="w-full max-w-sm space-y-6">
+      <form className="w-full max-w-sm space-y-6" onSubmit={(event) => { event.preventDefault(); void handleSubmit(); }}>
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold text-foreground">تسجيل الدخول</h1>
           <p className="text-sm text-muted-foreground">
@@ -117,7 +117,7 @@ export default function LoginPage() {
         </div>
 
         <button
-          onClick={handleSubmit}
+          type="submit"
           disabled={!isFormFilled || submitting}
           className={cn(
             "w-full rounded-2xl py-4 text-base font-bold transition-all shadow-sm flex items-center justify-center gap-2",
@@ -128,11 +128,8 @@ export default function LoginPage() {
         >
           {submitting ? <Spinner /> : "دخول"}
         </button>
-        <div className="flex items-center justify-between gap-3 text-sm">
-          <button type="button" className="text-primary" onClick={() => setLocation("/password-reset")}>نسيت كلمة المرور؟</button>
-          <button type="button" className="text-primary" onClick={() => setLocation("/register")}>إنشاء حساب الشركة</button>
-        </div>
-      </div>
+        <div className="text-sm"><button type="button" className="text-primary" onClick={() => setLocation("/password-reset")}>نسيت كلمة المرور؟</button></div>
+      </form>
     </div>
   );
 }

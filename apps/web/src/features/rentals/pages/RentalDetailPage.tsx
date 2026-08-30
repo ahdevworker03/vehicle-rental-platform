@@ -349,7 +349,7 @@ function KeyValue({ label, value, numeric = false, icon: Icon }: { label: string
         {Icon && <Icon className="size-3.5" aria-hidden="true" />}
         {label}
       </div>
-      <div className={`mt-1.5 truncate text-sm font-semibold text-foreground ${numeric ? "number-ltr" : ""}`}>{value}</div>
+      <div dir={numeric ? "ltr" : undefined} className={`mt-1.5 break-words text-sm font-semibold text-foreground ${numeric ? "number-ltr" : ""}`}>{value}</div>
     </div>
   );
 }

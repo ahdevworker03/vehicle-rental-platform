@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import {
   BarChart3,
   CalendarDays,
+  ChevronDown,
   CircleDollarSign,
   TrendingDown,
   TrendingUp,
@@ -548,21 +549,22 @@ export default function AnalyticsPage() {
     <div className="min-h-full">
       <PageHeader title="التحليلات" showBack />
       <main className="space-y-5 px-4 pb-8 pt-4 sm:px-6 lg:space-y-6 lg:pt-6">
-        <div className="flex flex-col justify-between gap-4 border-b border-border pb-4 md:flex-row md:items-end">
+        <div className="flex flex-col justify-between gap-4 border-b border-border pb-4 xl:flex-row xl:items-end">
           <div>
             <p className="ui-section-title">نظرة مالية وتشغيلية</p>
             <p className="ui-secondary-text mt-1">
               راجع الإيرادات والمصروفات وأداء المركبات خلال الفترة المحددة.
             </p>
           </div>
-          <label className="relative flex min-h-10 items-center gap-2 rounded-lg border border-border bg-card ps-3 pe-9 text-sm font-medium text-foreground shadow-xs focus-within:ring-2 focus-within:ring-ring/40">
-            <CalendarDays className="size-4 text-primary" aria-hidden="true" />
-              <span>سنة التحليل</span>
+          <div className="flex flex-wrap items-center gap-3">
+          <label className="relative flex min-h-11 min-w-[12rem] flex-1 items-center gap-2 rounded-lg border border-border bg-card ps-3 pe-3 text-sm font-medium text-foreground shadow-xs transition-shadow focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-ring/40 sm:flex-none">
+            <CalendarDays className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            <span className="shrink-0 text-muted-foreground">سنة التحليل</span>
             <select
               aria-label="سنة التحليل"
               value={selectedYear}
               onChange={(event) => setSelectedYear(Number(event.target.value))}
-              className="appearance-none bg-transparent py-1 pe-1 outline-none"
+              className="min-w-0 flex-1 appearance-none bg-transparent py-1 text-end outline-none"
             >
               {ANALYTICS_YEARS.map((year) => (
                 <option key={year} value={year}>
@@ -570,20 +572,17 @@ export default function AnalyticsPage() {
                 </option>
               ))}
             </select>
-            <span
-              className="pointer-events-none absolute end-3 text-muted-foreground"
-              aria-hidden="true"
-            >
-              ⌄
-            </span>
+            <ChevronDown className="pointer-events-none absolute end-3 size-4 text-muted-foreground" aria-hidden="true" />
           </label>
-          <label className="relative flex min-h-10 items-center gap-2 rounded-lg border border-border bg-card ps-3 pe-9 text-sm font-medium text-foreground shadow-xs focus-within:ring-2 focus-within:ring-ring/40">
-            <CalendarDays className="size-4 text-primary" aria-hidden="true" />
-            <span>شهر الملخص</span>
-            <select aria-label="شهر الملخص" value={selectedMonth} onChange={(event) => setSelectedMonth(Number(event.target.value))} className="appearance-none bg-transparent py-1 pe-1 outline-none">
+          <label className="relative flex min-h-11 min-w-[15rem] flex-1 items-center gap-2 rounded-lg border border-border bg-card ps-3 pe-3 text-sm font-medium text-foreground shadow-xs transition-shadow focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-ring/40 sm:flex-none">
+            <CalendarDays className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            <span className="shrink-0 text-muted-foreground">شهر الملخص</span>
+            <select aria-label="شهر الملخص" value={selectedMonth} onChange={(event) => setSelectedMonth(Number(event.target.value))} className="min-w-0 flex-1 appearance-none bg-transparent py-1 text-end outline-none">
               {ANALYTICS_MONTHS.map((month, index) => <option key={month} value={index}>{month}</option>)}
             </select>
+            <ChevronDown className="pointer-events-none absolute end-3 size-4 text-muted-foreground" aria-hidden="true" />
           </label>
+          </div>
         </div>
         <InfoBanner>يعرض الملخص المالي شهر {ANALYTICS_MONTHS[selectedMonth]} {selectedYear}. تشمل رؤى المركبات بيانات السجلات المتاحة، وقد تختلف عن نطاق الشهر المحدد.</InfoBanner>
         {hasFinancialError && (

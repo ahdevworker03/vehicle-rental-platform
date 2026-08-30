@@ -35,7 +35,7 @@
       "environment": {
         "API_NAME": "vehicle-rental-api",
         "API_BASE_URL": "http://localhost:3000/api",
-        "API_SPEC_PATH": "lib/api-spec/openapi.yaml",
+        "API_SPEC_PATH": "/home/ahdevworker03/Abdallah Hassoun/Software Engineering/4- Projects/3- client/vehicle-rental-platform/lib/api-spec/openapi.yaml",
         "LOG_LEVEL": "ERROR",
         "ENABLE_OPERATION_PROMPTS": "true",
         "ALLOW_INSECURE_HTTP": "true",

@@ -48,10 +48,10 @@ export function TasksDataList({ tasks, onOpen }: TasksDataListProps) {
   return (
     <>
       <div className="hidden xl:block">
-        <Table>
-          <TableHeader className="bg-muted/45"><TableRow><TableHead>المهمة</TableHead><TableHead>الحالة</TableHead><TableHead>تاريخ الاستحقاق</TableHead><TableHead className="text-end">الإجراء</TableHead></TableRow></TableHeader>
+        <Table className="table-fixed">
+          <TableHeader className="bg-muted/45"><TableRow><TableHead className="w-[52%]">المهمة</TableHead><TableHead className="w-[17%]">الحالة</TableHead><TableHead className="w-[18%]">تاريخ الاستحقاق</TableHead><TableHead className="w-[13%] text-end">الإجراء</TableHead></TableRow></TableHeader>
           <TableBody>
-            {tasks.map((task) => <TableRow key={task.id} className={task.status === "COMPLETED" ? "cursor-pointer bg-muted/20" : "cursor-pointer"} onClick={() => onOpen(task.id)}><TableCell className="min-w-[22rem]"><TaskTitle task={task} /></TableCell><TableCell><TaskStatus task={task} /></TableCell><TableCell><DueDateValue task={task} /></TableCell><TableCell className="text-end"><Button type="button" variant="outline" size="sm" onClick={(event) => { event.stopPropagation(); onOpen(task.id); }}>عرض التفاصيل<ChevronLeft className="size-4" aria-hidden="true" /></Button></TableCell></TableRow>)}
+            {tasks.map((task) => <TableRow key={task.id} className={task.status === "COMPLETED" ? "bg-muted/20" : undefined}><TableCell><TaskTitle task={task} /></TableCell><TableCell><TaskStatus task={task} /></TableCell><TableCell><DueDateValue task={task} /></TableCell><TableCell className="text-end"><Button type="button" variant="outline" size="sm" onClick={() => onOpen(task.id)}>عرض التفاصيل<ChevronLeft className="size-4" aria-hidden="true" /></Button></TableCell></TableRow>)}
           </TableBody>
         </Table>
       </div>

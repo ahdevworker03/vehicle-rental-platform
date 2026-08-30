@@ -16,6 +16,7 @@ function dateParts(value: string | Date): { day: string; month: string; year: st
     month: "2-digit",
     year: "numeric",
     numberingSystem: "latn",
+    timeZone: "UTC",
   }).formatToParts(date);
 
   const part = (type: Intl.DateTimeFormatPartTypes) =>

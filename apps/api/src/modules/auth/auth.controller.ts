@@ -10,7 +10,7 @@ import {
   requestPasswordReset,
   confirmPasswordReset,
 } from "./password-reset.service";
-import { ok, created, noContent } from "../../shared";
+import { AppError, ok, created, noContent } from "../../shared";
 import type {
   RegisterInput,
   LoginInput,
@@ -95,9 +95,10 @@ async function logout(
 async function currentUser(
   req: Request,
   res: Response,
-  _next: NextFunction,
+  next: NextFunction,
 ): Promise<void> {
   try {
+    res.set("Cache-Control", "no-store");
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
@@ -122,7 +123,7 @@ async function currentUser(
       createdAt: user.created_at.toISOString(),
     });
   } catch {
-    ok(res, null);
+    next(new AppError(401, "INVALID_ACCESS_TOKEN", "Invalid access token."));
   }
 }
 

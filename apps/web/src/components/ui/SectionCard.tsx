@@ -17,12 +17,12 @@ export function SectionCard({ children, className, title, description, action }:
   return (
     <section className={cn("rounded-xl border border-card-border bg-card shadow-sm", className)}>
       {(title || action) && (
-        <header className="flex items-start justify-between gap-4 border-b border-border px-4 py-3 sm:px-5">
+        <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-4 py-3 sm:flex-nowrap sm:gap-4 sm:px-5">
           <div className="min-w-0">
             {title && <h2 className="ui-section-title">{title}</h2>}
             {description && <p className="ui-secondary-text mt-1">{description}</p>}
           </div>
-          {action && <div className="shrink-0">{action}</div>}
+          {action && <div className="max-w-full shrink-0">{action}</div>}
         </header>
       )}
       <div className={cn("p-4 sm:p-5", (title || action) && "pt-4")}>{children}</div>

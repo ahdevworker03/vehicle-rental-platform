@@ -76,13 +76,13 @@ function PeriodSelect({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="block min-w-0 text-sm font-semibold text-foreground">
-      {label}
-      <span className="relative mt-2 block">
+    <label className="flex min-w-0 flex-col gap-2">
+      <span className="ui-label">{label}</span>
+      <span className="relative block">
         <select
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="min-h-10 w-full appearance-none rounded-lg border border-input bg-background py-2 ps-3 pe-9 text-sm font-medium text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="min-h-11 w-full appearance-none rounded-lg border border-input bg-background px-3 py-2 pe-10 text-sm font-semibold text-foreground shadow-sm outline-none transition-colors hover:border-primary/40 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           {options.map((option) => (
             <option key={option.value} value={option.value}>
@@ -111,7 +111,7 @@ export function PeriodSelector({
   const quarter = Math.floor(month / 3);
 
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-4", className)}>
       <SegmentedControl
         options={PERIOD_TYPE_OPTIONS}
         value={type}
@@ -119,7 +119,7 @@ export function PeriodSelector({
       />
 
       {type === "month" && (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-4 sm:max-w-xl sm:grid-cols-[minmax(0,1fr)_11rem]">
           <PeriodSelect
             label="الشهر"
             value={String(month)}
@@ -136,19 +136,14 @@ export function PeriodSelector({
       )}
 
       {type === "quarter" && (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-4 sm:max-w-xl sm:grid-cols-[minmax(0,1fr)_11rem]">
           <PeriodSelect
             label="الربع"
             value={String(quarter)}
             options={quarterOptions()}
             onChange={(value) => onMonthChange(Number(value) * 3)}
           />
-          <PeriodSelect
-            label="السنة"
-            value={String(year)}
-            options={yearOptions()}
-            onChange={(value) => onYearChange(Number(value))}
-          />
+          <div className="max-w-44"><PeriodSelect label="السنة" value={String(year)} options={yearOptions()} onChange={(value) => onYearChange(Number(value))} /></div>
         </div>
       )}
 

@@ -15,8 +15,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { useAuth } from "@/providers/AuthProvider";
 import { getApiErrorMessage } from "@/lib/api-error";
-import { formatDateTime } from "@/lib/format";
-import { formatFileSize, formatDate } from "@/lib/media-labels";
+import { formatDate, formatDateTime } from "@/lib/format";
 import { useRentalContract, useRentalContractSignedDocuments } from "@/features/contracts/hooks";
 import { ApiError, type DocumentResponse } from "@workspace/api-client-react";
 
@@ -291,7 +290,7 @@ export function ContractSection({ rentalId }: ContractSectionProps) {
                           {doc.originalFilename}
                         </div>
                         <div className="text-xs text-muted-foreground mt-0.5">
-                          {formatFileSize(doc.fileSize)} · {formatDate(doc.createdAt)}
+                          <span dir="ltr" className="number-ltr">{formatDate(doc.createdAt)}</span>
                         </div>
                       </div>
                       <button

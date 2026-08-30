@@ -10,11 +10,11 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useAvailableVehicles } from "@/features/rentals/api-hooks";
 import { getApiErrorMessage } from "@/lib/api-error";
 
-function toISO(datetimeLocal: string): string {
-  return new Date(datetimeLocal).toISOString();
+function toISO(date: string): string {
+  return new Date(`${date}T12:00:00Z`).toISOString();
 }
 
-export function VehicleAvailabilitySection() {
+export function VehicleAvailabilitySection({ compact = false }: { compact?: boolean }) {
   const [pickup, setPickup] = useState("");
   const [returnDate, setReturnDate] = useState("");
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -31,18 +31,19 @@ export function VehicleAvailabilitySection() {
   }
 
   return (
-    <SectionCard title="فحص التوفر" description="تحقق من المركبات المتاحة ضمن فترة إيجار محددة." className="shadow-none">
-      <div className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2">
+    <SectionCard title={compact ? undefined : "فحص التوفر"} description={compact ? undefined : "تحقق من المركبات المتاحة ضمن فترة إيجار محددة."} className={compact ? "border-0 bg-transparent shadow-none" : "shadow-none"}>
+      <div className={compact ? "space-y-3" : "space-y-4"}>
+        {compact && <p className="text-sm font-medium text-foreground">فحص التوفر ضمن فترة إيجار</p>}
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
           <FormField label="تاريخ الاستلام" required htmlFor="availability-pickup">
-            <input id="availability-pickup" type="datetime-local" value={pickup} onChange={(event) => { setPickup(event.target.value); setValidationError(null); }} className={inputClass} />
+            <input id="availability-pickup" type="date" dir="ltr" value={pickup} onChange={(event) => { setPickup(event.target.value); setValidationError(null); }} className={inputClass} />
           </FormField>
           <FormField label="تاريخ الإرجاع" required htmlFor="availability-return">
-            <input id="availability-return" type="datetime-local" min={pickup} value={returnDate} onChange={(event) => { setReturnDate(event.target.value); setValidationError(null); }} className={inputClass} />
+            <input id="availability-return" type="date" dir="ltr" min={pickup} value={returnDate} onChange={(event) => { setReturnDate(event.target.value); setValidationError(null); }} className={inputClass} />
           </FormField>
         </div>
         {validationError && <InlineError>{validationError}</InlineError>}
-        <Button type="button" onClick={handleSubmit}><CalendarSearch className="size-4" aria-hidden="true" />التحقق من التوفر</Button>
+        <Button type="button" onClick={handleSubmit} className="sm:mb-px"><CalendarSearch className="size-4" aria-hidden="true" />التحقق من التوفر</Button>
 
         {submitted && (
           <div className="border-t border-border pt-4">

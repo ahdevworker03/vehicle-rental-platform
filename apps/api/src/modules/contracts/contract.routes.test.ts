@@ -93,6 +93,21 @@ describe("contract lifecycle", () => {
       .set("Authorization", `Bearer ${token}`);
   }
 
+  it("renders an Arabic printable contract without exposing a rental UUID label", async () => {
+    const generated = await generateContract();
+    expect(generated.status).toBe(201);
+
+    const printable = await request(app)
+      .get(`/api/rentals/${rentalId}/contract/printable`)
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(printable.status).toBe(200);
+    expect(printable.text).toContain('lang="ar"');
+    expect(printable.text).toContain("رقم العقد");
+    expect(printable.text).toContain("توقيع المستأجر");
+    expect(printable.text).not.toContain("Rental ID");
+  });
+
   it("restores the same unsigned contract row with a refreshed rental snapshot", async () => {
     const generated = await generateContract();
     expect(generated.status).toBe(201);

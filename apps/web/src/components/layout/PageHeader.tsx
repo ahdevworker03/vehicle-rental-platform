@@ -36,7 +36,7 @@ export function PageHeader({
         )}
         <h1 className="ui-page-title m-0 truncate text-xl">{title}</h1>
       </div>
-      {action && <div className="flex shrink-0 items-center">{action}</div>}
+      {action && <div className="flex w-full min-w-0 items-center sm:w-auto sm:shrink-0">{action}</div>}
     </header>
   );
 }

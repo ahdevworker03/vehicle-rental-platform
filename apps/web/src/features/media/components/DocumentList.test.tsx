@@ -52,4 +52,24 @@ describe("DocumentList", () => {
     await waitFor(() => expect(onUpdateExpiry).toHaveBeenCalledWith("document-1", "2027-01-15"));
     expect(await screen.findByText("تم تحديث تاريخ الانتهاء.")).toBeInTheDocument();
   });
+
+  it("omits file-size metadata and uses Western digits for document dates", () => {
+    render(
+      <DocumentList
+        documents={[document]}
+        isLoading={false}
+        isError={false}
+        error={null}
+        isOwner
+        uploading={false}
+        deleting={false}
+        onUpload={vi.fn()}
+        onDelete={vi.fn()}
+        onDownload={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("01-01-2026")).toHaveAttribute("dir", "ltr");
+    expect(screen.queryByText(/ك\.ب|بايت|م\.ب/)).not.toBeInTheDocument();
+  });
 });

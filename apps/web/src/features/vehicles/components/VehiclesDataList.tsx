@@ -44,22 +44,22 @@ export function VehiclesDataList({ vehicles, onOpen }: VehiclesDataListProps) {
   return (
     <>
       <div className="hidden xl:block">
-        <Table>
+        <Table className="table-fixed">
           <TableHeader className="bg-muted/45">
             <TableRow>
-              <TableHead>المركبة</TableHead>
-              <TableHead>الحالة</TableHead>
-              <TableHead>المواصفات</TableHead>
-              <TableHead className="text-end">العداد</TableHead>
-              <TableHead className="text-end">الإجراء</TableHead>
+              <TableHead className="w-[31%]">المركبة</TableHead>
+              <TableHead className="w-[15%]">الحالة</TableHead>
+              <TableHead className="w-[25%]">المواصفات</TableHead>
+              <TableHead className="w-[14%] text-end">العداد</TableHead>
+              <TableHead className="w-[15%] text-end">الإجراء</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {vehicles.map((vehicle) => (
-              <TableRow key={vehicle.id} className="cursor-pointer" onClick={() => onOpen(vehicle.id)}>
-                <TableCell className="min-w-[17rem]"><VehicleIdentity vehicle={vehicle} /></TableCell>
+              <TableRow key={vehicle.id}>
+                <TableCell><VehicleIdentity vehicle={vehicle} /></TableCell>
                 <TableCell><StatusBadge status={vehicle.status} /></TableCell>
-                <TableCell className="min-w-[13rem]"><VehicleSpecification vehicle={vehicle} /></TableCell>
+                <TableCell><VehicleSpecification vehicle={vehicle} /></TableCell>
                 <TableCell className="text-end"><Mileage value={vehicle.currentMileage} /></TableCell>
                 <TableCell className="text-end">
                   <Button type="button" variant="outline" size="sm" onClick={(event) => { event.stopPropagation(); onOpen(vehicle.id); }}>

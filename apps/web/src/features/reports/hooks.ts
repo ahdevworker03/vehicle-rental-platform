@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useListRentals } from "@workspace/api-client-react";
+import { useGetMyOrganization, useListRentals, useListVehicles } from "@workspace/api-client-react";
 import { usePayments } from "@/features/payments/hooks";
 import { useExpensesList } from "@/features/expenses/hooks";
 import { useMaintenance } from "@/features/maintenance/hooks";
@@ -19,6 +19,8 @@ export function useReportData() {
   const maintenanceQuery = useMaintenance();
   const tasksQuery = useTasks();
   const rentalsQuery = useListRentals();
+  const vehiclesQuery = useListVehicles();
+  const organizationQuery = useGetMyOrganization();
 
   const payments = paymentsQuery.payments;
   const expenses = expensesQuery.expenses;
@@ -34,6 +36,7 @@ export function useReportData() {
     () => rentalsQuery.data?.data ?? [],
     [rentalsQuery.data],
   );
+  const vehicles = useMemo(() => vehiclesQuery.data?.data ?? [], [vehiclesQuery.data]);
 
   const isLoading =
     paymentsQuery.isLoading ||
@@ -62,6 +65,9 @@ export function useReportData() {
     expenses,
     maintenance,
     rentals,
+    vehicles,
+    vehiclesUnavailable: vehiclesQuery.isError,
+    organizationName: organizationQuery.data?.data.name ?? null,
     tasks,
     isLoading,
     isError,

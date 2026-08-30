@@ -23,4 +23,14 @@ describe("LoginPage", () => {
       "login-password",
     );
   });
+
+  it("uses a submit control and does not expose public company registration", () => {
+    render(<LoginPage />);
+
+    expect(screen.getByRole("button", { name: "دخول" })).toHaveAttribute(
+      "type",
+      "submit",
+    );
+    expect(screen.queryByText("إنشاء حساب الشركة")).not.toBeInTheDocument();
+  });
 });

@@ -20,7 +20,7 @@ interface DetailPageParams {
 }
 
 function KeyValue({ label, value, numeric = false }: { label: string; value?: string | null; numeric?: boolean }) {
-  return <div className="min-w-0"><div className="ui-label">{label}</div><div dir={numeric ? "ltr" : undefined} className={`mt-1 break-words text-sm font-semibold text-foreground ${numeric ? "number-ltr" : ""}`}>{value || "—"}</div></div>;
+  return <div className="min-w-0 text-right"><div className="ui-label">{label}</div><div dir={numeric ? "ltr" : undefined} className={`mt-1.5 break-words text-sm font-semibold text-foreground ${numeric ? "number-ltr" : ""}`}>{value || "—"}</div></div>;
 }
 
 export default function ExpenseDetailPage({ params }: DetailPageParams) {
@@ -138,8 +138,8 @@ export default function ExpenseDetailPage({ params }: DetailPageParams) {
             ) : (
               <>
                 <DetailSection title="تفاصيل المصروف" description="الفئة والقيمة وتاريخ تسجيل المصروف.">
-                  <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-                    <div><div className="ui-label">الفئة</div><div className="mt-1"><ExpenseCategoryBadge category={expense.category} /></div></div>
+                  <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-3">
+                    <div className="text-right"><div className="ui-label">الفئة</div><div className="mt-1.5"><ExpenseCategoryBadge category={expense.category} /></div></div>
                     <KeyValue label="المبلغ" value={formatUsd(expense.amount)} numeric />
                     <KeyValue label="تاريخ المصروف" value={formatDate(expense.expenseDate)} numeric />
                   </div>

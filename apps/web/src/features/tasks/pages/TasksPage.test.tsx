@@ -124,6 +124,25 @@ describe("TasksPage", () => {
     expect(screen.queryByText("أ")).not.toBeInTheDocument();
   });
 
+  it("shows only overdue tasks from the overdue alert", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-15T12:00:00Z"));
+    mockQuery({
+      data: {
+        data: [
+          makeTask({ id: "overdue", dueDate: "2026-08-10T12:00:00Z", notes: "متأخرة" }),
+          makeTask({ id: "upcoming", dueDate: "2026-08-20T12:00:00Z", notes: "قادمة" }),
+        ],
+      },
+    });
+
+    render(<TasksPage />);
+    fireEvent.click(screen.getByRole("button", { name: /عرض المهمة المتأخرة/ }));
+
+    expect(screen.getAllByText("متأخرة").length).toBeGreaterThan(0);
+    expect(screen.queryByText("قادمة")).not.toBeInTheDocument();
+  });
+
   it("combines search and status filters", () => {
     vi.useFakeTimers();
     mockQuery({

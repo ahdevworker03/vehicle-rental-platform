@@ -90,10 +90,10 @@ function DashboardAction({
   return (
     <Button
       type="button"
-      variant="outline"
+      variant="ghost"
       size="sm"
       onClick={onClick}
-      className="justify-center"
+      className="h-9 shrink-0 rounded-lg px-3 text-muted-foreground hover:bg-background hover:text-foreground focus-visible:ring-ring/40"
     >
       <Icon className="size-4" aria-hidden="true" />
       {label}
@@ -333,8 +333,12 @@ export default function DashboardPage() {
         }
       />
 
-      <div className="space-y-5 px-4 pb-4 sm:px-6 lg:space-y-6 lg:pb-6">
-        <div className="flex flex-wrap gap-2 pt-1">
+      <div className="space-y-4 px-4 pb-4 sm:px-6 lg:space-y-5 lg:pb-6">
+        <div
+          role="group"
+          aria-label="إجراءات سريعة"
+          className="flex w-full flex-wrap items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-sm sm:w-fit"
+        >
           <DashboardAction
             label="إعادة مركبة"
             icon={RotateCcw}
@@ -358,8 +362,8 @@ export default function DashboardPage() {
           </p>
         )}
 
-        <div className="grid gap-5 lg:gap-6 xl:grid-cols-12">
-        <section aria-label="التنبيهات التشغيلية" className="order-1 self-start xl:col-span-8">
+        <div className="grid items-start gap-4 lg:grid-cols-2 xl:grid-cols-12 xl:gap-5">
+        <section aria-label="التنبيهات التشغيلية" className="order-2 self-start lg:col-span-2 xl:order-2 xl:col-span-4">
           <SectionCard
             title="ما يحتاج إلى متابعة"
             description="تنبيهات تشغيلية مرتبة حسب الأولوية"
@@ -480,7 +484,7 @@ export default function DashboardPage() {
           </SectionCard>
         </section>
 
-        <div className="order-2 grid gap-5 xl:col-span-4">
+        <div className="order-3 grid gap-4 md:grid-cols-2 lg:col-span-2 xl:contents">
           <SectionCard
             title="الملخص المالي"
             description={`${dashboard.period.label} — بناءً على الدفعات والمصروفات المسجلة`}
@@ -495,7 +499,7 @@ export default function DashboardPage() {
                 <ChevronLeft className="size-4" aria-hidden="true" />
               </Button>
             }
-            className="h-full"
+            className="xl:order-1 xl:col-span-4"
           >
             {financeState === "error" ? (
               <ErrorState
@@ -506,7 +510,7 @@ export default function DashboardPage() {
                 className="py-8"
               />
             ) : (
-              <div className="grid grid-cols-2 gap-x-4 gap-y-5">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <FinancialValue
                   label="الإيرادات"
                   value={formatCurrency(dashboard.revenue)}
@@ -561,7 +565,7 @@ export default function DashboardPage() {
                 <ChevronLeft className="size-4" aria-hidden="true" />
               </Button>
             }
-            className="h-full"
+            className="xl:order-3 xl:col-span-4"
           >
             {fleetState === "error" ? (
               <ErrorState
@@ -571,7 +575,10 @@ export default function DashboardPage() {
                 className="py-8"
               />
             ) : <>
-              <div className="grid grid-cols-2 gap-x-5 gap-y-4">
+              <div className={cn(
+                "grid grid-cols-2 gap-2.5",
+                dashboard.outOfServiceCount > 0 ? "xl:grid-cols-4" : "xl:grid-cols-3",
+              )}>
                 <FleetStatus
                   label="متاحة"
                   value={dashboard.availableCount}
@@ -584,7 +591,7 @@ export default function DashboardPage() {
                   <FleetStatus label="خارج الخدمة" value={dashboard.outOfServiceCount} status="OUT_OF_SERVICE" />
                 )}
               </div>
-              <div className="mt-5 border-t border-border pt-4">
+              <div className="mt-4 border-t border-border pt-3">
                 <button type="button" onClick={() => setLocation("/maintenance")} className="flex w-full items-center justify-between text-start">
                   <span>
                     <span className="block text-sm font-semibold text-foreground">سجلات الصيانة</span>
@@ -604,7 +611,7 @@ export default function DashboardPage() {
 
         <section
           aria-label="نظرة تشغيلية سريعة"
-          className="order-3 grid grid-cols-2 gap-3 xl:col-span-full lg:grid-cols-4 lg:gap-4"
+          className="order-3 grid grid-cols-2 gap-3 lg:col-span-2 xl:order-4 xl:col-span-full xl:grid-cols-4 xl:gap-4"
         >
           <DashboardMetricCard
             label="الإيجارات النشطة"
@@ -648,7 +655,7 @@ export default function DashboardPage() {
           />
         </section>
 
-        <div className="order-4 grid gap-5 xl:col-span-full xl:grid-cols-12 xl:gap-6">
+        <div className="order-4 grid gap-4 lg:col-span-2 xl:order-5 xl:col-span-full xl:grid-cols-12 xl:gap-5">
           <SectionCard
             title="الإيجارات النشطة"
             description={`${dashboard.activeRentals.length} عقود قيد التنفيذ`}
@@ -788,7 +795,7 @@ export default function DashboardPage() {
               <ChevronLeft className="size-4" aria-hidden="true" />
             </Button>
           }
-          className="order-5 overflow-hidden xl:col-span-full"
+          className="order-5 overflow-hidden lg:col-span-2 xl:order-6 xl:col-span-full"
         >
           {rentalRowsState === "loading" ? (
             <LoadingState rows={3} className="-m-1 p-1" />
@@ -843,7 +850,7 @@ function FinancialValue({
   }[tone];
 
   return (
-    <div className="min-w-0">
+    <div className="min-w-0 rounded-lg border border-border/70 bg-muted/25 p-2.5">
       <div className="flex items-center gap-2 text-muted-foreground">
         <Icon
           className={cn("size-4 shrink-0", colorClass)}
@@ -859,7 +866,7 @@ function FinancialValue({
       ) : (
         <p
           className={cn(
-            "number-ltr mt-3 truncate text-lg font-bold",
+            "number-ltr mt-2 truncate text-lg font-bold",
             colorClass,
           )}
         >
@@ -882,7 +889,7 @@ function FleetStatus({
   state?: DashboardMetricState;
 }) {
   return (
-    <div>
+    <div className="rounded-lg border border-border/70 bg-muted/25 p-2.5">
       <StatusBadge status={status} label={label} />
       <p className="number-ltr mt-2 text-xl font-bold text-foreground">
         {state === "ready" ? value : "—"}

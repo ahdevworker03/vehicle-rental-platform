@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DocumentList } from "@/features/media";
 import { ErrorState, InlineError, LoadingState } from "@/components/ui/FeedbackState";
 import { RentalHistorySection } from "@/features/rentals";
-import { DetailSection, SummaryActionPanel } from "@/components/ui/SectionCard";
+import { DetailSection } from "@/components/ui/SectionCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useCustomerDocuments } from "@/features/media/hooks";
 import { useRentalsForCustomer } from "@/features/rentals/api-hooks";
@@ -22,9 +22,9 @@ interface DetailPageParams {
 
 function KeyValue({ label, value, numeric = false }: { label: string; value?: string; numeric?: boolean }) {
   return (
-    <div className="min-w-0">
+    <div className="min-w-0 text-right">
       <div className="ui-label">{label}</div>
-      <div dir={numeric ? "ltr" : undefined} className={`mt-1 break-words text-sm font-semibold text-foreground ${numeric ? "number-ltr" : ""}`}>{value || "—"}</div>
+      <div dir={numeric ? "ltr" : undefined} className={`mt-1.5 break-words text-sm font-semibold text-foreground ${numeric ? "number-ltr" : ""}`}>{value || "—"}</div>
     </div>
   );
 }
@@ -86,7 +86,17 @@ export default function CustomerDetailPage({ params }: DetailPageParams) {
 
   return (
     <div className="min-h-full pb-8">
-      <PageHeader title="تفاصيل العميل" showBack action={isOwner ? <Button type="button" size="sm" onClick={() => setLocation(`/customers/${customer.id}/edit`)}><Pencil className="size-4" aria-hidden="true" />تعديل</Button> : undefined} />
+      <PageHeader title="تفاصيل العميل" showBack action={isOwner ? (
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {confirmingDelete ? <>
+            <Button type="button" variant="outline" size="sm" onClick={() => { setConfirmingDelete(false); setDeleteError(null); }} disabled={deleteMutation.isPending}>إلغاء</Button>
+            <Button type="button" variant="destructive" size="sm" onClick={handleDelete} disabled={deleteMutation.isPending}>{deleteMutation.isPending ? "جارٍ الحذف" : "تأكيد الحذف"}</Button>
+          </> : <>
+            <Button type="button" size="sm" onClick={() => setLocation(`/customers/${customer.id}/edit`)}><Pencil className="size-4" aria-hidden="true" />تعديل</Button>
+            <Button type="button" variant="destructive" size="sm" onClick={() => setConfirmingDelete(true)}><Trash2 className="size-4" aria-hidden="true" />حذف</Button>
+          </>}
+        </div>
+      ) : undefined} />
 
       <div className="space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
         <DetailSection className="shadow-none">
@@ -99,34 +109,11 @@ export default function CustomerDetailPage({ params }: DetailPageParams) {
           </div>
         </DetailSection>
 
-        <div className="grid gap-4 xl:grid-cols-12 xl:items-start">
-          <aside className="order-1 xl:order-2 xl:col-span-4">
-            <SummaryActionPanel title="إجراءات العميل" description="إدارة بيانات العميل وسجل إجارته.">
-              <div className="space-y-3">
-                {isOwner && !confirmingDelete && <Button type="button" variant="outline" className="w-full" onClick={() => setLocation(`/customers/${customer.id}/edit`)}><Pencil className="size-4" aria-hidden="true" />تعديل العميل</Button>}
-                {currentRental && (
-                  <div className="rounded-lg bg-muted/45 p-3">
-                    <div className="ui-label">الإيجار الحالي</div>
-                    <div className="mt-1 flex items-center justify-between gap-3">
-                      <StatusBadge status={currentRental.status} />
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setLocation(`/rentals/${currentRental.id}`)}>عرض الإيجار</Button>
-                    </div>
-                  </div>
-                )}
-                {isOwner && (confirmingDelete ? (
-                  <div className="space-y-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
-                    <p className="text-sm text-foreground">هل تريد حذف هذا العميل؟</p>
-                    {deleteError && <InlineError>{deleteError}</InlineError>}
-                    <div className="grid grid-cols-2 gap-2"><Button type="button" variant="outline" onClick={() => setConfirmingDelete(false)} disabled={deleteMutation.isPending}>إلغاء</Button><Button type="button" variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>{deleteMutation.isPending ? "جارٍ الحذف" : "حذف"}</Button></div>
-                  </div>
-                ) : <Button type="button" variant="outline" className="w-full border-destructive/40 text-destructive hover:bg-destructive/5" onClick={() => setConfirmingDelete(true)}><Trash2 className="size-4" aria-hidden="true" />حذف العميل</Button>)}
-              </div>
-            </SummaryActionPanel>
-          </aside>
-
-          <section aria-label="بيانات العميل" className="order-2 space-y-4 xl:order-1 xl:col-span-8">
+        {confirmingDelete && <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-foreground">سيتم أرشفة العميل وإخفاؤه من السجلات النشطة. أكد الحذف للمتابعة.</div>}
+        {deleteError && <InlineError>{deleteError}</InlineError>}
+        <section aria-label="بيانات العميل" className="space-y-4">
             <DetailSection title="بيانات العميل" description="معلومات التواصل والهوية ورخصة القيادة.">
-              <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+               <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-3 lg:grid-cols-4">
                 <KeyValue label="الاسم الكامل" value={fullName} />
                 <KeyValue label="رقم الهاتف" value={customer.phone} numeric />
                 <KeyValue label="العنوان" value={customer.address} />
@@ -153,9 +140,9 @@ export default function CustomerDetailPage({ params }: DetailPageParams) {
               />
             </DetailSection>
 
-            <RentalHistorySection rentals={customerRentals.rentals} isLoading={customerRentals.isLoading} isError={customerRentals.isError} error={customerRentals.error} title="سجل الإيجارات" emptyMessage="لا توجد إيجارات لهذا العميل" />
-          </section>
-        </div>
+          {currentRental && <DetailSection title="الإيجار الحالي"><div className="flex flex-wrap items-center justify-between gap-3"><StatusBadge status={currentRental.status} /><Button type="button" variant="outline" size="sm" onClick={() => setLocation(`/rentals/${currentRental.id}`)}>عرض الإيجار</Button></div></DetailSection>}
+          <RentalHistorySection rentals={customerRentals.rentals} isLoading={customerRentals.isLoading} isError={customerRentals.isError} error={customerRentals.error} title="سجل الإيجارات" emptyMessage="لا توجد إيجارات لهذا العميل" />
+        </section>
       </div>
     </div>
   );

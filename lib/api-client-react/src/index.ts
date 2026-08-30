@@ -1,5 +1,5 @@
-export { setBaseUrl, setAuthTokenGetter, customFetch, ApiError } from "./custom-fetch";
-export type { AuthTokenGetter } from "./custom-fetch";
+export { setBaseUrl, setAuthTokenGetter, setAuthRefreshHandler, customFetch, ApiError } from "./custom-fetch";
+export type { AuthTokenGetter, AuthRefreshHandler } from "./custom-fetch";
 export * from './generated/auth/auth';
 export * from './generated/api.schemas';
 export * from './generated/contracts/contracts';

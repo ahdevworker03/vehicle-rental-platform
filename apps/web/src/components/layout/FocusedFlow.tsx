@@ -12,7 +12,7 @@ export function FocusedFlow({
   maxWidth = "default",
 }: FocusedFlowProps) {
   return (
-    <div className="relative flex h-[100dvh] flex-col overflow-hidden bg-background">
+    <div className="relative flex h-[100dvh] flex-col overflow-y-auto bg-background">
       <div
         className={cn(
           "flex min-h-0 w-full flex-1 flex-col self-center",

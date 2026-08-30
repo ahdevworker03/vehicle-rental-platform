@@ -20,52 +20,64 @@ function escapeHtml(value: string): string {
 
 /** Builds the printable HTML representation from the immutable Contract snapshot. */
 export function renderContractHtml(contract: ContractResponse): string {
-  const rows = [
-    ["Contract ID", escapeHtml(contract.id)],
-    ["Rental ID", escapeHtml(contract.rentalId)],
-    ["Pickup Date", formatDate(contract.pickupDate)],
-    ["Expected Return Date", formatDate(contract.expectedReturnDate)],
-    ["Daily Rate", formatMoney(contract.dailyRate)],
-    ["Total Amount", formatMoney(contract.totalAmount)],
-    ["Deposit Amount", formatMoney(contract.depositAmount)],
-    [
-      "Customer",
-      `${escapeHtml(contract.customerFirstName)} ${escapeHtml(contract.customerLastName)}`,
-    ],
-    ["Customer National ID", escapeHtml(contract.customerNationalId)],
-    [
-      "Vehicle",
-      `${escapeHtml(contract.vehicleMake)} ${escapeHtml(contract.vehicleModel)}`,
-    ],
-    ["Vehicle Plate Number", escapeHtml(contract.vehiclePlateNumber)],
-  ];
+  const field = (label: string, value: string, ltr = false) =>
+    `<div class="field"><span>${label}</span><strong${ltr ? ' dir="ltr"' : ""}>${value}</strong></div>`;
 
-  const rowsHtml = rows
-    .map(
-      ([label, value]) =>
-        `<tr><td class="label">${label}</td><td class="value">${value}</td></tr>`,
-    )
-    .join("\n");
+  const customerName = `${escapeHtml(contract.customerFirstName)} ${escapeHtml(contract.customerLastName)}`;
+  const vehicleName = `${escapeHtml(contract.vehicleMake)} ${escapeHtml(contract.vehicleModel)}`;
 
   return `<!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8" />
-<title>Rental Contract</title>
+<title>عقد تأجير مركبة</title>
 <style>
-  body { font-family: Arial, Helvetica, sans-serif; color: #111; margin: 40px; }
-  h1 { font-size: 22px; border-bottom: 2px solid #333; padding-bottom: 8px; }
-  table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-  td { padding: 10px 12px; border-bottom: 1px solid #ddd; font-size: 14px; }
-  td.label { font-weight: bold; width: 40%; color: #444; }
-  td.value { text-align: right; }
+  * { box-sizing: border-box; }
+  body { font-family: Tahoma, Arial, sans-serif; color: #172033; margin: 0; font-size: 13px; line-height: 1.7; }
+  .contract { max-width: 820px; margin: 0 auto; padding: 36px 42px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1d4f6e; padding-bottom: 16px; }
+  h1 { margin: 0; font-size: 24px; color: #123b56; }
+  .subtitle { margin: 3px 0 0; color: #5b6472; }
+  .contract-number { text-align: left; font-weight: 700; color: #334155; }
+  .contract-number strong { display: block; direction: ltr; font-size: 11px; font-weight: 600; overflow-wrap: anywhere; }
+  h2 { margin: 22px 0 9px; font-size: 15px; color: #123b56; }
+  .details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; border: 1px solid #d7dee7; background: #d7dee7; }
+  .field { min-height: 58px; padding: 8px 11px; background: #fff; }
+  .field span { display: block; color: #64748b; font-size: 11px; }
+  .field strong { display: block; font-size: 13px; overflow-wrap: anywhere; }
+  .terms { margin: 0; padding-right: 20px; }
+  .terms li { margin-bottom: 5px; }
+  .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 52px; }
+  .signature { border-top: 1px solid #64748b; padding-top: 8px; text-align: center; color: #475569; font-weight: 700; }
+  @media print { .contract { padding: 0; } }
 </style>
 </head>
 <body>
-<h1>Vehicle Rental Contract</h1>
-<table>
-${rowsHtml}
-</table>
+<main class="contract">
+  <header class="header">
+    <div><h1>عقد تأجير مركبة</h1><p class="subtitle">وثيقة تأجير صادرة لعملية الحجز الموضحة أدناه</p></div>
+    <div class="contract-number">رقم العقد<strong>${escapeHtml(contract.id)}</strong></div>
+  </header>
+  <section><h2>بيانات المستأجر</h2><div class="details">
+    ${field("الاسم", customerName)}
+    ${field("رقم الهوية", escapeHtml(contract.customerNationalId), true)}
+  </div></section>
+  <section><h2>بيانات المركبة</h2><div class="details">
+    ${field("المركبة", vehicleName)}
+    ${field("رقم اللوحة", escapeHtml(contract.vehiclePlateNumber), true)}
+  </div></section>
+  <section><h2>فترة الإيجار</h2><div class="details">
+    ${field("تاريخ الاستلام", formatDate(contract.pickupDate), true)}
+    ${field("تاريخ الإرجاع المتوقع", formatDate(contract.expectedReturnDate), true)}
+  </div></section>
+  <section><h2>التكاليف</h2><div class="details">
+    ${field("السعر اليومي", formatMoney(contract.dailyRate), true)}
+    ${field("إجمالي العقد", formatMoney(contract.totalAmount), true)}
+    ${field("مبلغ التأمين", formatMoney(contract.depositAmount), true)}
+  </div></section>
+  <section><h2>شروط مختصرة</h2><ol class="terms"><li>يلتزم المستأجر بإعادة المركبة في الموعد والحالة المتفق عليها.</li><li>يتحمل المستأجر المخالفات أو الأضرار الناتجة خلال مدة التأجير وفق الاتفاق.</li><li>تطبق الرسوم الإضافية عند التأخير أو مخالفة شروط الاستخدام.</li></ol></section>
+  <section class="signatures"><div class="signature">توقيع المستأجر</div><div class="signature">توقيع المؤجر</div></section>
+</main>
 </body>
 </html>`;
 }

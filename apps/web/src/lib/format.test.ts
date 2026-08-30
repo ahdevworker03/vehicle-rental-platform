@@ -35,6 +35,10 @@ describe("date formatting", () => {
   it("keeps compact dates in Western digits", () => {
     expect(formatDateShort(new Date(2025, 0, 15, 12))).toBe("15-01");
   });
+
+  it("keeps ISO business dates stable across browser timezones", () => {
+    expect(formatDate("2025-01-15T00:00:00.000Z")).toBe("15-01-2025");
+  });
 });
 
 describe("formatInitials", () => {
