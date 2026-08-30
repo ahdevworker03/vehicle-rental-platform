@@ -255,7 +255,7 @@ This is the implementation-ready specification for the Vehicle Rental Management
 | `id`, `organization_id` | UUID | Yes | `uuid()` / - | Primary key and tenant FK. |
 | `make`, `model`, `plate_number`, `color` | String | Yes | - | Required vehicle identity/details. |
 | `year`, `seats` | Int | Yes | - | Valid year and positive seat count. |
-| `vin`, `engine_number` | String | No | `null` | Optional, non-empty when supplied. |
+| `notes` | String | No | `null` | Optional general notes; non-empty when supplied. |
 | `transmission`, `fuel_type` | Enum | Yes | - | `Transmission` and `FuelType`. |
 | `current_mileage` | Int | Yes | `0` | Non-negative kilometers. |
 | `status` | `VehicleStatus` | Yes | `AVAILABLE` | Current operational state. |

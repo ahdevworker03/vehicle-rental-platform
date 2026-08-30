@@ -29,7 +29,7 @@ export default function EditVehiclePage({ params }: DetailPageParams) {
     const vehicle = vehicleQuery.data.data;
     setForm({
       make: vehicle.make, model: vehicle.model, plate_number: vehicle.plateNumber, year: String(vehicle.year), color: vehicle.color,
-      vin: vehicle.vin ?? "", engine_number: vehicle.engineNumber ?? "", transmission: vehicle.transmission, fuel_type: vehicle.fuelType,
+      notes: vehicle.notes ?? "", transmission: vehicle.transmission, fuel_type: vehicle.fuelType,
       seats: String(vehicle.seats), current_mileage: String(vehicle.currentMileage), status: vehicle.status,
     });
   }, [form, vehicleQuery.data]);
@@ -64,7 +64,7 @@ export default function EditVehiclePage({ params }: DetailPageParams) {
         id,
         data: {
           make: form.make.trim(), model: form.model.trim(), plate_number: form.plate_number.trim(), year: Number(form.year), color: form.color.trim(),
-          vin: form.vin.trim() || undefined, engine_number: form.engine_number.trim() || undefined, transmission: form.transmission,
+          notes: form.notes.trim() || null, transmission: form.transmission,
           fuel_type: form.fuel_type, seats: Number(form.seats), current_mileage: Number(form.current_mileage), status: form.status,
         },
       });

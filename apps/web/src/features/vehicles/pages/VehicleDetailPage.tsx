@@ -123,8 +123,7 @@ export default function VehicleDetailPage({ params }: DetailPageParams) {
                 <KeyValue label="نوع الوقود" value={FUEL_TYPE_LABELS[vehicle.fuelType] ?? vehicle.fuelType} />
                 <KeyValue label="عدد المقاعد" value={vehicle.seats} numeric />
                 <KeyValue label="العداد الحالي" value={`${formatNumber(vehicle.currentMileage)} كم`} numeric />
-                {vehicle.vin && <KeyValue label="رقم الشاصي (VIN)" value={vehicle.vin} ltr />}
-                {vehicle.engineNumber && <KeyValue label="رقم المحرك" value={vehicle.engineNumber} ltr />}
+                {vehicle.notes && <div className="md:col-span-3 lg:col-span-4"><KeyValue label="ملاحظات" value={vehicle.notes} /></div>}
               </div>
             </DetailSection>
 

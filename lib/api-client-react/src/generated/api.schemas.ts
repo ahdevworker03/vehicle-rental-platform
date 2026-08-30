@@ -286,8 +286,7 @@ export interface VehicleResponse {
   plateNumber: string;
   year: number;
   color: string;
-  vin?: string | null;
-  engineNumber?: string | null;
+  notes?: string | null;
   transmission: VehicleResponseTransmission;
   fuelType: VehicleResponseFuelType;
   seats: number;
@@ -349,8 +348,8 @@ export interface CreateVehicleRequest {
   year: number;
   /** @minLength 1 */
   color: string;
-  vin?: string;
-  engine_number?: string;
+  /** @minLength 1 */
+  notes?: string;
   transmission: CreateVehicleRequestTransmission;
   fuel_type: CreateVehicleRequestFuelType;
   /** @minimum 1 */
@@ -404,8 +403,8 @@ export interface UpdateVehicleRequest {
   year: number;
   /** @minLength 1 */
   color: string;
-  vin?: string;
-  engine_number?: string;
+  /** @minLength 1 */
+  notes?: string | null;
   transmission: UpdateVehicleRequestTransmission;
   fuel_type: UpdateVehicleRequestFuelType;
   /** @minimum 1 */

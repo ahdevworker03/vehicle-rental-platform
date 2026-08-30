@@ -23,8 +23,8 @@ export interface CreateVehicleRequest {
   year: number;
   /** @minLength 1 */
   color: string;
-  vin?: string;
-  engine_number?: string;
+  /** @minLength 1 */
+  notes?: string;
   transmission: CreateVehicleRequestTransmission;
   fuel_type: CreateVehicleRequestFuelType;
   /** @minimum 1 */

@@ -16,8 +16,7 @@ const INITIAL: VehicleFormState = {
   plate_number: "",
   year: "",
   color: "",
-  vin: "",
-  engine_number: "",
+  notes: "",
   transmission: "AUTOMATIC",
   fuel_type: "PETROL",
   seats: "",
@@ -60,7 +59,7 @@ export default function AddVehiclePage() {
       await createMutation.mutateAsync({
         data: {
           make: form.make.trim(), model: form.model.trim(), plate_number: form.plate_number.trim(), year: Number(form.year), color: form.color.trim(),
-          vin: form.vin.trim() || undefined, engine_number: form.engine_number.trim() || undefined, transmission: form.transmission,
+          notes: form.notes.trim() || undefined, transmission: form.transmission,
           fuel_type: form.fuel_type, seats: Number(form.seats), current_mileage: Number(form.current_mileage), status: form.status as VehicleResponseStatus,
         },
       });

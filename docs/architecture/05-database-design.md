@@ -109,6 +109,8 @@ The primary business entities include:
 - Payments
 - Maintenance Records
 
+Vehicles may store optional general notes. These notes are not indexed and do not replace structured vehicle identity or operational fields.
+
 Additional entities may be introduced as the platform evolves.
 
 Examples include:

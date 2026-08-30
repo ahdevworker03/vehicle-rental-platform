@@ -15,8 +15,7 @@ export interface AvailableVehicleResponse {
   plateNumber: string;
   year: number;
   color: string;
-  vin: string | null;
-  engineNumber: string | null;
+  notes: string | null;
   transmission: string;
   fuelType: string;
   seats: number;
@@ -33,8 +32,7 @@ function toResponse(record: {
   plate_number: string;
   year: number;
   color: string;
-  vin: string | null;
-  engine_number: string | null;
+  notes: string | null;
   transmission: string;
   fuel_type: string;
   seats: number;
@@ -50,8 +48,7 @@ function toResponse(record: {
     plateNumber: record.plate_number,
     year: record.year,
     color: record.color,
-    vin: record.vin,
-    engineNumber: record.engine_number,
+    notes: record.notes,
     transmission: record.transmission,
     fuelType: record.fuel_type,
     seats: record.seats,
@@ -97,8 +94,7 @@ async function createVehicle(
         plate_number: input.plate_number,
         year: input.year,
         color: input.color,
-        vin: input.vin,
-        engine_number: input.engine_number,
+        notes: input.notes,
         transmission: input.transmission,
         fuel_type: input.fuel_type,
         seats: input.seats,
@@ -139,8 +135,7 @@ async function updateVehicle(
       plate_number: input.plate_number,
       year: input.year,
       color: input.color,
-      vin: input.vin,
-      engine_number: input.engine_number,
+      notes: input.notes,
       transmission: input.transmission,
       fuel_type: input.fuel_type,
       seats: input.seats,

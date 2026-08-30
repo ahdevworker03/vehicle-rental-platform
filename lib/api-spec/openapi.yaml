@@ -4320,10 +4320,7 @@ components:
           type: integer
         color:
           type: string
-        vin:
-          type: string
-          nullable: true
-        engineNumber:
+        notes:
           type: string
           nullable: true
         transmission:
@@ -4397,10 +4394,9 @@ components:
         color:
           type: string
           minLength: 1
-        vin:
+        notes:
           type: string
-        engine_number:
-          type: string
+          minLength: 1
         transmission:
           type: string
           enum: [MANUAL, AUTOMATIC]
@@ -4447,10 +4443,10 @@ components:
         color:
           type: string
           minLength: 1
-        vin:
+        notes:
           type: string
-        engine_number:
-          type: string
+          nullable: true
+          minLength: 1
         transmission:
           type: string
           enum: [MANUAL, AUTOMATIC]

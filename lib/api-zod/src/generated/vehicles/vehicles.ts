@@ -27,8 +27,7 @@ export const ListVehiclesResponse = zod.object({
   "plateNumber": zod.string(),
   "year": zod.number(),
   "color": zod.string(),
-  "vin": zod.string().nullish(),
-  "engineNumber": zod.string().nullish(),
+  "notes": zod.string().nullish(),
   "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
   "fuelType": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
   "seats": zod.number(),
@@ -50,6 +49,7 @@ export const createVehicleBodyYearMax = 2100;
 
 
 
+
 export const createVehicleBodyCurrentMileageMin = 0;
 
 
@@ -60,8 +60,7 @@ export const CreateVehicleBody = zod.object({
   "plate_number": zod.string().min(1),
   "year": zod.number().min(createVehicleBodyYearMin).max(createVehicleBodyYearMax),
   "color": zod.string().min(1),
-  "vin": zod.string().optional(),
-  "engine_number": zod.string().optional(),
+  "notes": zod.string().min(1).optional(),
   "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
   "fuel_type": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
   "seats": zod.number().min(1),
@@ -77,8 +76,7 @@ export const CreateVehicleResponse = zod.object({
   "plateNumber": zod.string(),
   "year": zod.number(),
   "color": zod.string(),
-  "vin": zod.string().nullish(),
-  "engineNumber": zod.string().nullish(),
+  "notes": zod.string().nullish(),
   "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
   "fuelType": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
   "seats": zod.number(),
@@ -105,8 +103,7 @@ export const ListAvailableVehiclesResponse = zod.object({
   "plateNumber": zod.string(),
   "year": zod.number(),
   "color": zod.string(),
-  "vin": zod.string().nullish(),
-  "engineNumber": zod.string().nullish(),
+  "notes": zod.string().nullish(),
   "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
   "fuelType": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
   "seats": zod.number(),
@@ -132,8 +129,7 @@ export const GetVehicleResponse = zod.object({
   "plateNumber": zod.string(),
   "year": zod.number(),
   "color": zod.string(),
-  "vin": zod.string().nullish(),
-  "engineNumber": zod.string().nullish(),
+  "notes": zod.string().nullish(),
   "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
   "fuelType": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
   "seats": zod.number(),
@@ -159,6 +155,7 @@ export const updateVehicleBodyYearMax = 2100;
 
 
 
+
 export const updateVehicleBodyCurrentMileageMin = 0;
 
 
@@ -169,8 +166,7 @@ export const UpdateVehicleBody = zod.object({
   "plate_number": zod.string().min(1),
   "year": zod.number().min(updateVehicleBodyYearMin).max(updateVehicleBodyYearMax),
   "color": zod.string().min(1),
-  "vin": zod.string().optional(),
-  "engine_number": zod.string().optional(),
+  "notes": zod.string().min(1).nullish(),
   "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
   "fuel_type": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
   "seats": zod.number().min(1),
@@ -186,8 +182,7 @@ export const UpdateVehicleResponse = zod.object({
   "plateNumber": zod.string(),
   "year": zod.number(),
   "color": zod.string(),
-  "vin": zod.string().nullish(),
-  "engineNumber": zod.string().nullish(),
+  "notes": zod.string().nullish(),
   "transmission": zod.enum(['MANUAL', 'AUTOMATIC']),
   "fuelType": zod.enum(['PETROL', 'DIESEL', 'ELECTRIC', 'HYBRID']),
   "seats": zod.number(),

@@ -11,8 +11,7 @@ export interface AvailableVehicleRow {
   plate_number: string;
   year: number;
   color: string;
-  vin: string | null;
-  engine_number: string | null;
+  notes: string | null;
   transmission: string;
   fuel_type: string;
   seats: number;

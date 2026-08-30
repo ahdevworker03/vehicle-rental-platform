@@ -17,8 +17,7 @@ export type CreateVehicleInput = {
   plate_number: string;
   year: number;
   color: string;
-  vin?: string;
-  engine_number?: string;
+  notes?: string;
   transmission: "MANUAL" | "AUTOMATIC";
   fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
   seats: number;
@@ -38,8 +37,7 @@ export type UpdateVehicleInput = {
   plate_number: string;
   year: number;
   color: string;
-  vin?: string;
-  engine_number?: string;
+  notes?: string | null;
   transmission: "MANUAL" | "AUTOMATIC";
   fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
   seats: number;

@@ -45,8 +45,7 @@ async function create(
     plate_number: string;
     year: number;
     color: string;
-    vin?: string;
-    engine_number?: string;
+    notes?: string;
     transmission: "MANUAL" | "AUTOMATIC";
     fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
     seats: number;
@@ -77,8 +76,7 @@ async function update(
     plate_number: string;
     year: number;
     color: string;
-    vin?: string;
-    engine_number?: string;
+    notes?: string | null;
     transmission: "MANUAL" | "AUTOMATIC";
     fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
     seats: number;

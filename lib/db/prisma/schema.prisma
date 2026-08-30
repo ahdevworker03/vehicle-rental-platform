@@ -250,8 +250,7 @@ model Vehicle {
   plate_number     String
   year             Int
   color            String
-  vin              String?
-  engine_number    String?
+  notes            String?
   transmission     Transmission
   fuel_type        FuelType
   seats            Int

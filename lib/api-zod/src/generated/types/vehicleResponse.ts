@@ -16,8 +16,7 @@ export interface VehicleResponse {
   plateNumber: string;
   year: number;
   color: string;
-  vin?: string | null;
-  engineNumber?: string | null;
+  notes?: string | null;
   transmission: VehicleResponseTransmission;
   fuelType: VehicleResponseFuelType;
   seats: number;

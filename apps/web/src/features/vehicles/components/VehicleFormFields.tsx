@@ -17,8 +17,7 @@ export interface VehicleFormState {
   plate_number: string;
   year: string;
   color: string;
-  vin: string;
-  engine_number: string;
+  notes: string;
   transmission: VehicleResponseTransmission;
   fuel_type: VehicleResponseFuelType;
   seats: string;
@@ -82,12 +81,9 @@ export function VehicleFormFields({ form, errors, onChange }: VehicleFormFieldsP
         </FormField>
       </FormSection>
 
-      <FormSection title="معرّفات إضافية" description="اختيارية، وتساعد في مطابقة المستندات وعمليات الصيانة.">
-        <FormField label="رقم الشاصي (VIN)" htmlFor="vehicle-vin">
-          <input id="vehicle-vin" dir="ltr" className={inputClass} placeholder="اختياري" value={form.vin} onChange={(event) => onChange("vin", event.target.value)} />
-        </FormField>
-        <FormField label="رقم المحرك" htmlFor="vehicle-engine-number">
-          <input id="vehicle-engine-number" dir="ltr" className={inputClass} placeholder="اختياري" value={form.engine_number} onChange={(event) => onChange("engine_number", event.target.value)} />
+      <FormSection title="ملاحظات" description="أضف أي معلومات تشغيلية مفيدة عن المركبة.">
+        <FormField label="ملاحظات" htmlFor="vehicle-notes" className="md:col-span-2">
+          <textarea id="vehicle-notes" className={`${inputClass} min-h-28 resize-y`} placeholder="اختياري" value={form.notes} onChange={(event) => onChange("notes", event.target.value)} />
         </FormField>
       </FormSection>
     </>

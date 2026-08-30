@@ -145,6 +145,7 @@ The vehicle is the central entity of the system.
 - Current status
 - Availability
 - Mileage
+- General notes
 - Documents
 - Photos
 - Business history

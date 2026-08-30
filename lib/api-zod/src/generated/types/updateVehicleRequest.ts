@@ -23,8 +23,8 @@ export interface UpdateVehicleRequest {
   year: number;
   /** @minLength 1 */
   color: string;
-  vin?: string;
-  engine_number?: string;
+  /** @minLength 1 */
+  notes?: string | null;
   transmission: UpdateVehicleRequestTransmission;
   fuel_type: UpdateVehicleRequestFuelType;
   /** @minimum 1 */

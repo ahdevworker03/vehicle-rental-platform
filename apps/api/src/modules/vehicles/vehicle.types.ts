@@ -6,8 +6,7 @@ export interface VehicleRecord {
   plate_number: string;
   year: number;
   color: string;
-  vin: string | null;
-  engine_number: string | null;
+  notes: string | null;
   transmission: "MANUAL" | "AUTOMATIC";
   fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
   seats: number;
@@ -31,8 +30,7 @@ export interface VehicleResponse {
   plateNumber: string;
   year: number;
   color: string;
-  vin: string | null;
-  engineNumber: string | null;
+  notes: string | null;
   transmission: string;
   fuelType: string;
   seats: number;
@@ -48,8 +46,7 @@ export interface CreateVehicleInput {
   plate_number: string;
   year: number;
   color: string;
-  vin?: string;
-  engine_number?: string;
+  notes?: string;
   transmission: "MANUAL" | "AUTOMATIC";
   fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
   seats: number;
@@ -69,8 +66,7 @@ export interface UpdateVehicleInput {
   plate_number: string;
   year: number;
   color: string;
-  vin?: string;
-  engine_number?: string;
+  notes?: string | null;
   transmission: "MANUAL" | "AUTOMATIC";
   fuel_type: "PETROL" | "DIESEL" | "ELECTRIC" | "HYBRID";
   seats: number;
