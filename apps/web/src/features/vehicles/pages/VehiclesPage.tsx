@@ -44,9 +44,9 @@ export default function VehiclesPage() {
         action={isOwner ? <Button type="button" onClick={() => setLocation("/vehicles/add")}><Plus className="size-4" aria-hidden="true" />إضافة مركبة</Button> : undefined}
       />
 
-      <div className="space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
-        <SectionCard title="أسطول المركبات" description="ابحث عن المركبات وتابع حالتها وبياناتها التشغيلية." className="shadow-none">
-          <div className="space-y-3">
+      <div className="space-y-3 px-4 pb-6 pt-4 sm:px-6 lg:space-y-4">
+        <SectionCard className="shadow-none">
+          <div className="space-y-2.5">
             <SearchBar placeholder="ابحث بالاسم أو رقم اللوحة أو سنة الصنع..." value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch("")} />
             <FilterChips
               options={VEHICLE_STATUS_FILTER_OPTIONS}
@@ -55,9 +55,9 @@ export default function VehiclesPage() {
                 const nextFilter = value as FilterValue;
                 setSearchParams(nextFilter === "all" ? {} : { filter: nextFilter }, { replace: true });
               }}
-              className="-mb-1 flex-wrap overflow-visible sm:flex-nowrap sm:overflow-x-auto [&_button]:px-3 [&_button]:text-xs"
+              className="-mb-0.5 flex-wrap gap-1.5 overflow-visible sm:flex-nowrap sm:overflow-x-auto [&_button]:px-2.5 [&_button]:py-1 [&_button]:text-xs"
             />
-            <div className="border-t border-border pt-3">
+            <div className="border-t border-border pt-2.5">
               <VehicleAvailabilitySection compact />
             </div>
           </div>

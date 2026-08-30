@@ -12,13 +12,13 @@ interface VehiclesDataListProps {
 
 function VehicleIdentity({ vehicle }: { vehicle: VehicleResponse }) {
   return (
-    <div className="flex min-w-0 items-center gap-3">
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2.25rem] items-center gap-3 xl:min-w-[17rem]" dir="rtl">
+      <span className="min-w-0 text-right">
+        <span dir="auto" className="block truncate text-sm font-semibold text-foreground">{vehicle.make} {vehicle.model}</span>
+        <span dir="ltr" className="number-ltr mt-0.5 block truncate text-right text-xs text-muted-foreground">{vehicle.plateNumber}</span>
+      </span>
       <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
         <Car className="size-4" aria-hidden="true" />
-      </span>
-      <span className="min-w-0">
-        <span dir="ltr" className="block truncate text-sm font-semibold text-foreground">{vehicle.make} {vehicle.model}</span>
-        <span dir="ltr" className="number-ltr mt-0.5 block text-xs text-muted-foreground">{vehicle.plateNumber}</span>
       </span>
     </div>
   );
@@ -26,14 +26,15 @@ function VehicleIdentity({ vehicle }: { vehicle: VehicleResponse }) {
 
 function VehicleSpecification({ vehicle }: { vehicle: VehicleResponse }) {
   return (
-    <div className="space-y-1 text-sm">
-      <div className="number-ltr font-semibold text-foreground">{vehicle.year}</div>
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Settings2 className="size-3.5" aria-hidden="true" />
-        {vehicle.transmission === "AUTOMATIC" ? "أوتوماتيك" : "يدوي"} · {vehicle.fuelType === "PETROL" ? "بنزين" : vehicle.fuelType === "DIESEL" ? "ديزل" : vehicle.fuelType === "ELECTRIC" ? "كهرباء" : "هايبرد"}
-      </div>
+    <div className="flex items-center gap-1.5 text-start text-xs text-muted-foreground">
+      <Settings2 className="size-3.5 shrink-0" aria-hidden="true" />
+      <span>{vehicle.transmission === "AUTOMATIC" ? "أوتوماتيك" : "يدوي"} · {vehicle.fuelType === "PETROL" ? "بنزين" : vehicle.fuelType === "DIESEL" ? "ديزل" : vehicle.fuelType === "ELECTRIC" ? "كهرباء" : "هايبرد"}</span>
     </div>
   );
+}
+
+function VehicleYear({ value }: { value: number }) {
+  return <span className="number-ltr whitespace-nowrap text-sm font-semibold text-foreground">{value}</span>;
 }
 
 function Mileage({ value }: { value: number }) {
@@ -44,24 +45,26 @@ export function VehiclesDataList({ vehicles, onOpen }: VehiclesDataListProps) {
   return (
     <>
       <div className="hidden xl:block">
-        <Table className="table-fixed">
+        <Table className="min-w-[73rem] table-fixed">
           <TableHeader className="bg-muted/45">
             <TableRow>
-              <TableHead className="w-[31%]">المركبة</TableHead>
-              <TableHead className="w-[15%]">الحالة</TableHead>
-              <TableHead className="w-[25%]">المواصفات</TableHead>
-              <TableHead className="w-[14%] text-end">العداد</TableHead>
-              <TableHead className="w-[15%] text-end">الإجراء</TableHead>
+              <TableHead className="w-[22rem] min-w-[22rem]">المركبة</TableHead>
+              <TableHead className="w-[9rem] min-w-[9rem]">الحالة</TableHead>
+              <TableHead className="w-[16rem] min-w-[16rem]">المواصفات</TableHead>
+              <TableHead className="w-[6rem] min-w-[6rem] text-end">السنة</TableHead>
+              <TableHead className="w-[10rem] min-w-[10rem] text-end">العداد</TableHead>
+              <TableHead className="w-[10rem] min-w-[10rem] text-end">الإجراء</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {vehicles.map((vehicle) => (
               <TableRow key={vehicle.id}>
-                <TableCell><VehicleIdentity vehicle={vehicle} /></TableCell>
-                <TableCell><StatusBadge status={vehicle.status} /></TableCell>
-                <TableCell><VehicleSpecification vehicle={vehicle} /></TableCell>
-                <TableCell className="text-end"><Mileage value={vehicle.currentMileage} /></TableCell>
-                <TableCell className="text-end">
+                <TableCell className="min-w-[22rem]"><VehicleIdentity vehicle={vehicle} /></TableCell>
+                <TableCell className="min-w-[9rem]"><StatusBadge status={vehicle.status} /></TableCell>
+                <TableCell className="min-w-[16rem]"><VehicleSpecification vehicle={vehicle} /></TableCell>
+                <TableCell className="min-w-[6rem] text-end"><VehicleYear value={vehicle.year} /></TableCell>
+                <TableCell className="min-w-[10rem] text-end"><Mileage value={vehicle.currentMileage} /></TableCell>
+                <TableCell className="min-w-[10rem] text-end whitespace-nowrap">
                   <Button type="button" variant="outline" size="sm" onClick={(event) => { event.stopPropagation(); onOpen(vehicle.id); }}>
                     عرض التفاصيل
                     <ChevronLeft className="size-4" aria-hidden="true" />
@@ -80,8 +83,9 @@ export function VehiclesDataList({ vehicles, onOpen }: VehiclesDataListProps) {
               <VehicleIdentity vehicle={vehicle} />
               <StatusBadge status={vehicle.status} />
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <div><div className="ui-label">المواصفات</div><div className="mt-1"><VehicleSpecification vehicle={vehicle} /></div></div>
+              <div><div className="ui-label">السنة</div><div className="mt-1"><VehicleYear value={vehicle.year} /></div></div>
               <div><div className="ui-label">العداد الحالي</div><div className="mt-1"><Mileage value={vehicle.currentMileage} /></div></div>
             </div>
             <div className="flex justify-end border-t border-border pt-3">
@@ -99,7 +103,7 @@ export function VehiclesDataList({ vehicles, onOpen }: VehiclesDataListProps) {
               <StatusBadge status={vehicle.status} />
             </div>
             <div className="grid grid-cols-2 gap-3 rounded-lg bg-muted/45 p-3">
-              <div><div className="ui-label">السنة</div><div className="number-ltr mt-1 text-sm font-semibold text-foreground">{vehicle.year}</div></div>
+              <div><div className="ui-label">السنة</div><div className="mt-1"><VehicleYear value={vehicle.year} /></div></div>
               <div><div className="ui-label">العداد</div><div className="mt-1"><Mileage value={vehicle.currentMileage} /></div></div>
             </div>
             <div className="flex items-center justify-between gap-3">

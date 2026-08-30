@@ -33,4 +33,28 @@ describe("VehiclesDataList", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "عرض التفاصيل" })[0]);
     expect(onOpen).toHaveBeenCalledWith("vehicle-1");
   });
+
+  it("keeps short and long mixed-language identities in the same right-aligned text stack", () => {
+    const longVehicle = {
+      ...vehicle,
+      id: "vehicle-2",
+      make: "مركبة Toyota للاستخدامات التجارية الطويلة",
+      model: "Land Cruiser Executive Edition",
+      plateNumber: "TEST-8237-LONG-IDENTIFIER",
+    } as VehicleResponse;
+    const name = `${longVehicle.make} ${longVehicle.model}`;
+
+    render(<VehiclesDataList vehicles={[vehicle, longVehicle]} onOpen={vi.fn()} />);
+
+    for (const identityName of screen.getAllByText(name)) {
+      const identityStack = identityName.parentElement;
+      const plate = identityStack?.querySelector(`[dir="ltr"]`);
+      expect(identityName.classList.contains("truncate")).toBe(true);
+      expect(identityStack?.classList.contains("min-w-0")).toBe(true);
+      expect(identityStack?.classList.contains("text-right")).toBe(true);
+      expect(plate?.classList.contains("truncate")).toBe(true);
+      expect(plate?.classList.contains("text-right")).toBe(true);
+    }
+    expect(screen.getAllByText(longVehicle.plateNumber).length).toBeGreaterThan(0);
+  });
 });

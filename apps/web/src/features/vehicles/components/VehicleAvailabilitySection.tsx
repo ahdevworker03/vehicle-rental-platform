@@ -30,23 +30,22 @@ export function VehicleAvailabilitySection({ compact = false }: { compact?: bool
     setSubmitted({ pickup, returnDate });
   }
 
-  return (
-    <SectionCard title={compact ? undefined : "فحص التوفر"} description={compact ? undefined : "تحقق من المركبات المتاحة ضمن فترة إيجار محددة."} className={compact ? "border-0 bg-transparent shadow-none" : "shadow-none"}>
-      <div className={compact ? "space-y-3" : "space-y-4"}>
-        {compact && <p className="text-sm font-medium text-foreground">فحص التوفر ضمن فترة إيجار</p>}
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
+  const content = (
+    <div className={compact ? "space-y-2.5" : "space-y-4"}>
+        {!compact && <p className="text-sm font-medium text-foreground">فحص التوفر ضمن فترة إيجار</p>}
+        <div className="grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
           <FormField label="تاريخ الاستلام" required htmlFor="availability-pickup">
             <input id="availability-pickup" type="date" dir="ltr" value={pickup} onChange={(event) => { setPickup(event.target.value); setValidationError(null); }} className={inputClass} />
           </FormField>
           <FormField label="تاريخ الإرجاع" required htmlFor="availability-return">
             <input id="availability-return" type="date" dir="ltr" min={pickup} value={returnDate} onChange={(event) => { setReturnDate(event.target.value); setValidationError(null); }} className={inputClass} />
           </FormField>
+          <Button type="button" onClick={handleSubmit} className="sm:mb-px"><CalendarSearch className="size-4" aria-hidden="true" />التحقق من التوفر</Button>
         </div>
         {validationError && <InlineError>{validationError}</InlineError>}
-        <Button type="button" onClick={handleSubmit} className="sm:mb-px"><CalendarSearch className="size-4" aria-hidden="true" />التحقق من التوفر</Button>
 
         {submitted && (
-          <div className="border-t border-border pt-4">
+          <div className="border-t border-border pt-3">
             {query.isLoading ? <LoadingState rows={2} /> : query.isError ? <ErrorState title="تعذر التحقق من التوفر" description={query.error ? getApiErrorMessage(query.error).title : "تعذر التحقق من التوفر. حاول مرة أخرى."} onRetry={() => void query.refetch()} /> : vehicles.length === 0 ? (
               <EmptyState icon={Car} title="لا توجد مركبات متاحة" description="جرّب فترة إيجار مختلفة أو راجع المركبات الحالية." className="py-6" />
             ) : (
@@ -59,7 +58,8 @@ export function VehicleAvailabilitySection({ compact = false }: { compact?: bool
             )}
           </div>
         )}
-      </div>
-    </SectionCard>
+    </div>
   );
+
+  return compact ? content : <SectionCard title="فحص التوفر" description="تحقق من المركبات المتاحة ضمن فترة إيجار محددة." className="shadow-none">{content}</SectionCard>;
 }
