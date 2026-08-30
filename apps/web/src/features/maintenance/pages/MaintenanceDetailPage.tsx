@@ -20,7 +20,7 @@ interface DetailPageParams {
 }
 
 function KeyValue({ label, value, numeric = false }: { label: string; value?: string | null; numeric?: boolean }) {
-  return <div className="min-w-0"><div className="ui-label">{label}</div><div dir={numeric ? "ltr" : undefined} className={`mt-1 break-words text-sm font-semibold text-foreground ${numeric ? "number-ltr" : ""}`}>{value || "—"}</div></div>;
+  return <div className="min-w-0 text-right"><div className="ui-label">{label}</div><div dir={numeric ? "ltr" : undefined} className={`mt-1.5 break-words text-right text-sm font-semibold text-foreground ${numeric ? "number-ltr" : ""}`}>{value || "—"}</div></div>;
 }
 
 export default function MaintenanceDetailPage({ params }: DetailPageParams) {
