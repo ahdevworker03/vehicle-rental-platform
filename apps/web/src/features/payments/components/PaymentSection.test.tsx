@@ -12,7 +12,10 @@ vi.mock("@/providers/AuthProvider", () => ({
   useAuth: vi.fn(),
 }));
 
-import { useRentalPayments, usePaymentMutations } from "@/features/payments/hooks";
+import {
+  useRentalPayments,
+  usePaymentMutations,
+} from "@/features/payments/hooks";
 import { useAuth } from "@/providers/AuthProvider";
 
 const mockedUseRentalPayments = vi.mocked(useRentalPayments);
@@ -49,7 +52,11 @@ function makeApiError(message: string): ApiError {
     status: 400,
     statusText: "Bad Request",
   });
-  return new ApiError(response, { error: { code: "ERROR", message } }, { method: "GET", url: "/api/rentals/r1/payments" });
+  return new ApiError(
+    response,
+    { error: { code: "ERROR", message } },
+    { method: "GET", url: "/api/rentals/r1/payments" },
+  );
 }
 
 function mockData(payments: PaymentResponse[], outstandingBalance: number) {
@@ -108,16 +115,28 @@ describe("PaymentSection", () => {
 
     render(<PaymentSection rentalId="r1" />);
 
-    expect(screen.getByText("الرصيد المتبقي")).toBeInTheDocument();
+    expect(screen.getByText("المتبقي")).toBeInTheDocument();
     expect(screen.getByText("USD 120")).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("لا توجد مدفوعات مسجلة");
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "لا توجد مدفوعات مسجلة",
+    );
   });
 
   it("renders payment history entries with amount, date, and method label", () => {
     mockData(
       [
-        makePayment({ id: "p1", amount: 50, method: "CASH", paymentDate: "2026-08-15T12:00:00Z" }),
-        makePayment({ id: "p2", amount: 70, method: "TRANSFER", paymentDate: "2026-08-20T12:00:00Z" }),
+        makePayment({
+          id: "p1",
+          amount: 50,
+          method: "CASH",
+          paymentDate: "2026-08-15T12:00:00Z",
+        }),
+        makePayment({
+          id: "p2",
+          amount: 70,
+          method: "TRANSFER",
+          paymentDate: "2026-08-20T12:00:00Z",
+        }),
       ],
       0,
     );
@@ -138,9 +157,15 @@ describe("PaymentSection", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /تسجيل دفعة/ }));
 
-    fireEvent.change(screen.getByLabelText(/المبلغ/), { target: { value: "50" } });
-    fireEvent.change(screen.getByLabelText(/تاريخ الدفع/), { target: { value: "2026-08-15" } });
-    fireEvent.change(screen.getByLabelText(/طريقة الدفع/), { target: { value: "CASH" } });
+    fireEvent.change(screen.getByLabelText(/المبلغ/), {
+      target: { value: "50" },
+    });
+    fireEvent.change(screen.getByLabelText(/تاريخ الدفع/), {
+      target: { value: "2026-08-15" },
+    });
+    fireEvent.change(screen.getByLabelText(/طريقة الدفع/), {
+      target: { value: "CASH" },
+    });
 
     fireEvent.click(screen.getByText("تسجيل الدفعة"));
 
@@ -178,10 +203,14 @@ describe("PaymentSection", () => {
     render(<PaymentSection rentalId="r1" />);
 
     fireEvent.click(screen.getByRole("button", { name: /تسجيل دفعة/ }));
-    fireEvent.change(screen.getByLabelText(/المبلغ/), { target: { value: "0" } });
+    fireEvent.change(screen.getByLabelText(/المبلغ/), {
+      target: { value: "0" },
+    });
     fireEvent.click(screen.getByText("تسجيل الدفعة"));
 
-    expect(await screen.findByText("أدخل مبلغاً أكبر من صفر.")).toBeInTheDocument();
+    expect(
+      await screen.findByText("أدخل مبلغاً أكبر من صفر."),
+    ).toBeInTheDocument();
   });
 
   it("shows the backend error message when a payment fails", async () => {
@@ -192,9 +221,15 @@ describe("PaymentSection", () => {
     render(<PaymentSection rentalId="r1" />);
 
     fireEvent.click(screen.getByRole("button", { name: /تسجيل دفعة/ }));
-    fireEvent.change(screen.getByLabelText(/المبلغ/), { target: { value: "50" } });
-    fireEvent.change(screen.getByLabelText(/تاريخ الدفع/), { target: { value: "2026-08-15" } });
-    fireEvent.change(screen.getByLabelText(/طريقة الدفع/), { target: { value: "CASH" } });
+    fireEvent.change(screen.getByLabelText(/المبلغ/), {
+      target: { value: "50" },
+    });
+    fireEvent.change(screen.getByLabelText(/تاريخ الدفع/), {
+      target: { value: "2026-08-15" },
+    });
+    fireEvent.change(screen.getByLabelText(/طريقة الدفع/), {
+      target: { value: "CASH" },
+    });
     fireEvent.click(screen.getByText("تسجيل الدفعة"));
 
     expect(await screen.findByText("الرصيد غير كافٍ")).toBeInTheDocument();
@@ -206,6 +241,8 @@ describe("PaymentSection", () => {
 
     render(<PaymentSection rentalId="r1" />);
 
-    expect(screen.queryByRole("button", { name: /تسجيل دفعة/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /تسجيل دفعة/ }),
+    ).not.toBeInTheDocument();
   });
 });

@@ -86,16 +86,26 @@ function PaymentSummary({
   const paymentStatus = item.outstandingBalance === 0 ? "PAID" : "OUTSTANDING";
 
   return (
-    <div className={cn("min-w-0", compact ? "space-y-1" : "space-y-1.5")}>
-      <div dir="ltr" className="number-ltr text-sm font-medium text-foreground">
+    <div
+      className={cn(
+        "min-w-0 text-right",
+        compact ? "space-y-1" : "space-y-1.5",
+      )}
+    >
+      <div
+        dir="ltr"
+        className="number-ltr text-right text-sm font-semibold text-foreground"
+      >
         {formatCurrency(item.rental.totalAmount)}
       </div>
-      <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-        <span>المتبقي:</span>
-        <span dir="ltr" className="number-ltr whitespace-nowrap">
+      <div>
+        <StatusBadge status={paymentStatus} />
+      </div>
+      <div className="text-xs text-muted-foreground">
+        <span>المتبقي: </span>
+        <span dir="ltr" className="number-ltr inline-block whitespace-nowrap">
           {formatCurrency(item.outstandingBalance)}
         </span>
-        <StatusBadge status={paymentStatus} />
       </div>
     </div>
   );
@@ -202,7 +212,7 @@ function RentalDate({ value }: { value: string }) {
   return (
     <span
       dir="ltr"
-      className="number-ltr block whitespace-nowrap text-end text-sm font-medium text-foreground"
+      className="number-ltr block whitespace-nowrap text-center text-sm font-medium text-foreground"
     >
       {formatDate(value)}
     </span>
@@ -232,41 +242,46 @@ export function RentalsDataList({ items, onOpen }: RentalsDataListProps) {
   return (
     <>
       <div className="hidden xl:block">
-        <Table className="table-fixed">
+        <Table className="table-fixed" dir="rtl">
+          <colgroup>
+            <col style={{ width: "10%" }} />
+            <col style={{ width: "17%" }} />
+            <col style={{ width: "17%" }} />
+            <col style={{ width: "12%" }} />
+            <col style={{ width: "12%" }} />
+            <col style={{ width: "20%" }} />
+            <col style={{ width: "12%" }} />
+          </colgroup>
           <TableHeader className="bg-muted/45">
             <TableRow>
-              <TableHead className="w-[10%] text-start">الحالة</TableHead>
-              <TableHead className="w-[17%] text-start">العميل</TableHead>
-              <TableHead className="w-[17%] text-start">المركبة</TableHead>
-              <TableHead className="w-[11%] text-end">الاستلام</TableHead>
-              <TableHead className="w-[13%] text-end">
-                الإرجاع المتوقع
-              </TableHead>
-              <TableHead className="w-[20%] text-start">
-                المبلغ والدفع
-              </TableHead>
-              <TableHead className="w-[12%] text-end">الإجراء</TableHead>
+              <TableHead className="text-start">الحالة</TableHead>
+              <TableHead className="text-start">العميل</TableHead>
+              <TableHead className="text-start">المركبة</TableHead>
+              <TableHead className="text-center">الاستلام</TableHead>
+              <TableHead className="text-center">الإرجاع المتوقع</TableHead>
+              <TableHead className="text-start">المبلغ والدفع</TableHead>
+              <TableHead className="text-end">الإجراء</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.map((item) => (
               <TableRow key={item.rental.id}>
-                <TableCell className="py-3.5 align-middle">
+                <TableCell className="py-3.5 text-start align-middle">
                   <RentalStatusCluster rental={item.rental} />
                 </TableCell>
-                <TableCell className="py-3.5 align-middle">
+                <TableCell className="py-3.5 text-start align-middle">
                   <CustomerIdentity item={item} />
                 </TableCell>
-                <TableCell className="py-3.5 align-middle">
+                <TableCell className="py-3.5 text-start align-middle">
                   <VehicleIdentity item={item} />
                 </TableCell>
-                <TableCell className="py-3.5 align-middle text-end">
+                <TableCell className="py-3.5 align-middle text-center">
                   <RentalDate value={item.rental.pickupDate} />
                 </TableCell>
-                <TableCell className="py-3.5 align-middle text-end">
+                <TableCell className="py-3.5 align-middle text-center">
                   <RentalDate value={item.rental.expectedReturnDate} />
                 </TableCell>
-                <TableCell className="py-3.5 align-middle">
+                <TableCell className="py-3.5 text-start align-middle">
                   <PaymentSummary item={item} />
                 </TableCell>
                 <TableCell className="py-3.5 align-middle text-end whitespace-nowrap">

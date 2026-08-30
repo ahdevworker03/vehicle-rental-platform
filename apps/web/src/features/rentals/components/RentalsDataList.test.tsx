@@ -47,6 +47,41 @@ describe("RentalsDataList", () => {
     expect(screen.queryByText(/الرصيد المتبقي USD 125/)).toBeNull();
   });
 
+  it("keeps each outstanding balance badge with its amount", () => {
+    render(<RentalsDataList items={[item(125)]} onOpen={vi.fn()} />);
+
+    const badge = screen.getAllByText("رصيد مستحق")[0];
+    const paymentSummary = badge.parentElement?.parentElement;
+
+    expect(paymentSummary?.textContent).toContain("USD 400");
+    expect(paymentSummary?.textContent).toContain("المتبقي:");
+    expect(paymentSummary?.textContent).toContain("USD 125");
+  });
+
+  it("defines stable columns for every rental table header", () => {
+    render(<RentalsDataList items={[item(125)]} onOpen={vi.fn()} />);
+
+    const table = screen.getByRole("table");
+
+    const columns = table.querySelectorAll("col");
+
+    expect(columns).toHaveLength(7);
+    expect(Array.from(columns, (column) => column.style.width)).toEqual([
+      "10%",
+      "17%",
+      "17%",
+      "12%",
+      "12%",
+      "20%",
+      "12%",
+    ]);
+    const headers = screen.getAllByRole("columnheader");
+
+    expect(headers).toHaveLength(7);
+    expect(headers[3].className).toContain("text-center");
+    expect(headers[4].className).toContain("text-center");
+  });
+
   it("keeps long customer and vehicle identities aligned with their secondary values", () => {
     const longItem = {
       ...item(200),
