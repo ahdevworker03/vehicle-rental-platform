@@ -50,31 +50,40 @@ function TypeValue({ record }: { record: MaintenanceResponse }) {
 function DateValue({ record }: { record: MaintenanceResponse }) {
   const due = dueLabel(record);
   return (
-    <div className="space-y-1">
-      <div className="number-ltr whitespace-nowrap text-sm font-semibold text-foreground">{formatDate(record.maintenanceDate)}</div>
+    <div className="space-y-1 text-center">
+      <div dir="ltr" className="number-ltr whitespace-nowrap text-sm font-semibold text-foreground">{formatDate(record.maintenanceDate)}</div>
       {due && <div className={`text-xs font-medium ${due.className}`}>{due.label}</div>}
     </div>
   );
 }
 
 function CostValue({ record }: { record: MaintenanceResponse }) {
-  return <span className="number-ltr whitespace-nowrap text-sm font-semibold text-foreground">{record.cost == null ? "—" : formatUsd(record.cost)}</span>;
+  return <span dir="ltr" className="number-ltr whitespace-nowrap text-sm font-semibold text-foreground">{record.cost == null ? "—" : formatUsd(record.cost)}</span>;
 }
 
 export function MaintenanceDataList({ items, onOpen }: MaintenanceDataListProps) {
   return (
     <>
       <div className="hidden xl:block">
-        <Table className="table-fixed">
-          <TableHeader className="bg-muted/45"><TableRow><TableHead className="w-[24%]">المركبة</TableHead><TableHead className="w-[15%]">نوع الصيانة</TableHead><TableHead className="w-[13%]">الحالة</TableHead><TableHead className="w-[15%]">الموعد</TableHead><TableHead className="w-[11%] text-end">التكلفة</TableHead><TableHead className="w-[12%]">الورشة / المزوّد</TableHead><TableHead className="w-[10%] text-end">الإجراء</TableHead></TableRow></TableHeader>
+        <Table className="table-fixed" dir="rtl">
+          <colgroup>
+            <col style={{ width: "24%" }} />
+            <col style={{ width: "15%" }} />
+            <col style={{ width: "13%" }} />
+            <col style={{ width: "15%" }} />
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "12%" }} />
+            <col style={{ width: "10%" }} />
+          </colgroup>
+          <TableHeader className="bg-muted/45"><TableRow><TableHead>المركبة</TableHead><TableHead>نوع الصيانة</TableHead><TableHead className="text-center">الحالة</TableHead><TableHead className="text-center">الموعد</TableHead><TableHead className="text-center">التكلفة</TableHead><TableHead>الورشة / المزوّد</TableHead><TableHead className="text-end">الإجراء</TableHead></TableRow></TableHeader>
           <TableBody>
             {items.map((item) => (
               <TableRow key={item.record.id}>
                 <TableCell><VehicleIdentity item={item} /></TableCell>
                 <TableCell><TypeValue record={item.record} /></TableCell>
-                <TableCell><StatusBadge status={item.record.status} /></TableCell>
-                <TableCell><DateValue record={item.record} /></TableCell>
-                <TableCell className="text-end"><CostValue record={item.record} /></TableCell>
+                <TableCell className="text-center"><StatusBadge status={item.record.status} /></TableCell>
+                <TableCell className="text-center"><DateValue record={item.record} /></TableCell>
+                <TableCell className="text-center"><CostValue record={item.record} /></TableCell>
                 <TableCell className="max-w-44 truncate text-sm text-foreground">{item.record.vendor || "—"}</TableCell>
                 <TableCell className="text-end"><Button type="button" variant="outline" size="sm" onClick={(event) => { event.stopPropagation(); onOpen(item.record.id); }}>عرض التفاصيل<ChevronLeft className="size-4" aria-hidden="true" /></Button></TableCell>
               </TableRow>
