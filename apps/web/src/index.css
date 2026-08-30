@@ -152,6 +152,51 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
+/* Temporary night-mode token layer. Light-mode values above remain unchanged. */
+.dark {
+  --button-outline: rgba(255, 255, 255, 0.14);
+  --badge-outline: rgba(255, 255, 255, 0.1);
+  --opaque-button-border-intensity: 8;
+  --elevate-1: rgba(255, 255, 255, 0.04);
+  --elevate-2: rgba(255, 255, 255, 0.08);
+  --background: 222 47% 9%;
+  --foreground: 214 32% 96%;
+  --border: 217 25% 24%;
+  --card: 222 39% 13%;
+  --card-foreground: 214 32% 96%;
+  --card-border: 217 25% 24%;
+  --popover: 222 39% 13%;
+  --popover-foreground: 214 32% 96%;
+  --popover-border: 217 25% 24%;
+  --muted: 217 30% 18%;
+  --muted-foreground: 215 20% 70%;
+  --input: 217 25% 30%;
+  --secondary: 217 30% 18%;
+  --secondary-foreground: 214 32% 96%;
+  --accent: 217 30% 18%;
+  --accent-foreground: 214 32% 96%;
+  --destructive: 0 72% 58%;
+  --destructive-foreground: 0 0% 100%;
+  --sidebar: 222 47% 13%;
+  --sidebar-foreground: 214 32% 96%;
+  --sidebar-border: 217 25% 24%;
+  --sidebar-primary: 0 0% 100%;
+  --sidebar-primary-foreground: 221 83% 68%;
+  --sidebar-accent: 217 30% 21%;
+  --sidebar-accent-foreground: 214 32% 96%;
+  --sidebar-ring: 213 94% 68%;
+  --status-positive: 142 55% 52%;
+  --status-positive-bg: 142 35% 18%;
+  --status-info: 213 94% 68%;
+  --status-info-bg: 217 45% 20%;
+  --status-warning: 38 92% 62%;
+  --status-warning-bg: 35 40% 19%;
+  --status-danger: 0 86% 70%;
+  --status-danger-bg: 0 40% 20%;
+  --status-neutral: 215 20% 72%;
+  --status-neutral-bg: 217 25% 20%;
+}
+
 @layer base {
   * {
     @apply border-border;

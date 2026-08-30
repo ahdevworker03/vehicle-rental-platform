@@ -7,6 +7,7 @@ import { OrganizationStatusGate } from '@/components/layout/OrganizationStatusGa
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { AuthProvider } from '@/providers/AuthProvider';
+import { ThemeProvider } from '@/providers/ThemeProvider';
 
 import { AcceptInvitationPage, LoginPage, PasswordResetPage } from '@/features/auth';
 import { DashboardPage } from '@/features/dashboard';
@@ -63,9 +64,10 @@ function ProtectedShell() {
 
 function App() {
   return (
-    <QueryProvider>
-      <AuthProvider>
-        <TooltipProvider>
+    <ThemeProvider>
+      <QueryProvider>
+        <AuthProvider>
+          <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
             <Switch>
               {/* Public routes */}
@@ -117,9 +119,10 @@ function App() {
             </Switch>
           </WouterRouter>
           <Toaster />
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryProvider>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryProvider>
+    </ThemeProvider>
   );
 }
 
