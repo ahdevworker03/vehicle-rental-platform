@@ -109,7 +109,7 @@ This is the implementation-ready specification for the Vehicle Rental Management
 | `ExpenseCategory` | `FUEL`, `INSURANCE`, `REGISTRATION`, `CLEANING`, `OTHER` | No `MAINTENANCE` category; `Maintenance.cost` is authoritative for maintenance work. |
 | `PaymentMethod` | `CASH`, `CARD`, `TRANSFER`, `OTHER` | A method for recording money already received. |
 | `TaskStatus` | `PENDING`, `COMPLETED` | Default `PENDING`; upcoming/overdue are derived and there is no `IN_PROGRESS` or `CANCELLED` value. |
-| `TaskRecurrenceType` | `NONE`, `DAILY`, `WEEKLY`, `MONTHLY` | Default `NONE`. |
+| `TaskRecurrenceUnit` | `DAY`, `WEEK`, `MONTH` | Unit for interval recurrence. |
 
 ## 5. Core SaaS and Security Models
 
@@ -395,14 +395,15 @@ This is the implementation-ready specification for the Vehicle Rental Management
 | `id`, `organization_id` | UUID | Yes | `uuid()` / - | Primary key and tenant FK. |
 | `due_date` | DateTime | Yes | - | Due/business date. |
 | `status` | `TaskStatus` | Yes | `PENDING` | Pending or completed. |
-| `recurrence_type` | `TaskRecurrenceType` | Yes | `NONE` | Single occurrence or basic recurrence. |
+| `recurrence_interval`, `recurrence_unit` | Int, enum | No, No | `null` / `null` | No recurrence when absent; otherwise a positive interval in days, weeks, or months. |
+| `recurrence_end_date`, `recurrence_end_count` | Date, Int | No, No | `null` / `null` | Optional end condition; at most one end condition is selected. |
 | `predecessor_id` | UUID | No | `null` | Unique FK to the immediate preceding occurrence. |
 | `notes` | String | No | `null` | Non-empty if supplied. |
 | `created_at`, `updated_at`, `deleted_at` | DateTime | Yes, Yes, No | shared | Soft delete. |
 
 **Constraints and indexes:** `@unique(predecessor_id)` ensures a task has at most one direct successor. Indexes: `organization_id`, `deleted_at`, `status`, and `due_date`.
 
-**Business rules and validation:** Completing a recurring task atomically preserves the current occurrence as `COMPLETED` and creates one next `PENDING` occurrence with the same notes and recurrence type. Its due date derives from the completed occurrence: +1 UTC calendar day, +7 UTC calendar days, or +1 UTC calendar month; monthly recurrence clamps to the target month's last valid day. Recurrence type changes only while the occurrence is pending. There is no scheduler, notification delivery, timezone recurrence engine, advanced recurrence rule, or vehicle/rental/maintenance/user association.
+**Business rules and validation:** A task has no recurrence when its recurrence configuration is absent; otherwise the interval is a positive value and the unit is `DAY`, `WEEK`, or `MONTH`. Daily, weekly, and monthly presets use interval one. The end condition is never, a Beirut-local business date, or a positive occurrence count. Completing the current recurring occurrence atomically preserves it as `COMPLETED` history and creates exactly one next `PENDING` occurrence when recurrence remains active and its end condition permits it. The successor copies notes and recurrence configuration. Its due date is calculated using `Asia/Beirut` business date/time semantics, including timezone transitions; persisted timestamps may remain UTC. Stopping recurrence preserves the current task and history and prevents future successors. Normal deletion soft-deletes only the selected occurrence by setting `deleted_at`; it is not whole-series deletion and does not hard-delete records. There is no background scheduler, notification delivery, complex recurrence syntax, or vehicle/rental/maintenance/user association.
 
 ## 7. Media Models
 
@@ -489,7 +490,7 @@ Reservations beyond the implemented rental lifecycle, vehicle sales, buyers, sal
 
 - Notification persistence, type/read-state model, generation policy, and delivery mechanism.
 - SaaS billing/subscription domain model and its relationship to organization lifecycle.
-- Advanced task recurrence, associations, scheduling, timezone behavior beyond the implemented UTC calendar calculation, and reminder delivery.
+- Complex task recurrence beyond interval plus unit and end condition, task associations, background scheduling, and reminder delivery.
 - Automated maintenance schedule evaluation, maintenance creation, mileage updates, availability effects, and notification workflow.
 - Future sales, reservations, branch, inventory, accounting, and customer-facing modules.
 

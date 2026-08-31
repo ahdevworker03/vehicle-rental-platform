@@ -116,6 +116,7 @@ Rules:
 - Page titles are compact product headings, not marketing headings. Section titles distinguish work groups; helper text explains state or constraints.
 - Use medium or semibold weight for hierarchy. Keep body, table, and helper text readable at compact operational density.
 - Render amounts, dates, identifiers, plate numbers, phone numbers, and KPI values with the existing LTR numeric treatment where needed inside RTL content.
+- Display user-facing dates as `dd/mm/yyyy` (for example, `31/08/2026`). Datetime values use the same date format with Beirut-local time.
 
 ### 5.3 Spacing
 
@@ -237,6 +238,7 @@ Lead with:
 - Use full pages or sheets for complex workflows; avoid modals for large, multi-section forms.
 - Confirmation is required for destructive, status-changing, or financially significant actions. The confirmation states the consequence and action target.
 - For supported Version 2 flows, reuse this pattern for registration, password reset, invitation acceptance, organization profile, document-expiry editing, recurring task settings, and maintenance schedule management.
+- Recurring task controls stay simple: interval plus day/week/month unit, with never, date, or occurrence-count end conditions. Do not expose cron, weekday rules, or other complex recurrence syntax.
 
 ### 8.5 Reports and Analytics
 
@@ -280,6 +282,7 @@ Lead with:
 - Hints explain constraints before failure; inline errors explain how to recover.
 - Required markers supplement labels and validation; they do not replace clear field instructions.
 - Date, time, amount, phone, plate, and identifier fields preserve readable direction and input behavior in RTL layouts.
+- Business date and time interpretation uses `Asia/Beirut`; do not apply fixed UTC+2 or UTC+3 offsets. Genuine date-only fields must not be timezone-shifted.
 
 ### 9.5 Status Badges
 

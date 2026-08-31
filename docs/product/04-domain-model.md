@@ -298,8 +298,11 @@ Represents operational reminders.
 ### Responsibilities
 
 - Due date
-- Recurring schedule
+- Interval recurrence in days, weeks, or months
+- Recurrence end condition
 - Completion status
+- Explicit recurrence stop action
+- Soft deletion of an occurrence
 
 Examples:
 
@@ -311,6 +314,19 @@ Examples:
 ### Relationships
 
 - Belongs to one Organization
+- A recurring occurrence may reference its immediate predecessor and have one next occurrence.
+
+### Business Rules
+
+- Task statuses are `PENDING` and `COMPLETED`; `ARCHIVED` and `CANCELLED` are not task statuses.
+- A recurring task uses an interval and unit: day, week, or month. Simple presets map daily, weekly, and monthly to an interval of one.
+- Recurrence may end never, on a specific date, or after a specified number of occurrences.
+- Completing the current occurrence preserves it as `COMPLETED` history and creates exactly one next `PENDING` occurrence when recurrence remains active.
+- Recurring occurrences are created by completion, not by a background scheduler.
+- Stopping recurrence preserves the current task and all previous occurrences and prevents future occurrences.
+- Normal user deletion is soft deletion of the selected occurrence. It sets `deleted_at`, hides the occurrence from normal business views, and preserves the record for audit and history.
+- A soft-deleted pending occurrence cannot be completed and therefore cannot generate another occurrence.
+- Business date and time interpretation uses `Asia/Beirut`. Persisted timestamps may remain UTC.
 
 ---
 

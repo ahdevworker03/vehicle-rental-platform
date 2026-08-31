@@ -195,8 +195,13 @@ The platform should assist businesses with operational reminders.
 
 - Create tasks.
 - Assign due dates.
-- Create recurring tasks.
+- Create tasks with no recurrence or an interval recurrence measured in days, weeks, or months.
+- Support simple recurrence presets: daily (1 day), weekly (1 week), and monthly (1 month).
+- Support custom recurrence intervals such as every 15 days, every 2 weeks, or every 4 months.
+- End recurrence never, on a specific date, or after a specified number of occurrences.
 - Track task completion.
+- Stop recurrence as an explicit action without deleting the current task or its history.
+- Soft-delete an individual task occurrence when authorized.
 - Support maintenance reminders.
 - Support administrative reminders.
 
@@ -298,6 +303,8 @@ The following business rules must always be enforced.
 - Organizations cannot access data belonging to other organizations.
 - Every financial transaction must be associated with the appropriate business record.
 - Offline changes must synchronize without creating duplicate records.
+- The business timezone is `Asia/Beirut`; business date and time interpretation must use that timezone, including recurrence calculations.
+- User-facing web dates use `dd/mm/yyyy`; date and time values use the same date format with Beirut-local time.
 
 ---
 

@@ -164,6 +164,9 @@ Shared layers must not import feature pages or domain internals. Cross-feature c
 - Arabic is the document language and RTL is set in `index.html`.
 - The application font is IBM Plex Sans Arabic.
 - `lib/format.ts` owns currency, date, and number formatting.
+- User-facing web dates use `dd/mm/yyyy`; user-facing datetimes use the same date format with `Asia/Beirut` local time.
+- `Asia/Beirut` is the business timezone. Persisted/API timestamps may remain UTC, while business interpretation and recurrence calculations use Beirut timezone rules rather than fixed offsets.
+- Genuine date-only values must not be timezone-shifted.
 - Numeric and mixed-direction values use the shared LTR treatment where needed.
 - New UI should use logical `start`/`end` properties rather than physical left/right positioning.
 - The design-system baseline is documented in `docs/architecture/12-ui-design-system.md`.

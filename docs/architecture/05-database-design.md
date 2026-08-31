@@ -89,6 +89,7 @@ Examples include:
 - Rentals
 - Payments
 - Maintenance Records
+- Tasks
 - Users
 
 Tenant isolation must be enforced throughout the application.
@@ -229,16 +230,37 @@ any previously unused token for the same user.
 
 ## Task Recurrence
 
-`Task.recurrence_type` is `NONE`, `DAILY`, `WEEKLY`, or `MONTHLY`. A nullable
-unique `predecessor_id` self-reference forms a series of occurrences and
-ensures that a completed task has at most one direct successor. Completion and
-creation of a recurring successor occur in one serializable transaction.
+Tasks support no recurrence or an interval recurrence measured in days, weeks,
+or months. The recurrence configuration includes an interval, a unit, and an
+end condition: never, on a specific date, or after a specified number of
+occurrences. Daily, weekly, and monthly presets are interval-one shortcuts.
+Custom recurrence remains limited to interval plus unit; cron expressions,
+weekday rules, and other complex recurrence syntax are out of scope.
 
-The successor copies the recurring task's notes and recurrence type and derives
-its due date from the completed occurrence's due date. Monthly recurrence uses
-UTC calendar-month arithmetic and clamps to the target month's last valid day.
-The model deliberately does not include scheduling, notification, timezone, or
-arbitrary domain-association fields.
+A nullable unique `predecessor_id` self-reference forms an occurrence chain and
+ensures that a completed task has at most one direct successor. Completion and
+creation of a recurring successor occur in one serializable transaction. The
+successor copies the recurring task's notes and recurrence configuration and
+derives its due date using `Asia/Beirut` business date/time semantics. Persisted
+timestamps may remain UTC, but recurrence must not use fixed UTC offsets or UTC
+calendar arithmetic.
+
+Completing the current occurrence preserves it as `COMPLETED` history and
+creates exactly one next `PENDING` occurrence while recurrence remains active.
+Stopping recurrence preserves the current task and its history and prevents
+future successors. There is no background scheduler.
+
+## Business Timezone and Date Storage
+
+The business timezone is `Asia/Beirut`. Datetime values may be persisted and
+exchanged as UTC timestamps, but business interpretation, recurrence
+calculation, and user-facing datetime display use Beirut-local time and must
+respect timezone transitions rather than a fixed UTC offset.
+
+Genuine date-only fields use PostgreSQL `DATE` semantics and must not be
+timezone-shifted. User-facing web dates use `dd/mm/yyyy` (for example,
+`31/08/2026`); datetime displays use the same date format with Beirut-local
+time.
 
 ## Maintenance Schedules
 
@@ -272,6 +294,11 @@ Deleted records remain available for:
 - Business traceability.
 
 Soft deletion should only be avoided where permanent removal is legally or technically required.
+
+For tasks, normal business-user deletion is soft deletion of the selected
+occurrence only. It sets `deleted_at`, excludes the occurrence from normal
+business views, and preserves it for audit, history, and platform
+administration. It does not perform whole-series deletion or hard deletion.
 
 ---
 

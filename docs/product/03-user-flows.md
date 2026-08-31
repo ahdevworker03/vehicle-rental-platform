@@ -69,18 +69,20 @@
 | 63 | [Complete Task](#complete-task) |
 | 64 | [Goal](#goal) |
 | 65 | [Flow](#flow) |
-| 66 | [Dashboard](#dashboard) |
-| 67 | [Review Daily Operations](#review-daily-operations) |
-| 68 | [Goal](#goal) |
-| 69 | [Flow](#flow) |
-| 70 | [Offline Workflow](#offline-workflow) |
-| 71 | [Continue Working Without Internet](#continue-working-without-internet) |
-| 72 | [Goal](#goal) |
-| 73 | [Flow](#flow) |
-| 74 | [Future Vehicle Sales](#future-vehicle-sales) |
-| 75 | [Sell Fleet Vehicle](#sell-fleet-vehicle) |
-| 76 | [Goal](#goal) |
-| 77 | [Flow](#flow) |
+| 66 | [Stop Task Recurrence](#stop-task-recurrence) |
+| 67 | [Delete Task Occurrence](#delete-task-occurrence) |
+| 68 | [Dashboard](#dashboard) |
+| 69 | [Review Daily Operations](#review-daily-operations) |
+| 70 | [Goal](#goal) |
+| 71 | [Flow](#flow) |
+| 72 | [Offline Workflow](#offline-workflow) |
+| 73 | [Continue Working Without Internet](#continue-working-without-internet) |
+| 74 | [Goal](#goal) |
+| 75 | [Flow](#flow) |
+| 76 | [Future Vehicle Sales](#future-vehicle-sales) |
+| 77 | [Sell Fleet Vehicle](#sell-fleet-vehicle) |
+| 78 | [Goal](#goal) |
+| 79 | [Flow](#flow) |
 
 ## Introduction
 
@@ -376,8 +378,10 @@ Manage operational reminders.
 
 1. User creates a task.
 2. User sets a due date.
-3. User optionally marks the task as recurring.
-4. Task appears in upcoming reminders.
+3. User optionally selects no recurrence or an interval recurrence in days, weeks, or months.
+4. For recurring tasks, user chooses whether recurrence never ends, ends on a date, or ends after a number of occurrences.
+5. User may choose a daily, weekly, or monthly preset, or enter a custom interval and unit.
+6. Task appears in upcoming reminders.
 
 ---
 
@@ -391,7 +395,42 @@ Track finished work.
 
 1. User opens a task.
 2. User marks it as completed.
-3. Completed task is archived or removed from active reminders.
+3. The current occurrence is marked `COMPLETED` and remains available as historical data.
+4. If recurrence is active and its end condition has not been reached, the system creates exactly one next `PENDING` occurrence.
+5. No background scheduler creates occurrences.
+
+---
+
+## Stop Task Recurrence
+
+### Goal
+
+Stop future occurrences without deleting the current task or its history.
+
+### Flow
+
+1. User opens the current recurring occurrence.
+2. User selects **Stop recurrence**.
+3. The system preserves the current task and all previous occurrences.
+4. The system prevents future occurrences from being created.
+
+Stopping recurrence is separate from deleting a task. Historical occurrences remain available.
+
+---
+
+## Delete Task Occurrence
+
+### Goal
+
+Remove one task occurrence from normal business views while preserving its record.
+
+### Flow
+
+1. User opens the task occurrence.
+2. User selects **Delete** and confirms the action.
+3. The system soft-deletes only the selected occurrence by setting `deleted_at`.
+4. The occurrence is hidden from normal business views but retained for audit and history.
+5. If the deleted occurrence is the current pending occurrence, it cannot be completed and no next occurrence is generated.
 
 ---
 
