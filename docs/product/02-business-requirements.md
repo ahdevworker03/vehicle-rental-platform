@@ -199,6 +199,7 @@ The platform should assist businesses with operational reminders.
 - Support simple recurrence presets: daily (1 day), weekly (1 week), and monthly (1 month).
 - Support custom recurrence intervals such as every 15 days, every 2 weeks, or every 4 months.
 - End recurrence never, on a specific date, or after a specified number of occurrences.
+- Count the original task as occurrence 1; for example, ending after 5 occurrences permits at most four successors.
 - Track task completion.
 - Stop recurrence as an explicit action without deleting the current task or its history.
 - Soft-delete an individual task occurrence when authorized.

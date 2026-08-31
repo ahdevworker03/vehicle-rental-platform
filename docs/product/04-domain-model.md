@@ -320,8 +320,10 @@ Examples:
 
 - Task statuses are `PENDING` and `COMPLETED`; `ARCHIVED` and `CANCELLED` are not task statuses.
 - A recurring task uses an interval and unit: day, week, or month. Simple presets map daily, weekly, and monthly to an interval of one.
-- Recurrence may end never, on a specific date, or after a specified number of occurrences.
-- Completing the current occurrence preserves it as `COMPLETED` history and creates exactly one next `PENDING` occurrence when recurrence remains active.
+- A recurring task has a positive `occurrence_number`, defaulting to 1. The original task is occurrence 1, and each successor receives its predecessor's number plus 1.
+- Recurrence may end never, on an inclusive specific date, or after a specified number of occurrences. The count includes the original task; ending after 5 occurrences permits at most four successors.
+- Completing the current occurrence preserves it as `COMPLETED` history and creates exactly one next `PENDING` occurrence when recurrence remains active. No successor is created once the current occurrence has reached the configured count.
+- A next occurrence may use an end date equal to its Beirut-local business date, but not a later date. End-date comparisons use `Asia/Beirut` business dates rather than raw UTC timestamps.
 - Recurring occurrences are created by completion, not by a background scheduler.
 - Stopping recurrence preserves the current task and all previous occurrences and prevents future occurrences.
 - Normal user deletion is soft deletion of the selected occurrence. It sets `deleted_at`, hides the occurrence from normal business views, and preserves the record for audit and history.

@@ -379,7 +379,7 @@ Manage operational reminders.
 1. User creates a task.
 2. User sets a due date.
 3. User optionally selects no recurrence or an interval recurrence in days, weeks, or months.
-4. For recurring tasks, user chooses whether recurrence never ends, ends on a date, or ends after a number of occurrences.
+4. For recurring tasks, user chooses whether recurrence never ends, ends on an inclusive date, or ends after a number of occurrences including the original task.
 5. User may choose a daily, weekly, or monthly preset, or enter a custom interval and unit.
 6. Task appears in upcoming reminders.
 
@@ -396,8 +396,9 @@ Track finished work.
 1. User opens a task.
 2. User marks it as completed.
 3. The current occurrence is marked `COMPLETED` and remains available as historical data.
-4. If recurrence is active and its end condition has not been reached, the system creates exactly one next `PENDING` occurrence.
-5. No background scheduler creates occurrences.
+4. If recurrence is active and its end condition has not been reached, the system creates exactly one next `PENDING` occurrence. The original task is occurrence 1; after 5 occurrences means at most four successors.
+5. A next occurrence is allowed on the inclusive end date when its Beirut-local business date equals that date, but not after it.
+6. No background scheduler creates occurrences.
 
 ---
 

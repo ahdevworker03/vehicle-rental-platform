@@ -237,6 +237,11 @@ occurrences. Daily, weekly, and monthly presets are interval-one shortcuts.
 Custom recurrence remains limited to interval plus unit; cron expressions,
 weekday rules, and other complex recurrence syntax are out of scope.
 
+Each occurrence has a positive `occurrence_number`, defaulting to 1. The
+original task is occurrence 1, and each successor receives its predecessor's
+number plus 1. An end count includes the original occurrence: ending after 5
+occurrences permits at most four successors.
+
 A nullable unique `predecessor_id` self-reference forms an occurrence chain and
 ensures that a completed task has at most one direct successor. Completion and
 creation of a recurring successor occur in one serializable transaction. The
@@ -247,8 +252,12 @@ calendar arithmetic.
 
 Completing the current occurrence preserves it as `COMPLETED` history and
 creates exactly one next `PENDING` occurrence while recurrence remains active.
-Stopping recurrence preserves the current task and its history and prevents
-future successors. There is no background scheduler.
+When an end count is present, no successor is created once the current
+occurrence has reached that count. `recurrence_end_date` is inclusive: a next
+occurrence is allowed when its Beirut-local business date equals the end date,
+but not when it is later. This comparison uses Beirut business dates, not raw
+UTC timestamps. Stopping recurrence preserves the current task and its history
+and prevents future successors. There is no background scheduler.
 
 ## Business Timezone and Date Storage
 
