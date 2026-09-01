@@ -46,7 +46,7 @@
 
 ## 1. Purpose
 
-This document separates the currently implemented PostgreSQL/Prisma model from approved target model changes awaiting implementation. Implemented fields and behavior describe the current runtime contract; target additions are explicitly marked and must not be treated as present until their schema, API, validation, and application work is completed.
+This document describes the currently implemented PostgreSQL/Prisma model. Implemented fields and behavior define the current runtime contract.
 
 ## 2. Source of Truth and Scope
 
@@ -55,8 +55,7 @@ This document separates the currently implemented PostgreSQL/Prisma model from a
 - Business meaning: `docs/product/04-domain-model.md` and `docs/product/02-business-requirements.md`.
 - Backend and API conventions: `docs/architecture/04-backend-architecture.md` and `docs/architecture/06-api-design.md`.
 - Prisma schema and applied migrations take precedence for implemented fields, enums, relations, indexes, and constraints. Product documents supply meaning; they do not add unimplemented persistence.
-- The interval recurrence, recurrence end-condition, and `occurrence_number` fields in the Task section are approved target changes awaiting implementation; they are not currently present in the Prisma schema, migrations, API contract, generated clients, or runtime behavior.
-- This document records completed backend state through Milestones 5.6 and 5.7 plus the approved target model. It does not authorize schema, migration, API, or product changes.
+- This document records completed backend state through Task interval recurrence implementation. It does not authorize schema, migration, API, or product changes.
 
 ## 3. Shared Conventions
 
@@ -110,8 +109,7 @@ This document separates the currently implemented PostgreSQL/Prisma model from a
 | `ExpenseCategory` | `FUEL`, `INSURANCE`, `REGISTRATION`, `CLEANING`, `OTHER` | No `MAINTENANCE` category; `Maintenance.cost` is authoritative for maintenance work. |
 | `PaymentMethod` | `CASH`, `CARD`, `TRANSFER`, `OTHER` | A method for recording money already received. |
 | `TaskStatus` | `PENDING`, `COMPLETED` | Default `PENDING`; upcoming/overdue are derived and there is no `IN_PROGRESS` or `CANCELLED` value. |
-| `TaskRecurrenceType` (implemented) | `NONE`, `DAILY`, `WEEKLY`, `MONTHLY` | Current runtime recurrence enum; superseded by the approved interval target below when implemented. |
-| `TaskRecurrenceUnit` (approved target) | `DAY`, `WEEK`, `MONTH` | Unit for interval recurrence; not yet implemented. |
+| `TaskRecurrenceUnit` | `DAY`, `WEEK`, `MONTH` | Unit for interval recurrence. |
 
 ## 5. Core SaaS and Security Models
 
@@ -392,25 +390,21 @@ This document separates the currently implemented PostgreSQL/Prisma model from a
 
 **Relationships:** Belongs to one organization; optionally references one predecessor task and can have at most one direct successor. The self-FK uses `RESTRICT`.
 
-The recurrence interval, unit, end-condition, and occurrence-number fields below
-are approved target fields awaiting implementation. They are not currently in
-the Prisma schema or applied migrations.
-
 | Field | Type | Required | Default | Notes |
 |---|---:|---:|---:|---|
 | `id`, `organization_id` | UUID | Yes | `uuid()` / - | Primary key and tenant FK. |
 | `due_date` | DateTime | Yes | - | Due/business date. |
 | `status` | `TaskStatus` | Yes | `PENDING` | Pending or completed. |
-| `recurrence_interval`, `recurrence_unit` (approved target) | Int, enum | No, No | `null` / `null` | No recurrence when absent; otherwise a positive interval in days, weeks, or months. |
-| `recurrence_end_date`, `recurrence_end_count` (approved target) | Date, Int | No, No | `null` / `null` | Optional end condition; at most one end condition is selected. |
-| `occurrence_number` (approved target) | Int | Yes | `1` | Positive occurrence position; original task is 1. |
+| `recurrence_interval`, `recurrence_unit` | Int, enum | No, No | `null` / `null` | No recurrence when absent; otherwise a positive interval in days, weeks, or months. |
+| `recurrence_end_date`, `recurrence_end_count` | Date, Int | No, No | `null` / `null` | Optional end condition; at most one end condition is selected. |
+| `occurrence_number` | Int | Yes | `1` | Positive occurrence position; original task is 1. |
 | `predecessor_id` | UUID | No | `null` | Unique FK to the immediate preceding occurrence. |
 | `notes` | String | No | `null` | Non-empty if supplied. |
 | `created_at`, `updated_at`, `deleted_at` | DateTime | Yes, Yes, No | shared | Soft delete. |
 
 **Constraints and indexes:** `@unique(predecessor_id)` ensures a task has at most one direct successor. Indexes: `organization_id`, `deleted_at`, `status`, and `due_date`.
 
-**Approved target business rules:** A task has no recurrence when its recurrence configuration is absent; otherwise the interval is positive and the unit is `DAY`, `WEEK`, or `MONTH`. Daily, weekly, and monthly presets use interval one. The end condition is never, an inclusive Beirut-local business date, or a positive occurrence count. "After N occurrences" includes the original task: the original is occurrence 1, so an end count of 5 permits at most four successors. `occurrence_number` starts at 1 and each successor receives its predecessor's number plus 1. Do not create a successor when the current occurrence has reached `recurrence_end_count`, or when the successor's Beirut-local business date would be after `recurrence_end_date`; equality is allowed. Completing the current recurring occurrence atomically preserves it as `COMPLETED` history and creates exactly one next `PENDING` occurrence when recurrence remains active and its end condition permits it. The successor copies notes and recurrence configuration. Its due date is calculated using `Asia/Beirut` business date/time semantics, including timezone transitions; persisted timestamps may remain UTC. Stopping recurrence preserves the current task and history and prevents future successors. Normal deletion soft-deletes only the selected occurrence by setting `deleted_at`; it is not whole-series deletion and does not hard-delete records. There is no background scheduler, notification delivery, complex recurrence syntax, or vehicle/rental/maintenance/user association.
+**Business rules:** A task has no recurrence when its recurrence configuration is absent; otherwise the interval is positive and the unit is `DAY`, `WEEK`, or `MONTH`. Daily, weekly, and monthly presets use interval one. The end condition is never, an inclusive Beirut-local business date, or a positive occurrence count. "After N occurrences" includes the original task: the original is occurrence 1, so an end count of 5 permits at most four successors. `occurrence_number` starts at 1 and each successor receives its predecessor's number plus 1. Do not create a successor when the current occurrence has reached `recurrence_end_count`, or when the successor's Beirut-local business date would be after `recurrence_end_date`; equality is allowed. Completing the current recurring occurrence atomically preserves it as `COMPLETED` history and creates exactly one next `PENDING` occurrence when recurrence remains active and its end condition permits it. The successor copies notes and recurrence configuration. Its due date is calculated using `Asia/Beirut` business date/time semantics, including timezone transitions; persisted timestamps may remain UTC. Stopping recurrence preserves the current task and history and prevents future successors. Normal deletion soft-deletes only the selected occurrence by setting `deleted_at`; it is not whole-series deletion and does not hard-delete records. There is no background scheduler, notification delivery, complex recurrence syntax, or vehicle/rental/maintenance/user association.
 
 ## 7. Media Models
 
@@ -503,9 +497,9 @@ Reservations beyond the implemented rental lifecycle, vehicle sales, buyers, sal
 
 ## 11. Implementation Contract
 
-- Prisma definitions and migrations must match the currently implemented fields, enum values, FKs, unique constraints, indexes, defaults, and explicit check constraints above. Approved target fields remain pending until implemented.
+- Prisma definitions and migrations must match the currently implemented fields, enum values, FKs, unique constraints, indexes, defaults, and explicit check constraints above.
 - Repositories scope tenant-owned records by organization and preserve soft-delete filtering.
-- Services own transactions and cross-record business rules, including tenant ownership, rental availability, invitation acceptance, password reset, implemented task succession, and lifecycle transitions. The approved target task recurrence rules apply when their implementation is completed.
+- Services own transactions and cross-record business rules, including tenant ownership, rental availability, invitation acceptance, password reset, task succession, and lifecycle transitions.
 - Validators enforce the documented required, format, enum, and range rules. Database constraints complement rather than replace service validation.
-- APIs and tests preserve the implemented model and public contract; approved target fields and workflows must not be treated as implemented until their schema/API/application changes land.
+- APIs and tests preserve the implemented model and public contract.
 - Changes to an implemented model, constraint, or rule require explicit architectural approval and corresponding schema/API documentation updates.

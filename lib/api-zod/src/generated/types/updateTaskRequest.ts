@@ -5,10 +5,15 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { UpdateTaskRequestRecurrenceType } from './updateTaskRequestRecurrenceType';
+import type { UpdateTaskRequestRecurrenceUnit } from './updateTaskRequestRecurrenceUnit';
 
 export interface UpdateTaskRequest {
   due_date?: Date;
   notes?: string | null;
-  recurrence_type?: UpdateTaskRequestRecurrenceType;
+  /** @minimum 1 */
+  recurrence_interval?: number | null;
+  recurrence_unit?: UpdateTaskRequestRecurrenceUnit;
+  recurrence_end_date?: Date | null;
+  /** @minimum 1 */
+  recurrence_end_count?: number | null;
 }

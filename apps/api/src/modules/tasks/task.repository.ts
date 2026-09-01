@@ -1,10 +1,6 @@
 import { prisma } from "../../database";
 import type { TxClient } from "../../database";
-import type {
-  TaskRecord,
-  TaskRecurrenceType,
-  TaskStatus,
-} from "./task.types";
+import type { TaskRecord, TaskRecurrenceUnit, TaskStatus } from "./task.types";
 
 type DbClient = typeof prisma | TxClient;
 
@@ -31,38 +27,45 @@ async function findById(
   });
 }
 
-async function create(data: {
-  organization_id: string;
-  due_date: Date;
-  status: TaskStatus;
-  recurrence_type: TaskRecurrenceType;
-  predecessor_id?: string;
-  notes: string | null;
-}, db: DbClient = prisma): Promise<TaskRecord> {
+async function create(
+  data: {
+    organization_id: string;
+    due_date: Date;
+    status: TaskStatus;
+    recurrence_interval: number | null;
+    recurrence_unit: TaskRecurrenceUnit | null;
+    recurrence_end_date: Date | null;
+    recurrence_end_count: number | null;
+    occurrence_number?: number;
+    predecessor_id?: string;
+    notes: string | null;
+  },
+  db: DbClient = prisma,
+): Promise<TaskRecord> {
   return db.task.create({ data });
 }
 
 async function update(
   taskId: string,
+  orgId: string,
   data: {
     due_date?: Date;
     status?: TaskStatus;
-    recurrence_type?: TaskRecurrenceType;
+    recurrence_interval?: number | null;
+    recurrence_unit?: TaskRecurrenceUnit | null;
+    recurrence_end_date?: Date | null;
+    recurrence_end_count?: number | null;
     notes?: string | null;
   },
   db: DbClient = prisma,
 ): Promise<TaskRecord> {
   return db.task.update({
-    where: { id: taskId },
+    where: { id: taskId, organization_id: orgId, deleted_at: null },
     data,
   });
 }
 
-async function completePending(
-  taskId: string,
-  orgId: string,
-  db: DbClient,
-) {
+async function completePending(taskId: string, orgId: string, db: DbClient) {
   return db.task.updateMany({
     where: {
       id: taskId,
@@ -74,18 +77,11 @@ async function completePending(
   });
 }
 
-async function softDelete(taskId: string): Promise<TaskRecord> {
+async function softDelete(taskId: string, orgId: string): Promise<TaskRecord> {
   return prisma.task.update({
-    where: { id: taskId },
+    where: { id: taskId, organization_id: orgId, deleted_at: null },
     data: { deleted_at: new Date() },
   });
 }
 
-export {
-  findByOrg,
-  findById,
-  create,
-  update,
-  completePending,
-  softDelete,
-};
+export { findByOrg, findById, create, update, completePending, softDelete };

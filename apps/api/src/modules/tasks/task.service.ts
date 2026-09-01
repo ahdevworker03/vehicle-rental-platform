@@ -5,12 +5,13 @@ import {
 } from "../../database";
 import { AppError } from "../../shared";
 import * as repo from "./task.repository";
+import { beirutBusinessDate, nextTaskDueDate } from "./task-recurrence";
 import type {
-  TaskResponse,
   CreateTaskInput,
-  UpdateTaskInput,
   TaskRecord,
-  TaskRecurrenceType,
+  TaskRecurrenceUnit,
+  TaskResponse,
+  UpdateTaskInput,
 } from "./task.types";
 
 function toResponse(record: TaskRecord): TaskResponse {
@@ -18,7 +19,12 @@ function toResponse(record: TaskRecord): TaskResponse {
     id: record.id,
     dueDate: record.due_date.toISOString(),
     status: record.status,
-    recurrenceType: record.recurrence_type,
+    recurrenceInterval: record.recurrence_interval,
+    recurrenceUnit: record.recurrence_unit,
+    recurrenceEndDate:
+      record.recurrence_end_date?.toISOString().slice(0, 10) ?? null,
+    recurrenceEndCount: record.recurrence_end_count,
+    occurrenceNumber: record.occurrence_number,
     predecessorId: record.predecessor_id,
     notes: record.notes,
     createdAt: record.created_at.toISOString(),
@@ -31,7 +37,11 @@ function taskNotFoundError(): AppError {
 }
 
 function taskAlreadyCompletedError(): AppError {
-  return new AppError(409, "TASK_ALREADY_COMPLETED", "Task is already completed.");
+  return new AppError(
+    409,
+    "TASK_ALREADY_COMPLETED",
+    "Task is already completed.",
+  );
 }
 
 function recurrenceUpdateAfterCompletionError(): AppError {
@@ -42,29 +52,38 @@ function recurrenceUpdateAfterCompletionError(): AppError {
   );
 }
 
-function nextDueDate(
-  dueDate: Date,
-  recurrenceType: Exclude<TaskRecurrenceType, "NONE">,
-): Date {
-  const next = new Date(dueDate);
+function recurrenceIsConfigured(input: {
+  recurrence_interval: number | null;
+  recurrence_unit: TaskRecurrenceUnit | null;
+}): boolean {
+  return input.recurrence_interval !== null && input.recurrence_unit !== null;
+}
 
-  if (recurrenceType === "DAILY") {
-    next.setUTCDate(next.getUTCDate() + 1);
-    return next;
+function validateRecurrence(input: {
+  recurrence_interval: number | null;
+  recurrence_unit: TaskRecurrenceUnit | null;
+  recurrence_end_date: Date | null;
+  recurrence_end_count: number | null;
+}): void {
+  const hasInterval = input.recurrence_interval !== null;
+  const hasUnit = input.recurrence_unit !== null;
+  const hasEndCondition =
+    input.recurrence_end_date !== null || input.recurrence_end_count !== null;
+
+  if (
+    hasInterval !== hasUnit ||
+    (input.recurrence_interval !== null && input.recurrence_interval < 1) ||
+    (input.recurrence_end_count !== null && input.recurrence_end_count < 1) ||
+    (input.recurrence_end_date !== null &&
+      input.recurrence_end_count !== null) ||
+    (hasEndCondition && !hasInterval)
+  ) {
+    throw new AppError(
+      422,
+      "TASK_RECURRENCE_INVALID",
+      "Task recurrence configuration is invalid.",
+    );
   }
-
-  if (recurrenceType === "WEEKLY") {
-    next.setUTCDate(next.getUTCDate() + 7);
-    return next;
-  }
-
-  next.setUTCDate(1);
-  next.setUTCMonth(next.getUTCMonth() + 1);
-  const lastDay = new Date(
-    Date.UTC(next.getUTCFullYear(), next.getUTCMonth() + 1, 0),
-  ).getUTCDate();
-  next.setUTCDate(Math.min(dueDate.getUTCDate(), lastDay));
-  return next;
 }
 
 async function listTasks(orgId: string): Promise<TaskResponse[]> {
@@ -86,11 +105,19 @@ async function createTask(
   orgId: string,
   input: CreateTaskInput,
 ): Promise<TaskResponse> {
+  const recurrence = {
+    recurrence_interval: input.recurrence_interval ?? null,
+    recurrence_unit: input.recurrence_unit ?? null,
+    recurrence_end_date: input.recurrence_end_date ?? null,
+    recurrence_end_count: input.recurrence_end_count ?? null,
+  };
+  validateRecurrence(recurrence);
+
   const record = await repo.create({
     organization_id: orgId,
     due_date: input.due_date,
     status: "PENDING",
-    recurrence_type: input.recurrence_type ?? "NONE",
+    ...recurrence,
     notes: input.notes ?? null,
   });
 
@@ -108,16 +135,39 @@ async function updateTask(
     throw taskNotFoundError();
   }
 
-  if (input.recurrence_type !== undefined && record.status === "COMPLETED") {
+  const changesRecurrence =
+    input.recurrence_interval !== undefined ||
+    input.recurrence_unit !== undefined ||
+    input.recurrence_end_date !== undefined ||
+    input.recurrence_end_count !== undefined;
+  if (changesRecurrence && record.status === "COMPLETED") {
     throw recurrenceUpdateAfterCompletionError();
   }
 
-  const updated = await repo.update(taskId, {
+  const recurrence = {
+    recurrence_interval:
+      input.recurrence_interval === undefined
+        ? record.recurrence_interval
+        : input.recurrence_interval,
+    recurrence_unit:
+      input.recurrence_unit === undefined
+        ? record.recurrence_unit
+        : input.recurrence_unit,
+    recurrence_end_date:
+      input.recurrence_end_date === undefined
+        ? record.recurrence_end_date
+        : input.recurrence_end_date,
+    recurrence_end_count:
+      input.recurrence_end_count === undefined
+        ? record.recurrence_end_count
+        : input.recurrence_end_count,
+  };
+  validateRecurrence(recurrence);
+
+  const updated = await repo.update(taskId, orgId, {
     ...(input.due_date !== undefined ? { due_date: input.due_date } : {}),
     ...(input.notes !== undefined ? { notes: input.notes } : {}),
-    ...(input.recurrence_type !== undefined
-      ? { recurrence_type: input.recurrence_type }
-      : {}),
+    ...(changesRecurrence ? recurrence : {}),
   });
 
   return toResponse(updated);
@@ -138,18 +188,37 @@ async function completeTask(
         const completed = await repo.completePending(taskId, orgId, tx);
         if (completed.count !== 1) throw taskAlreadyCompletedError();
 
-        if (record.recurrence_type !== "NONE") {
-          await repo.create(
-            {
-              organization_id: orgId,
-              due_date: nextDueDate(record.due_date, record.recurrence_type),
-              status: "PENDING",
-              recurrence_type: record.recurrence_type,
-              predecessor_id: record.id,
-              notes: record.notes,
-            },
-            tx,
+        if (recurrenceIsConfigured(record)) {
+          const candidateDueDate = nextTaskDueDate(
+            record.due_date,
+            record.recurrence_interval!,
+            record.recurrence_unit!,
           );
+          const countAllowsSuccessor =
+            record.recurrence_end_count === null ||
+            record.occurrence_number < record.recurrence_end_count;
+          const dateAllowsSuccessor =
+            record.recurrence_end_date === null ||
+            beirutBusinessDate(candidateDueDate) <=
+              record.recurrence_end_date.toISOString().slice(0, 10);
+
+          if (countAllowsSuccessor && dateAllowsSuccessor) {
+            await repo.create(
+              {
+                organization_id: orgId,
+                due_date: candidateDueDate,
+                status: "PENDING",
+                recurrence_interval: record.recurrence_interval,
+                recurrence_unit: record.recurrence_unit,
+                recurrence_end_date: record.recurrence_end_date,
+                recurrence_end_count: record.recurrence_end_count,
+                occurrence_number: record.occurrence_number + 1,
+                predecessor_id: record.id,
+                notes: record.notes,
+              },
+              tx,
+            );
+          }
         }
 
         const updated = await repo.findById(taskId, orgId, tx);
@@ -175,14 +244,7 @@ async function deleteTask(taskId: string, orgId: string): Promise<void> {
     throw new AppError(404, "TASK_NOT_FOUND", "Task not found.");
   }
 
-  await repo.softDelete(taskId);
+  await repo.softDelete(taskId, orgId);
 }
 
-export {
-  listTasks,
-  getTask,
-  createTask,
-  updateTask,
-  completeTask,
-  deleteTask,
-};
+export { listTasks, getTask, createTask, updateTask, completeTask, deleteTask };

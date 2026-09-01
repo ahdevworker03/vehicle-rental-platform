@@ -848,8 +848,8 @@ paths:
           description: Insufficient permissions
           content:
             application/json:
-               schema:
-                 $ref: "#/components/schemas/ErrorResponse"
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Customer not found
           content:
@@ -4335,7 +4335,8 @@ components:
           type: integer
         status:
           type: string
-          enum: [AVAILABLE, RESERVED, RENTED, MAINTENANCE, OUT_OF_SERVICE, ARCHIVED]
+          enum:
+            [AVAILABLE, RESERVED, RENTED, MAINTENANCE, OUT_OF_SERVICE, ARCHIVED]
         createdAt:
           type: string
           format: date-time
@@ -4411,7 +4412,8 @@ components:
           minimum: 0
         status:
           type: string
-          enum: [AVAILABLE, RESERVED, RENTED, MAINTENANCE, OUT_OF_SERVICE, ARCHIVED]
+          enum:
+            [AVAILABLE, RESERVED, RENTED, MAINTENANCE, OUT_OF_SERVICE, ARCHIVED]
       required:
         - make
         - model
@@ -4461,7 +4463,8 @@ components:
           minimum: 0
         status:
           type: string
-          enum: [AVAILABLE, RESERVED, RENTED, MAINTENANCE, OUT_OF_SERVICE, ARCHIVED]
+          enum:
+            [AVAILABLE, RESERVED, RENTED, MAINTENANCE, OUT_OF_SERVICE, ARCHIVED]
       required:
         - make
         - model
@@ -5207,9 +5210,25 @@ components:
         status:
           type: string
           enum: [PENDING, COMPLETED]
-        recurrenceType:
+        recurrenceInterval:
+          type: integer
+          minimum: 1
+          nullable: true
+        recurrenceUnit:
           type: string
-          enum: [NONE, DAILY, WEEKLY, MONTHLY]
+          enum: [DAY, WEEK, MONTH]
+          nullable: true
+        recurrenceEndDate:
+          type: string
+          format: date
+          nullable: true
+        recurrenceEndCount:
+          type: integer
+          minimum: 1
+          nullable: true
+        occurrenceNumber:
+          type: integer
+          minimum: 1
         predecessorId:
           type: string
           nullable: true
@@ -5226,7 +5245,11 @@ components:
         - id
         - dueDate
         - status
-        - recurrenceType
+        - recurrenceInterval
+        - recurrenceUnit
+        - recurrenceEndDate
+        - recurrenceEndCount
+        - occurrenceNumber
         - predecessorId
         - createdAt
         - updatedAt
@@ -5257,9 +5280,26 @@ components:
           format: date-time
         notes:
           type: string
-        recurrence_type:
+        recurrence_interval:
+          type: integer
+          minimum: 1
+          nullable: true
+          description: Must be provided with recurrence_unit, or both must be null/absent.
+        recurrence_unit:
           type: string
-          enum: [NONE, DAILY, WEEKLY, MONTHLY]
+          enum: [DAY, WEEK, MONTH]
+          nullable: true
+          description: Must be provided with recurrence_interval, or both must be null/absent.
+        recurrence_end_date:
+          type: string
+          format: date
+          nullable: true
+          description: Inclusive Beirut-local business date; requires recurrence and is mutually exclusive with recurrence_end_count.
+        recurrence_end_count:
+          type: integer
+          minimum: 1
+          nullable: true
+          description: Total occurrences including the original; requires recurrence and is mutually exclusive with recurrence_end_date.
       required:
         - due_date
 
@@ -5272,9 +5312,22 @@ components:
         notes:
           type: string
           nullable: true
-        recurrence_type:
+        recurrence_interval:
+          type: integer
+          minimum: 1
+          nullable: true
+        recurrence_unit:
           type: string
-          enum: [NONE, DAILY, WEEKLY, MONTHLY]
+          enum: [DAY, WEEK, MONTH]
+          nullable: true
+        recurrence_end_date:
+          type: string
+          format: date
+          nullable: true
+        recurrence_end_count:
+          type: integer
+          minimum: 1
+          nullable: true
       required: []
 
     CreateRentalRequest:

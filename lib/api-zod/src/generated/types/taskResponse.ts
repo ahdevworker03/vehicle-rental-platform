@@ -5,14 +5,21 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { TaskResponseRecurrenceType } from './taskResponseRecurrenceType';
+import type { TaskResponseRecurrenceUnit } from './taskResponseRecurrenceUnit';
 import type { TaskResponseStatus } from './taskResponseStatus';
 
 export interface TaskResponse {
   id: string;
   dueDate: Date;
   status: TaskResponseStatus;
-  recurrenceType: TaskResponseRecurrenceType;
+  /** @minimum 1 */
+  recurrenceInterval: number | null;
+  recurrenceUnit: TaskResponseRecurrenceUnit;
+  recurrenceEndDate: Date | null;
+  /** @minimum 1 */
+  recurrenceEndCount: number | null;
+  /** @minimum 1 */
+  occurrenceNumber: number;
   predecessorId: string | null;
   notes?: string | null;
   createdAt: Date;

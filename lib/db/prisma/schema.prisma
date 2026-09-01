@@ -123,11 +123,10 @@ enum TaskStatus {
   COMPLETED
 }
 
-enum TaskRecurrenceType {
-  NONE
-  DAILY
-  WEEKLY
-  MONTHLY
+enum TaskRecurrenceUnit {
+  DAY
+  WEEK
+  MONTH
 }
 
 model User {
@@ -451,19 +450,23 @@ model Payment {
 }
 
 model Task {
-  id              String             @id @default(uuid()) @db.Uuid
-  organization_id String             @db.Uuid
-  organization    Organization       @relation(fields: [organization_id], references: [id])
-  due_date        DateTime
-  status          TaskStatus         @default(PENDING)
-  recurrence_type TaskRecurrenceType @default(NONE)
-  predecessor_id  String?            @unique @db.Uuid
-  predecessor     Task?              @relation("TaskOccurrences", fields: [predecessor_id], references: [id], onDelete: Restrict)
-  next_occurrence Task?              @relation("TaskOccurrences")
-  notes           String?
-  created_at      DateTime           @default(now())
-  updated_at      DateTime           @updatedAt
-  deleted_at      DateTime?
+  id                   String              @id @default(uuid()) @db.Uuid
+  organization_id      String              @db.Uuid
+  organization         Organization        @relation(fields: [organization_id], references: [id])
+  due_date             DateTime
+  status               TaskStatus          @default(PENDING)
+  recurrence_interval  Int?
+  recurrence_unit      TaskRecurrenceUnit?
+  recurrence_end_date  DateTime?           @db.Date
+  recurrence_end_count Int?
+  occurrence_number    Int                 @default(1)
+  predecessor_id       String?             @unique @db.Uuid
+  predecessor          Task?               @relation("TaskOccurrences", fields: [predecessor_id], references: [id], onDelete: Restrict)
+  next_occurrence      Task?               @relation("TaskOccurrences")
+  notes                String?
+  created_at           DateTime            @default(now())
+  updated_at           DateTime            @updatedAt
+  deleted_at           DateTime?
 
   @@index([organization_id])
   @@index([deleted_at])

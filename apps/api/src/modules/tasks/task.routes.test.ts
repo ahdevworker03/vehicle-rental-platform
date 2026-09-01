@@ -49,15 +49,21 @@ describe("task routes", () => {
     expect(res.body.data.dueDate).toBe("2026-09-01T09:00:00.000Z");
     expect(res.body.data.status).toBe("PENDING");
     expect(res.body.data.notes).toBe("Insurance renewal");
-    expect(res.body.data.recurrenceType).toBe("NONE");
+    expect(res.body.data.recurrenceInterval).toBeNull();
+    expect(res.body.data.recurrenceUnit).toBeNull();
+    expect(res.body.data.occurrenceNumber).toBe(1);
     expect(res.body.data.predecessorId).toBeNull();
   });
 
   it("creates and completes a recurring task through the API", async () => {
-    const created = await createTask({ recurrence_type: "WEEKLY" });
+    const created = await createTask({
+      recurrence_interval: 1,
+      recurrence_unit: "WEEK",
+    });
 
     expect(created.status).toBe(201);
-    expect(created.body.data.recurrenceType).toBe("WEEKLY");
+    expect(created.body.data.recurrenceInterval).toBe(1);
+    expect(created.body.data.recurrenceUnit).toBe("WEEK");
     const completed = await request(app)
       .post(`/api/tasks/${created.body.data.id}/complete`)
       .set("Authorization", `Bearer ${token}`);
@@ -88,6 +94,51 @@ describe("task routes", () => {
       .set("Authorization", `Bearer ${token}`)
       .send({ due_date: "not-a-date" });
     expect(res.status).toBe(422);
+  });
+
+  it("rejects incomplete or conflicting recurrence configuration", async () => {
+    const missingUnit = await createTask({ recurrence_interval: 2 });
+    const conflictingEnd = await createTask({
+      recurrence_interval: 1,
+      recurrence_unit: "DAY",
+      recurrence_end_date: "2026-09-10",
+      recurrence_end_count: 3,
+    });
+
+    expect(missingUnit.status).toBe(422);
+    expect(conflictingEnd.status).toBe(422);
+  });
+
+  it("rejects decimal recurrence values", async () => {
+    const decimalInterval = await createTask({
+      recurrence_interval: 1.5,
+      recurrence_unit: "DAY",
+    });
+    const decimalEndCount = await createTask({
+      recurrence_interval: 1,
+      recurrence_unit: "DAY",
+      recurrence_end_count: 2.5,
+    });
+
+    expect(decimalInterval.status).toBe(422);
+    expect(decimalEndCount.status).toBe(422);
+  });
+
+  it("accepts only date-only recurrence end dates", async () => {
+    const invalid = await createTask({
+      recurrence_interval: 1,
+      recurrence_unit: "DAY",
+      recurrence_end_date: "2026-09-10T00:00:00Z",
+    });
+    const valid = await createTask({
+      recurrence_interval: 1,
+      recurrence_unit: "DAY",
+      recurrence_end_date: "2026-09-10",
+    });
+
+    expect(invalid.status).toBe(422);
+    expect(valid.status).toBe(201);
+    expect(valid.body.data.recurrenceEndDate).toBe("2026-09-10");
   });
 
   it("lists tasks for the authenticated organization", async () => {
@@ -132,14 +183,18 @@ describe("task routes", () => {
     const res = await request(app)
       .patch(`/api/tasks/${created.body.data.id}`)
       .set("Authorization", `Bearer ${token}`)
-      .send({ recurrence_type: "MONTHLY" });
+      .send({ recurrence_interval: 1, recurrence_unit: "MONTH" });
 
     expect(res.status).toBe(200);
-    expect(res.body.data.recurrenceType).toBe("MONTHLY");
+    expect(res.body.data.recurrenceInterval).toBe(1);
+    expect(res.body.data.recurrenceUnit).toBe("MONTH");
   });
 
   it("rejects changing recurrence after completion", async () => {
-    const created = await createTask({ recurrence_type: "DAILY" });
+    const created = await createTask({
+      recurrence_interval: 1,
+      recurrence_unit: "DAY",
+    });
     await request(app)
       .post(`/api/tasks/${created.body.data.id}/complete`)
       .set("Authorization", `Bearer ${token}`);
@@ -147,7 +202,7 @@ describe("task routes", () => {
     const res = await request(app)
       .patch(`/api/tasks/${created.body.data.id}`)
       .set("Authorization", `Bearer ${token}`)
-      .send({ recurrence_type: "NONE" });
+      .send({ recurrence_interval: null, recurrence_unit: null });
 
     expect(res.status).toBe(409);
     expect(res.body.error.code).toBe(
@@ -207,7 +262,9 @@ describe("task routes", () => {
   });
 
   it("does not expose a task belonging to another organization", async () => {
-    const otherOrg = await prisma.organization.create({ data: { name: "Org B" } });
+    const otherOrg = await prisma.organization.create({
+      data: { name: "Org B" },
+    });
     const otherTask = await prisma.task.create({
       data: {
         organization_id: otherOrg.id,

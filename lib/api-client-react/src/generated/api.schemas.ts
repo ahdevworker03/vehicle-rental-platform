@@ -881,21 +881,27 @@ export const TaskResponseStatus = {
   COMPLETED: 'COMPLETED',
 } as const;
 
-export type TaskResponseRecurrenceType = typeof TaskResponseRecurrenceType[keyof typeof TaskResponseRecurrenceType];
+export type TaskResponseRecurrenceUnit = typeof TaskResponseRecurrenceUnit[keyof typeof TaskResponseRecurrenceUnit] | null;
 
 
-export const TaskResponseRecurrenceType = {
-  NONE: 'NONE',
-  DAILY: 'DAILY',
-  WEEKLY: 'WEEKLY',
-  MONTHLY: 'MONTHLY',
+export const TaskResponseRecurrenceUnit = {
+  DAY: 'DAY',
+  WEEK: 'WEEK',
+  MONTH: 'MONTH',
 } as const;
 
 export interface TaskResponse {
   id: string;
   dueDate: string;
   status: TaskResponseStatus;
-  recurrenceType: TaskResponseRecurrenceType;
+  /** @minimum 1 */
+  recurrenceInterval: number | null;
+  recurrenceUnit: TaskResponseRecurrenceUnit;
+  recurrenceEndDate: string | null;
+  /** @minimum 1 */
+  recurrenceEndCount: number | null;
+  /** @minimum 1 */
+  occurrenceNumber: number;
   predecessorId: string | null;
   notes?: string | null;
   createdAt: string;
@@ -910,36 +916,55 @@ export interface TaskListResponse {
   data: TaskResponse[];
 }
 
-export type CreateTaskRequestRecurrenceType = typeof CreateTaskRequestRecurrenceType[keyof typeof CreateTaskRequestRecurrenceType];
+/**
+ * Must be provided with recurrence_interval, or both must be null/absent.
+ */
+export type CreateTaskRequestRecurrenceUnit = typeof CreateTaskRequestRecurrenceUnit[keyof typeof CreateTaskRequestRecurrenceUnit] | null;
 
 
-export const CreateTaskRequestRecurrenceType = {
-  NONE: 'NONE',
-  DAILY: 'DAILY',
-  WEEKLY: 'WEEKLY',
-  MONTHLY: 'MONTHLY',
+export const CreateTaskRequestRecurrenceUnit = {
+  DAY: 'DAY',
+  WEEK: 'WEEK',
+  MONTH: 'MONTH',
 } as const;
 
 export interface CreateTaskRequest {
   due_date: string;
   notes?: string;
-  recurrence_type?: CreateTaskRequestRecurrenceType;
+  /**
+     * Must be provided with recurrence_unit, or both must be null/absent.
+     * @minimum 1
+     */
+  recurrence_interval?: number | null;
+  /** Must be provided with recurrence_interval, or both must be null/absent. */
+  recurrence_unit?: CreateTaskRequestRecurrenceUnit;
+  /** Inclusive Beirut-local business date; requires recurrence and is mutually exclusive with recurrence_end_count. */
+  recurrence_end_date?: string | null;
+  /**
+     * Total occurrences including the original; requires recurrence and is mutually exclusive with recurrence_end_date.
+     * @minimum 1
+     */
+  recurrence_end_count?: number | null;
 }
 
-export type UpdateTaskRequestRecurrenceType = typeof UpdateTaskRequestRecurrenceType[keyof typeof UpdateTaskRequestRecurrenceType];
+export type UpdateTaskRequestRecurrenceUnit = typeof UpdateTaskRequestRecurrenceUnit[keyof typeof UpdateTaskRequestRecurrenceUnit] | null;
 
 
-export const UpdateTaskRequestRecurrenceType = {
-  NONE: 'NONE',
-  DAILY: 'DAILY',
-  WEEKLY: 'WEEKLY',
-  MONTHLY: 'MONTHLY',
+export const UpdateTaskRequestRecurrenceUnit = {
+  DAY: 'DAY',
+  WEEK: 'WEEK',
+  MONTH: 'MONTH',
 } as const;
 
 export interface UpdateTaskRequest {
   due_date?: string;
   notes?: string | null;
-  recurrence_type?: UpdateTaskRequestRecurrenceType;
+  /** @minimum 1 */
+  recurrence_interval?: number | null;
+  recurrence_unit?: UpdateTaskRequestRecurrenceUnit;
+  recurrence_end_date?: string | null;
+  /** @minimum 1 */
+  recurrence_end_count?: number | null;
 }
 
 export interface CreateRentalRequest {
