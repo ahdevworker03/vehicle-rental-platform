@@ -1,4 +1,12 @@
-import { AlertCircle, Info, LucideIcon } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  CircleAlert,
+  Info,
+  LucideIcon,
+  TriangleAlert,
+  X,
+} from "lucide-react";
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
@@ -69,18 +77,78 @@ export function InlineError({ children, className }: InlineErrorProps) {
   );
 }
 
-interface InfoBannerProps {
+export type InlineFeedbackVariant = "info" | "success" | "warning" | "error";
+
+interface InlineFeedbackProps {
   children: ReactNode;
+  variant?: InlineFeedbackVariant;
   icon?: LucideIcon;
   className?: string;
+  onDismiss?: () => void;
 }
 
-/** Quiet informational notification for contextual guidance. */
-export function InfoBanner({ children, icon: Icon = Info, className }: InfoBannerProps) {
+const inlineFeedbackVariants = {
+  info: {
+    className: "border-status-info/25 bg-status-info-bg text-status-info",
+    icon: Info,
+    role: "status",
+  },
+  success: {
+    className: "border-status-positive/25 bg-status-positive-bg text-status-positive",
+    icon: CheckCircle2,
+    role: "status",
+  },
+  warning: {
+    className: "border-status-warning/25 bg-status-warning-bg text-status-warning",
+    icon: TriangleAlert,
+    role: "status",
+  },
+  error: {
+    className: "border-status-danger/25 bg-status-danger-bg text-status-danger",
+    icon: CircleAlert,
+    role: "alert",
+  },
+} as const;
+
+/** Compact contextual feedback with semantic variants and optional dismissal. */
+export function InlineFeedback({
+  children,
+  variant = "info",
+  icon,
+  className,
+  onDismiss,
+}: InlineFeedbackProps) {
+  const feedback = inlineFeedbackVariants[variant];
+  const Icon = icon ?? feedback.icon;
+
   return (
-    <div role="status" className={cn("flex items-start gap-2 rounded-lg border border-status-info/25 bg-status-info-bg px-3 py-2.5 text-sm text-status-info", className)}>
+    <div
+      role={feedback.role}
+      className={cn(
+        "flex items-start gap-2 rounded-lg border px-3 py-2.5 text-sm",
+        feedback.className,
+        className,
+      )}
+    >
       <Icon className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-      <div>{children}</div>
+      <div className="min-w-0 flex-1">{children}</div>
+      {onDismiss && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="-my-1 -me-1 size-7 shrink-0 text-current hover:bg-current/10"
+          aria-label="إغلاق"
+          onClick={onDismiss}
+        >
+          <X aria-hidden="true" />
+        </Button>
+      )}
     </div>
   );
+}
+
+/** @deprecated Use InlineFeedback with the info variant. */
+export function InfoBanner({ children, icon, className }: Omit<InlineFeedbackProps, "variant" | "onDismiss">) {
+  return <InlineFeedback icon={icon} className={className}>{children}</InlineFeedback>;
 }
