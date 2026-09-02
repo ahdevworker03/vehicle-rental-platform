@@ -96,7 +96,7 @@ describe("DocumentList", () => {
       />,
     );
 
-    expect(screen.getByText("01-01-2026")).toHaveAttribute("dir", "ltr");
+    expect(screen.getByText("01/01/2026")).toHaveAttribute("dir", "ltr");
     expect(screen.queryByText(/ك\.ب|بايت|م\.ب/)).not.toBeInTheDocument();
   });
 });

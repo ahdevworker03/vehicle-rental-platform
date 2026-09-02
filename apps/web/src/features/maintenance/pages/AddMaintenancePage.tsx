@@ -6,6 +6,7 @@ import { useListVehicles } from "@workspace/api-client-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { InlineError, LoadingState } from "@/components/ui/FeedbackState";
 import { FormField, inputClass } from "@/components/ui/FormField";
@@ -120,7 +121,7 @@ export default function AddMaintenancePage() {
 
         <FormSection title="تفاصيل الصيانة" description="حدّد نوع الصيانة والموعد المطلوب.">
           <FormField label="نوع الصيانة" required error={errors.type} htmlFor="maintenance-type"><select id="maintenance-type" value={type} onChange={(event) => { setType(event.target.value as CreateMaintenanceRequestType); clearError("type"); }} className={fieldClass(errors.type)}><option value="">اختر نوع الصيانة</option>{MAINTENANCE_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></FormField>
-          <FormField label="تاريخ الصيانة" required error={errors.maintenanceDate} htmlFor="maintenance-date"><input id="maintenance-date" type="date" dir="ltr" value={maintenanceDate} onChange={(event) => { setMaintenanceDate(event.target.value); clearError("maintenanceDate"); }} className={fieldClass(errors.maintenanceDate)} /></FormField>
+          <FormField label="تاريخ الصيانة" required error={errors.maintenanceDate} htmlFor="maintenance-date"><DatePicker id="maintenance-date" value={maintenanceDate} onChange={(value) => { setMaintenanceDate(value); clearError("maintenanceDate"); }} className={errors.maintenanceDate ? "border-destructive focus:ring-destructive/30" : undefined} /></FormField>
         </FormSection>
 
         <FormSection title="التكلفة والمزوّد" description="أضف تقدير التكلفة والورشة أو المزوّد عند توفرها.">

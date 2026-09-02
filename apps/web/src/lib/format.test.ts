@@ -3,8 +3,8 @@ import {
   formatCurrency,
   formatDate,
   formatDateAr,
-  formatDateShort,
   formatDateTime,
+  formatMonthYear,
   formatInitials,
   formatNumber,
   formatUsd,
@@ -22,22 +22,22 @@ describe("money and number formatting", () => {
 });
 
 describe("date formatting", () => {
-  it("renders a business date as DD-MM-YYYY", () => {
-    const date = new Date(2025, 0, 15, 12);
-    expect(formatDate(date)).toBe("15-01-2025");
-    expect(formatDateAr(date)).toBe("15-01-2025");
+  it("renders dates as DD/MM/YYYY with Western numerals", () => {
+    const date = new Date("2025-01-15T12:00:00Z");
+    expect(formatDate(date)).toBe("15/01/2025");
+    expect(formatDateAr(date)).toBe("15/01/2025");
   });
 
-  it("renders the agreed date and time format", () => {
-    expect(formatDateTime(new Date(2025, 1, 3, 13, 5))).toBe("03-02-2025 — 1:05 PM");
+  it("renders date and time in the Beirut business timezone", () => {
+    expect(formatDateTime("2025-02-03T13:05:00Z")).toBe("03/02/2025 — 3:05 PM");
   });
 
-  it("keeps compact dates in Western digits", () => {
-    expect(formatDateShort(new Date(2025, 0, 15, 12))).toBe("15-01");
+  it("keeps date-only values stable without timezone shifting", () => {
+    expect(formatDate("2025-01-15")).toBe("15/01/2025");
   });
 
-  it("keeps ISO business dates stable across browser timezones", () => {
-    expect(formatDate("2025-01-15T00:00:00.000Z")).toBe("15-01-2025");
+  it("formats the product month names with Western year digits", () => {
+    expect(formatMonthYear(9, 2025)).toBe("تشرين الأول 2025");
   });
 });
 

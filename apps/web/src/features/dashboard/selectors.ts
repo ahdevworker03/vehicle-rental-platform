@@ -12,6 +12,7 @@ import {
   getRevenueForPeriod,
   type ReportPeriodRange,
 } from "@/features/reports/selectors";
+import { formatMonthYear } from "@/lib/format";
 
 export interface DashboardPeriod {
   label: string;
@@ -33,11 +34,7 @@ export function getCurrentDashboardPeriod(now: Date): DashboardPeriod {
   const previousDate = new Date(Date.UTC(year, month - 1, 1));
 
   return {
-    label: new Intl.DateTimeFormat("ar", {
-      month: "long",
-      year: "numeric",
-      timeZone: "UTC",
-    }).format(new Date(Date.UTC(year, month, 1))),
+    label: formatMonthYear(month, year),
     range: getReportPeriodRange("month", month, year),
     previousRange: getReportPeriodRange(
       "month",

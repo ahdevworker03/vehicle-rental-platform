@@ -6,6 +6,7 @@ import { useGetVehicle } from "@workspace/api-client-react";
 import { ExpenseCategoryBadge } from "@/features/expenses/components/ExpenseCategoryBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { ErrorState, InlineFeedback, InlineError, LoadingState } from "@/components/ui/FeedbackState";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { DetailSection, SummaryActionPanel } from "@/components/ui/SectionCard";
@@ -129,7 +130,7 @@ export default function ExpenseDetailPage({ params }: DetailPageParams) {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <FormField label="الفئة" required htmlFor="expense-category"><select id="expense-category" className={inputClass} value={category} onChange={(event) => setCategory(event.target.value)}>{(Object.keys(EXPENSE_CATEGORY_LABELS) as Array<keyof typeof EXPENSE_CATEGORY_LABELS>).map((value) => <option key={value} value={value}>{EXPENSE_CATEGORY_LABELS[value].label}</option>)}</select></FormField>
                     <FormField label="المبلغ" required hint="USD" htmlFor="expense-amount"><input id="expense-amount" type="number" dir="ltr" inputMode="decimal" min={0} value={amount} onChange={(event) => setAmount(event.target.value)} className={inputClass} /></FormField>
-                    <FormField label="تاريخ المصروف" required htmlFor="expense-date"><input id="expense-date" type="date" value={expenseDate} onChange={(event) => setExpenseDate(event.target.value)} className={inputClass} /></FormField>
+                    <FormField label="تاريخ المصروف" required htmlFor="expense-date"><DatePicker id="expense-date" value={expenseDate} onChange={setExpenseDate} /></FormField>
                     <FormField label="الوصف" hint="اختياري" htmlFor="expense-description"><input id="expense-description" className={inputClass} value={description} onChange={(event) => setDescription(event.target.value)} /></FormField>
                   </div>
                   <div className="flex flex-wrap gap-2 border-t border-border pt-4"><Button type="button" variant="outline" onClick={() => { setEditing(false); setFormError(null); }} disabled={mutations.update.isPending}>إلغاء</Button><Button type="button" onClick={handleSave} disabled={mutations.update.isPending}>{mutations.update.isPending ? "جارٍ الحفظ" : "حفظ التغييرات"}</Button></div>

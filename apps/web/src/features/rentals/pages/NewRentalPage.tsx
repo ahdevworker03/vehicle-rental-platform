@@ -17,6 +17,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   InlineFeedback,
   InlineError,
@@ -775,14 +776,12 @@ function DateField({
 }) {
   return (
     <FormField label={label} required error={error} htmlFor={id}>
-      <input
+      <DatePicker
         id={id}
-        type="date"
         value={value}
         min={min}
-        onChange={(event) => onChange(event.target.value)}
-        className={`${inputClass} number-ltr`}
-        dir="ltr"
+        onChange={onChange}
+        className={error ? "border-destructive focus:ring-destructive/30" : undefined}
       />
     </FormField>
   );

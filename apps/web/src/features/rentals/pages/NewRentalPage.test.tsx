@@ -50,18 +50,19 @@ function selectCustomerAndVehicle() {
 }
 
 function setValidPeriod() {
-  fireEvent.change(screen.getByLabelText(/تاريخ الاستلام/), {
-    target: { value: "2026-09-01" },
-  });
+  selectDate(/تاريخ الاستلام/, "2026-09-01");
   fireEvent.change(screen.getByLabelText(/وقت الاستلام/), {
     target: { value: "10:30" },
   });
-  fireEvent.change(screen.getByLabelText(/تاريخ الإرجاع المتوقع/), {
-    target: { value: "2026-09-03" },
-  });
+  selectDate(/تاريخ الإرجاع المتوقع/, "2026-09-03");
   fireEvent.change(screen.getByLabelText(/وقت الإرجاع المتوقع/), {
     target: { value: "16:45" },
   });
+}
+
+function selectDate(label: RegExp, date: string) {
+  fireEvent.click(screen.getByLabelText(label));
+  fireEvent.click(document.querySelector(`button[data-day="${date}"]`)!);
 }
 
 describe("NewRentalPage", () => {
@@ -136,15 +137,11 @@ describe("NewRentalPage", () => {
   it("rejects an expected return datetime before the pickup datetime", () => {
     render(<NewRentalPage />);
     selectCustomerAndVehicle();
-    fireEvent.change(screen.getByLabelText(/تاريخ الاستلام/), {
-      target: { value: "2026-09-03" },
-    });
+    selectDate(/تاريخ الاستلام/, "2026-09-03");
     fireEvent.change(screen.getByLabelText(/وقت الاستلام/), {
       target: { value: "10:30" },
     });
-    fireEvent.change(screen.getByLabelText(/تاريخ الإرجاع المتوقع/), {
-      target: { value: "2026-09-03" },
-    });
+    selectDate(/تاريخ الإرجاع المتوقع/, "2026-09-03");
     fireEvent.change(screen.getByLabelText(/وقت الإرجاع المتوقع/), {
       target: { value: "09:30" },
     });

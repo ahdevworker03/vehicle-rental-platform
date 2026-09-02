@@ -1,6 +1,6 @@
 import { Calendar, ChevronLeft, Car } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatCurrency, formatDateShort } from "@/lib/format";
+import { formatCurrency, formatDate } from "@/lib/format";
 import { EXPENSE_CATEGORY_LABELS } from "@/lib/labels";
 import type { ExpenseResponse } from "@workspace/api-client-react";
 
@@ -57,7 +57,7 @@ export function ExpenseCard({
         <ChevronLeft className="w-4 h-4 text-muted-foreground flex-shrink-0" strokeWidth={2} />
         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Calendar className="w-3.5 h-3.5" strokeWidth={1.5} />
-          {formatDateShort(expense.expenseDate)}
+          {formatDate(expense.expenseDate)}
         </span>
       </div>
     </div>

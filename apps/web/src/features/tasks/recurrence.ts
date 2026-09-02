@@ -2,6 +2,7 @@ import type {
   CreateTaskRequest,
   TaskResponse,
 } from "@workspace/api-client-react";
+import { formatDate, formatDateInputValue } from "@/lib/format";
 
 export type TaskRecurrenceMode = "NONE" | "DAILY" | "WEEKLY" | "MONTHLY" | "CUSTOM";
 export type TaskRecurrenceEndMode = "NEVER" | "DATE" | "COUNT";
@@ -139,8 +140,7 @@ export function formatTaskRecurrence(task: TaskResponse): string {
 }
 
 export function formatTaskDateOnly(value: string): string {
-  const [year, month, day] = value.split("-");
-  return year && month && day ? `${day}/${month}/${year}` : value;
+  return formatDate(value);
 }
 
 export function formatTaskRecurrenceEnd(task: TaskResponse): string {
@@ -151,23 +151,9 @@ export function formatTaskRecurrenceEnd(task: TaskResponse): string {
 }
 
 export function formatTaskDueDate(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    numberingSystem: "latn",
-    timeZone: "Asia/Beirut",
-  }).format(new Date(value));
+  return formatDate(value);
 }
 
 export function taskDueDateInputValue(value: string): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    numberingSystem: "latn",
-    timeZone: "Asia/Beirut",
-  }).formatToParts(new Date(value));
-  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? "";
-  return `${part("year")}-${part("month")}-${part("day")}`;
+  return formatDateInputValue(value);
 }

@@ -1,22 +1,8 @@
 import { ChevronDown } from "lucide-react";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { cn } from "@/lib/utils";
+import { ARABIC_MONTH_NAMES } from "@/lib/format";
 import type { ReportPeriodType } from "@/features/reports/selectors";
-
-const LEBANESE_MONTHS = [
-  "كانون الثاني",
-  "شباط",
-  "آذار",
-  "نيسان",
-  "أيار",
-  "حزيران",
-  "تموز",
-  "آب",
-  "أيلول",
-  "تشرين الأول",
-  "تشرين الثاني",
-  "كانون الأول",
-];
 
 const QUARTER_LABELS = [
   "الربع الأول",
@@ -47,7 +33,7 @@ function yearOptions(): { label: string; value: string }[] {
 }
 
 function monthOptions(): { label: string; value: string }[] {
-  return LEBANESE_MONTHS.map((label, i) => ({ label, value: String(i) }));
+  return ARABIC_MONTH_NAMES.map((label, i) => ({ label, value: String(i) }));
 }
 
 function quarterOptions(): { label: string; value: string }[] {
@@ -170,5 +156,5 @@ export function periodLabel(
     const q = Math.floor(month / 3) + 1;
     return `${QUARTER_LABELS[q - 1]} ${year}`;
   }
-  return `${LEBANESE_MONTHS[month]} ${year}`;
+  return `${ARABIC_MONTH_NAMES[month]} ${year}`;
 }

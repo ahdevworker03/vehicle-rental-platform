@@ -6,6 +6,7 @@ import { useListVehicles } from "@workspace/api-client-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { InlineError } from "@/components/ui/FeedbackState";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { FormSection } from "@/components/ui/FormSection";
@@ -111,7 +112,7 @@ export default function AddExpensePage() {
 
         <FormSection title="القيمة والتاريخ" description="أدخل المبلغ وتاريخ تسجيل المصروف.">
           <FormField label="المبلغ" required hint="USD" error={errors.amount} htmlFor="new-expense-amount"><input id="new-expense-amount" type="number" dir="ltr" inputMode="decimal" min={0} placeholder="50" value={amount} onChange={(event) => { setAmount(event.target.value); clearError("amount"); }} className={errors.amount ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass} /></FormField>
-          <FormField label="تاريخ المصروف" required error={errors.expenseDate} htmlFor="new-expense-date"><input id="new-expense-date" type="date" value={expenseDate} onChange={(event) => { setExpenseDate(event.target.value); clearError("expenseDate"); }} className={errors.expenseDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass} /></FormField>
+          <FormField label="تاريخ المصروف" required error={errors.expenseDate} htmlFor="new-expense-date"><DatePicker id="new-expense-date" value={expenseDate} onChange={(value) => { setExpenseDate(value); clearError("expenseDate"); }} className={errors.expenseDate ? "border-destructive focus:ring-destructive/30" : undefined} /></FormField>
           <FormField label="الوصف" hint="اختياري" className="md:col-span-2" htmlFor="new-expense-description"><textarea id="new-expense-description" rows={3} className={inputClass} placeholder="أضف وصفاً مختصراً للمصروف" value={description} onChange={(event) => setDescription(event.target.value)} /></FormField>
         </FormSection>
 

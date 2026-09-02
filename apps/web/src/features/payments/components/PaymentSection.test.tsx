@@ -18,6 +18,14 @@ import {
 } from "@/features/payments/hooks";
 import { useAuth } from "@/providers/AuthProvider";
 
+function selectDate(date: string) {
+  fireEvent.click(screen.getByLabelText(/تاريخ الدفع/));
+  if (!document.querySelector(`button[data-day="${date}"]`)) {
+    fireEvent.click(document.querySelector("button.rdp-button_previous")!);
+  }
+  fireEvent.click(document.querySelector(`button[data-day="${date}"]`)!);
+}
+
 const mockedUseRentalPayments = vi.mocked(useRentalPayments);
 const mockedUsePaymentMutations = vi.mocked(usePaymentMutations);
 const mockedUseAuth = vi.mocked(useAuth);
@@ -160,9 +168,7 @@ describe("PaymentSection", () => {
     fireEvent.change(screen.getByLabelText(/المبلغ/), {
       target: { value: "50" },
     });
-    fireEvent.change(screen.getByLabelText(/تاريخ الدفع/), {
-      target: { value: "2026-08-15" },
-    });
+    selectDate("2026-08-15");
     fireEvent.change(screen.getByLabelText(/طريقة الدفع/), {
       target: { value: "CASH" },
     });
@@ -226,9 +232,7 @@ describe("PaymentSection", () => {
     fireEvent.change(screen.getByLabelText(/المبلغ/), {
       target: { value: "50" },
     });
-    fireEvent.change(screen.getByLabelText(/تاريخ الدفع/), {
-      target: { value: "2026-08-15" },
-    });
+    selectDate("2026-08-15");
     fireEvent.change(screen.getByLabelText(/طريقة الدفع/), {
       target: { value: "CASH" },
     });

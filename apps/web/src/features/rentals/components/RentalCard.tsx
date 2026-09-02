@@ -1,6 +1,6 @@
 import { Car, Calendar, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatCurrency, formatDateShort } from "@/lib/format";
+import { formatCurrency, formatDate } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { RentalResponse } from "@workspace/api-client-react";
 
@@ -46,9 +46,9 @@ export function RentalCard({
 
       {/* Row 3: Date range — RTL order: pickup right (first), expected return left (last) */}
       <div className="flex items-center justify-end gap-1.5 mb-3">
-        <span className="text-xs text-muted-foreground">{formatDateShort(rental.expectedReturnDate)}</span>
+        <span className="text-xs text-muted-foreground">{formatDate(rental.expectedReturnDate)}</span>
         <span className="text-xs text-muted-foreground">—</span>
-        <span className="text-xs text-muted-foreground">{formatDateShort(rental.pickupDate)}</span>
+        <span className="text-xs text-muted-foreground">{formatDate(rental.pickupDate)}</span>
         <Calendar className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" strokeWidth={1.5} />
       </div>
 

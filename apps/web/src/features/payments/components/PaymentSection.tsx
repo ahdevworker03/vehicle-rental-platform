@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import type { PaymentResponse } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   ErrorState,
   InlineFeedback,
@@ -228,18 +229,17 @@ export function PaymentSection({ rentalId, totalAmount }: PaymentSectionProps) {
                 error={errors.paymentDate}
                 htmlFor="payment-date"
               >
-                <input
+                <DatePicker
                   id="payment-date"
-                  type="date"
                   value={paymentDate}
-                  onChange={(event) => {
-                    setPaymentDate(event.target.value);
+                  onChange={(value) => {
+                    setPaymentDate(value);
                     clearError("paymentDate");
                   }}
                   className={
                     errors.paymentDate
-                      ? `${inputClass} border-destructive focus:ring-destructive/30`
-                      : inputClass
+                      ? "border-destructive focus:ring-destructive/30"
+                      : undefined
                   }
                 />
               </FormField>
