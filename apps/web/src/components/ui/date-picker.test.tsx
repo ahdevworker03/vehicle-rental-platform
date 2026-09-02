@@ -12,7 +12,10 @@ describe("DatePicker", () => {
   it("displays a date-only value as DD/MM/YYYY with Western digits", () => {
     render(<DatePicker value="2026-09-02" onChange={vi.fn()} />);
 
-    expect(screen.getByRole("button", { name: "02/09/2026" })).toBeInTheDocument();
+    const trigger = screen.getByRole("button", { name: "02/09/2026" });
+
+    expect(trigger).toBeInTheDocument();
+    expect(trigger.querySelector(".date-token-ltr")).toHaveAttribute("dir", "ltr");
   });
 
   it("uses the Lebanese Arabic month caption", () => {

@@ -110,7 +110,7 @@ function DatePicker({
         >
           <span className="flex min-w-0 items-center gap-2">
             <CalendarDays className="size-4 shrink-0" aria-hidden="true" />
-            <span dir="ltr" className="number-ltr truncate">
+            <span dir="ltr" className="date-token-ltr truncate">
               {selected ? formatDate(value) : placeholder}
             </span>
           </span>
