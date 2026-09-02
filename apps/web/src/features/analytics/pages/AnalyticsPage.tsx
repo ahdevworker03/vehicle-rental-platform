@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import {
   BarChart3,
   CalendarDays,
-  ChevronDown,
   CircleDollarSign,
   TrendingDown,
   TrendingUp,
@@ -20,6 +19,13 @@ import {
   LoadingState,
 } from "@/components/ui/FeedbackState";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ChartContainer,
   ChartTooltip,
@@ -83,6 +89,44 @@ type AnalyticsVehicle = {
   year?: number;
   plateNumber?: string;
 };
+
+type AnalyticsPeriodOption = {
+  value: number;
+  label: string;
+};
+
+function AnalyticsPeriodSelect({
+  label,
+  value,
+  options,
+  onChange,
+  minWidthClassName,
+}: {
+  label: string;
+  value: number;
+  options: AnalyticsPeriodOption[];
+  onChange: (value: number) => void;
+  minWidthClassName: string;
+}) {
+  return (
+    <Select dir="rtl" value={String(value)} onValueChange={(nextValue) => onChange(Number(nextValue))}>
+      <SelectTrigger
+        aria-label={label}
+        className={cn(
+          "h-11 w-auto justify-start gap-2 rounded-lg border-border bg-card px-3 text-sm font-medium text-foreground shadow-xs focus:ring-2 focus:ring-ring/40 [&>svg]:shrink-0 [&>svg]:text-muted-foreground [&>svg]:opacity-100",
+          minWidthClassName,
+        )}
+      >
+        <CalendarDays className="size-4 shrink-0 text-primary" aria-hidden="true" />
+        <span className="shrink-0 text-muted-foreground">{label}</span>
+        <SelectValue className="shrink-0 text-start" />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => <SelectItem key={option.value} value={String(option.value)}>{option.label}</SelectItem>)}
+      </SelectContent>
+    </Select>
+  );
+}
 
 const trendChartConfig = {
   revenue: { label: "الإيرادات", color: "hsl(var(--primary))" },
@@ -557,31 +601,20 @@ export default function AnalyticsPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-          <label className="relative flex min-h-11 min-w-[12rem] flex-1 items-center gap-2 rounded-lg border border-border bg-card ps-3 pe-3 text-sm font-medium text-foreground shadow-xs transition-shadow focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-ring/40 sm:flex-none">
-            <CalendarDays className="size-4 shrink-0 text-primary" aria-hidden="true" />
-            <span className="shrink-0 text-muted-foreground">سنة التحليل</span>
-            <select
-              aria-label="سنة التحليل"
-              value={selectedYear}
-              onChange={(event) => setSelectedYear(Number(event.target.value))}
-              className="min-w-0 flex-1 appearance-none bg-transparent py-1 text-end outline-none"
-            >
-              {ANALYTICS_YEARS.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute end-3 size-4 text-muted-foreground" aria-hidden="true" />
-          </label>
-          <label className="relative flex min-h-11 min-w-[15rem] flex-1 items-center gap-2 rounded-lg border border-border bg-card ps-3 pe-3 text-sm font-medium text-foreground shadow-xs transition-shadow focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-ring/40 sm:flex-none">
-            <CalendarDays className="size-4 shrink-0 text-primary" aria-hidden="true" />
-            <span className="shrink-0 text-muted-foreground">شهر الملخص</span>
-            <select aria-label="شهر الملخص" value={selectedMonth} onChange={(event) => setSelectedMonth(Number(event.target.value))} className="min-w-0 flex-1 appearance-none bg-transparent py-1 text-end outline-none">
-              {ANALYTICS_MONTHS.map((month, index) => <option key={month} value={index}>{month}</option>)}
-            </select>
-            <ChevronDown className="pointer-events-none absolute end-3 size-4 text-muted-foreground" aria-hidden="true" />
-          </label>
+          <AnalyticsPeriodSelect
+            label="سنة التحليل"
+            value={selectedYear}
+            options={ANALYTICS_YEARS.map((year) => ({ value: year, label: String(year) }))}
+            onChange={setSelectedYear}
+            minWidthClassName="min-w-[12rem]"
+          />
+          <AnalyticsPeriodSelect
+            label="شهر الملخص"
+            value={selectedMonth}
+            options={ANALYTICS_MONTHS.map((month, index) => ({ value: index, label: month }))}
+            onChange={setSelectedMonth}
+            minWidthClassName="min-w-[15rem]"
+          />
           </div>
         </div>
         <InfoBanner>يعرض الملخص المالي شهر {ANALYTICS_MONTHS[selectedMonth]} {selectedYear}. تشمل رؤى المركبات بيانات السجلات المتاحة، وقد تختلف عن نطاق الشهر المحدد.</InfoBanner>
