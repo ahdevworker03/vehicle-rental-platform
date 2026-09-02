@@ -3,6 +3,7 @@ import { Plus, Trash2, ImageIcon, Loader2 } from "lucide-react";
 import type { PhotoResponse } from "@workspace/api-client-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { getApiErrorMessage } from "@/lib/api-error";
+import { InlineFeedback } from "@/components/ui/FeedbackState";
 import { cn } from "@/lib/utils";
 
 interface MediaGalleryProps {
@@ -120,12 +121,13 @@ export function MediaGallery({
       />
 
       {(uploadError || feedback) && (
-        <div className={cn(
-          "rounded-xl px-4 py-2.5 text-sm mb-3",
-          uploadError ? "bg-destructive/10 border border-destructive/30 text-destructive" : "bg-muted text-muted-foreground",
-        )}>
+        <InlineFeedback
+          variant={uploadError ? "error" : "success"}
+          className="mb-3"
+          onDismiss={feedback && !uploadError ? () => setFeedback(null) : undefined}
+        >
           {uploadError ?? feedback}
-        </div>
+        </InlineFeedback>
       )}
 
       {isLoading ? (

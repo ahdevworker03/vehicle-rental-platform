@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { Bell } from "lucide-react";
 import { describe, expect, it, vi } from "vitest";
-import { InfoBanner, InlineFeedback } from "./FeedbackState";
+import { InlineFeedback } from "./FeedbackState";
 
 describe("InlineFeedback", () => {
   it.each([
@@ -51,9 +51,4 @@ describe("InlineFeedback", () => {
     expect(screen.getByRole("alert")).toHaveClass("mt-4", "bg-status-danger-bg", "border-status-danger/25");
   });
 
-  it("keeps InfoBanner as an info-variant compatibility wrapper", () => {
-    render(<InfoBanner>رسالة</InfoBanner>);
-
-    expect(screen.getByRole("status")).toHaveClass("bg-status-info-bg");
-  });
 });

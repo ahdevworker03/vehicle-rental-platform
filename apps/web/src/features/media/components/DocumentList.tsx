@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Plus, FileText, Trash2, Download, Loader2, Pencil } from "lucide-react";
 import type { DocumentResponse } from "@workspace/api-client-react";
 import { useAuth } from "@/providers/AuthProvider";
+import { InlineFeedback } from "@/components/ui/FeedbackState";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { DOCUMENT_CATEGORY_LABELS } from "@/lib/media-labels";
 import { formatDate } from "@/lib/format";
@@ -136,17 +137,9 @@ export function DocumentList({
         onChange={handleFileChange}
       />
 
-      {(uploadError || feedback || downloadingId) && (
-        <div
-          className={
-            uploadError
-              ? "bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-2.5 text-sm text-destructive mb-3"
-              : "bg-muted rounded-xl px-4 py-2.5 text-sm text-muted-foreground mb-3"
-          }
-        >
-          {uploadError ?? feedback ?? "جاري التحميل..."}
-        </div>
-      )}
+      {uploadError && <InlineFeedback variant="error" className="mb-3">{uploadError}</InlineFeedback>}
+      {feedback && <InlineFeedback variant="success" className="mb-3" onDismiss={() => setFeedback(null)}>{feedback}</InlineFeedback>}
+      {downloadingId && <InlineFeedback variant="info" className="mb-3">جاري التحميل...</InlineFeedback>}
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">

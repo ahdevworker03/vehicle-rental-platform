@@ -147,8 +147,3 @@ export function InlineFeedback({
     </div>
   );
 }
-
-/** @deprecated Use InlineFeedback with the info variant. */
-export function InfoBanner({ children, icon, className }: Omit<InlineFeedbackProps, "variant" | "onDismiss">) {
-  return <InlineFeedback icon={icon} className={className}>{children}</InlineFeedback>;
-}

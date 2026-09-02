@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/providers/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { FormField, inputClass } from "@/components/ui/FormField";
+import { InlineFeedback } from "@/components/ui/FeedbackState";
 import { getApiErrorMessage } from "@/lib/api-error";
 
 export function AccountPage() {
@@ -33,7 +34,7 @@ export function AccountPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            {message && <p className="rounded-lg bg-status-positive-bg p-3 text-status-positive">{message}</p>}{error && <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-destructive">{error}</p>}
+            {message && <InlineFeedback variant="success" onDismiss={() => setMessage(null)}>{message}</InlineFeedback>}{error && <InlineFeedback variant="error">{error}</InlineFeedback>}
             <p>
               <span className="text-muted-foreground">الاسم: </span>
               {organization?.name ?? "جارٍ تحميل بيانات المؤسسة..."}

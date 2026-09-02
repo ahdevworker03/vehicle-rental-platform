@@ -6,10 +6,9 @@ import {
   Trash2,
   Loader2,
   Printer,
-  AlertCircle,
-  CheckCircle,
 } from "lucide-react";
 
+import { InlineFeedback } from "@/components/ui/FeedbackState";
 import { InfoRow } from "@/components/ui/InfoRow";
 import { Spinner } from "@/components/ui/spinner";
 import { SectionCard } from "@/components/ui/SectionCard";
@@ -165,20 +164,12 @@ export function ContractSection({ rentalId }: ContractSectionProps) {
     >
       <div className="space-y-4">
         {(localError || successMsg) && (
-          <div
-            className={
-              localError
-                ? "bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-2.5 text-sm text-destructive flex items-center gap-2"
-                : "bg-[hsl(var(--status-available-bg))] rounded-xl px-4 py-2.5 text-sm text-[hsl(var(--status-available))] flex items-center gap-2"
-            }
+          <InlineFeedback
+            variant={localError ? "error" : "success"}
+            onDismiss={successMsg && !localError ? () => setSuccessMsg(null) : undefined}
           >
-            {localError ? (
-              <AlertCircle className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
-            ) : (
-              <CheckCircle className="w-4 h-4 flex-shrink-0" strokeWidth={2} />
-            )}
-            <span>{localError ?? successMsg}</span>
-          </div>
+            {localError ?? successMsg}
+          </InlineFeedback>
         )}
 
         {contract.query.isLoading ? (

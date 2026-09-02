@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/providers/AuthProvider";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { Spinner } from "@/components/ui/spinner";
+import { InlineFeedback } from "@/components/ui/FeedbackState";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { cn } from "@/lib/utils";
 
@@ -65,9 +66,9 @@ export default function LoginPage() {
         </div>
 
         {formError && (
-          <div className="bg-destructive/10 border border-destructive/30 rounded-xl px-4 py-3 text-sm text-destructive">
+          <InlineFeedback variant="error">
             {formError}
-          </div>
+          </InlineFeedback>
         )}
 
         <div className="bg-card rounded-2xl border border-card-border shadow-sm p-4 space-y-4">

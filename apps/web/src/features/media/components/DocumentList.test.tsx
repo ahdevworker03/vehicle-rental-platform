@@ -51,6 +51,33 @@ describe("DocumentList", () => {
 
     await waitFor(() => expect(onUpdateExpiry).toHaveBeenCalledWith("document-1", "2027-01-15"));
     expect(await screen.findByText("تم تحديث تاريخ الانتهاء.")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveClass("bg-status-positive-bg");
+    fireEvent.click(screen.getByRole("button", { name: "إغلاق" }));
+    expect(screen.queryByText("تم تحديث تاريخ الانتهاء.")).not.toBeInTheDocument();
+  });
+
+  it("uses alert feedback when a document upload fails", async () => {
+    const onUpload = vi.fn().mockRejectedValue(new Error("failed"));
+    const { container } = render(
+      <DocumentList
+        documents={[]}
+        isLoading={false}
+        isError={false}
+        error={null}
+        isOwner
+        uploading={false}
+        deleting={false}
+        onUpload={onUpload}
+        onDelete={vi.fn()}
+        onDownload={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(container.querySelector('input[type="file"]')!, {
+      target: { files: [new File(["document"], "insurance.pdf", { type: "application/pdf" })] },
+    });
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("حدث خطأ في الاتصال بالخادم.");
   });
 
   it("omits file-size metadata and uses Western digits for document dates", () => {
