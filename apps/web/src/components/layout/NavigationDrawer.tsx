@@ -37,7 +37,7 @@ export function NavigationDrawer({
         aria-describedby="navigation-drawer-description"
       >
         <SheetHeader className="border-b border-border px-5 py-5 text-start">
-          <div className="flex items-center gap-3 pe-9">
+          <div className="flex items-center gap-3 pe-12">
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <Building2 className="size-5" aria-hidden="true" />
             </div>
