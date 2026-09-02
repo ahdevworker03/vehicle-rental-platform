@@ -337,7 +337,7 @@ export default function DashboardPage() {
         <div
           role="group"
           aria-label="إجراءات سريعة"
-          className="flex w-full flex-wrap items-center gap-1 rounded-xl border border-border bg-card p-1 shadow-sm sm:w-fit"
+          className="inline-flex max-w-full flex-wrap items-center justify-start gap-1 rounded-xl border border-border bg-card p-1 shadow-sm"
         >
           <DashboardAction
             label="إعادة مركبة"
