@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useLocation } from "wouter";
 import { CheckCircle2, ClipboardList, Pencil, Repeat2, StickyNote, Trash2 } from "lucide-react";
 import type { UpdateTaskRequest } from "@workspace/api-client-react";
@@ -43,7 +43,11 @@ interface DetailPageParams {
 }
 
 function KeyValue({ label, value, numeric = false }: { label: string; value?: string | null; numeric?: boolean }) {
-  return <div className="min-w-0"><div className="ui-label">{label}</div><div dir={numeric ? "ltr" : "auto"} className={`mt-1 wrap-break-word text-sm font-semibold text-foreground ${numeric ? "number-ltr text-end" : ""}`}>{value || "—"}</div></div>;
+  return <div className="min-w-0 space-y-1.5"><div className="ui-label">{label}</div><div dir={numeric ? "ltr" : "auto"} className={`break-words text-sm font-semibold text-foreground ${numeric ? "number-ltr text-end" : "text-start"}`}>{value || "—"}</div></div>;
+}
+
+function FieldBlock({ label, children }: { label: string; children: ReactNode }) {
+  return <div className="min-w-0 space-y-1.5"><div className="ui-label">{label}</div>{children}</div>;
 }
 
 export default function TaskDetailPage({ params }: DetailPageParams) {
@@ -168,8 +172,8 @@ export default function TaskDetailPage({ params }: DetailPageParams) {
         {actionError && <InlineError className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5">{actionError}</InlineError>}
 
         <DetailSection className="shadow-none">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-3"><span className={`flex size-14 shrink-0 items-center justify-center rounded-xl ${completed ? "bg-status-positive-bg text-status-positive" : overdue ? "bg-status-danger-bg text-status-danger" : "bg-primary/10 text-primary"}`}><TaskIcon className="size-7" aria-hidden="true" /></span><div className="min-w-0"><div className="text-xs font-medium text-muted-foreground">مهمة</div><h2 className="truncate text-lg font-bold text-foreground">{task.title}</h2></div></div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-center gap-3"><span className={`flex size-14 shrink-0 items-center justify-center rounded-xl ${completed ? "bg-status-positive-bg text-status-positive" : overdue ? "bg-status-danger-bg text-status-danger" : "bg-primary/10 text-primary"}`}><TaskIcon className="size-7" aria-hidden="true" /></span><div className="min-w-0"><div className="text-xs font-medium text-muted-foreground">مهمة</div><h2 dir="auto" className="truncate text-lg font-bold text-foreground">{task.title}</h2></div></div>
             <div><div className="ui-label mb-1">حالة المهمة</div><StatusBadge status={task.status} /></div>
           </div>
           <div dir="ltr" className="number-ltr mt-2 w-full text-right text-xs text-muted-foreground">#{task.id.slice(0, 8)}</div>
@@ -196,9 +200,9 @@ export default function TaskDetailPage({ params }: DetailPageParams) {
           <section aria-label="بيانات المهمة" className="order-2 space-y-4 xl:order-1 xl:col-span-8">
             {editing && <DetailSection title="تعديل المهمة"><div className="grid gap-4 sm:grid-cols-2"><FormField label="اسم المهمة" required error={titleError ?? undefined} className="sm:col-span-2" htmlFor="edit-task-title"><input id="edit-task-title" type="text" className={titleError ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass} value={title} onChange={(event) => { setTitle(event.target.value); setTitleError(null); }} aria-invalid={Boolean(titleError)} /></FormField><FormField label="تاريخ الاستحقاق" htmlFor="edit-task-due"><DatePicker id="edit-task-due" value={dueDate} onChange={setDueDate} /></FormField><FormField label="ملاحظات" className="sm:col-span-2" htmlFor="edit-task-notes"><textarea id="edit-task-notes" rows={3} className={`${inputClass} resize-none`} value={notes} onChange={(event) => setNotes(event.target.value)} /></FormField><TaskRecurrenceFields idPrefix="edit-task" value={recurrence} errors={recurrenceErrors} onChange={(value) => { setRecurrence(value); setRecurrenceErrors({}); }} /></div><div className="mt-4 flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => setEditing(false)}>إلغاء</Button><Button type="button" onClick={() => void handleSave()} disabled={!dueDate || mutations.update.isPending}>{mutations.update.isPending ? "جارٍ الحفظ" : "حفظ التعديلات"}</Button></div></DetailSection>}
             <DetailSection title="ملخص المهمة" description="الملاحظات والموعد والحالة المسجلة للمهمة.">
-              <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3"><KeyValue label="اسم المهمة" value={task.title} /><div><div className="ui-label">الحالة</div><div className="mt-1"><StatusBadge status={task.status} /></div></div><KeyValue label="تاريخ الاستحقاق" value={formatTaskDueDate(task.dueDate)} numeric /><KeyValue label="التكرار" value={recurring ? recurrenceLabel : "بدون تكرار"} />{recurring && <KeyValue label="نهاية التكرار" value={formatTaskRecurrenceEnd(task)} />}{task.occurrenceNumber > 1 && <KeyValue label="رقم التكرار" value={String(task.occurrenceNumber)} numeric />}{task.predecessorId && <KeyValue label="المهمة السابقة" value={`التكرار رقم ${task.occurrenceNumber - 1}`} />}{overdue && <div><div className="ui-label">حالة الاستحقاق</div><div className="mt-1"><StatusBadge status="OVERDUE" label="متأخرة" /></div></div>}</div>
+              <div className="grid min-w-0 grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2 xl:grid-cols-3"><FieldBlock label="اسم المهمة"><div className="text-start"><span dir="auto" className="inline-block max-w-full break-words text-base leading-6 font-bold text-foreground">{task.title}</span></div></FieldBlock><FieldBlock label="الحالة"><StatusBadge status={task.status} /></FieldBlock><FieldBlock label="تاريخ الاستحقاق"><div dir="ltr" className="number-ltr text-end text-sm font-semibold text-foreground">{formatTaskDueDate(task.dueDate)}</div></FieldBlock><FieldBlock label="التكرار"><div className="text-start"><span dir="auto" className="inline-block max-w-full break-words text-sm font-semibold text-foreground">{recurring ? recurrenceLabel : "بدون تكرار"}</span></div></FieldBlock>{recurring && <FieldBlock label="نهاية التكرار"><div className="text-start"><span dir="auto" className="inline-block max-w-full break-words text-sm font-semibold text-foreground">{formatTaskRecurrenceEnd(task)}</span></div></FieldBlock>}{task.occurrenceNumber > 1 && <FieldBlock label="رقم التكرار"><div dir="ltr" className="number-ltr text-end text-sm font-semibold text-foreground">{task.occurrenceNumber}</div></FieldBlock>}{task.predecessorId && <FieldBlock label="المهمة السابقة"><div className="break-words text-sm font-semibold text-foreground text-start">{`التكرار رقم ${task.occurrenceNumber - 1}`}</div></FieldBlock>}{overdue && <FieldBlock label="حالة الاستحقاق"><StatusBadge status="OVERDUE" label="متأخرة" /></FieldBlock>}</div>
             </DetailSection>
-            <DetailSection title="الملاحظات"><div className="flex items-start gap-2"><StickyNote className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" /><p className="whitespace-pre-wrap text-sm leading-6 text-foreground">{task.notes || "لا توجد ملاحظات لهذه المهمة."}</p></div></DetailSection>
+            <DetailSection title="الملاحظات"><div className="flex items-start gap-2"><StickyNote className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" /><p dir="auto" className="min-w-0 break-words whitespace-pre-wrap text-sm leading-6 text-foreground">{task.notes || "لا توجد ملاحظات لهذه المهمة."}</p></div></DetailSection>
           </section>
         </div>
       </div>

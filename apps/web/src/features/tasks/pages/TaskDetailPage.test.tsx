@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { ApiError, type TaskResponse } from "@workspace/api-client-react";
 
 import TaskDetailPage from "./TaskDetailPage";
@@ -103,17 +103,43 @@ describe("TaskDetailPage", () => {
     expect(screen.getByText("لا توجد ملاحظات لهذه المهمة.")).toBeInTheDocument();
   });
 
-  it("keeps due-date labels and numeric values in matching field structure", () => {
-    mockTask(makeTask());
+  it("keeps summary labels, values, and status badges in compact RTL field groups", () => {
+    mockTask(makeTask({ title: "mahmoud", notes: "راجع tires قبل التسليم" }));
     render(<TaskDetailPage params={{ id: "task-1" }} />);
 
-    const dueLabels = screen.getAllByText("تاريخ الاستحقاق");
-    expect(dueLabels).toHaveLength(2);
-    for (const label of dueLabels) {
-      expect(label.parentElement?.className).toContain("min-w-0");
-      expect(label.nextElementSibling?.className).toContain("text-end");
-    }
+    const summaryCard = screen.getByRole("heading", { name: "ملخص المهمة" }).closest("section");
+    expect(summaryCard).not.toBeNull();
+
+    const summary = within(summaryCard!);
+    const titleGroup = summary.getByText("اسم المهمة").parentElement;
+    const statusGroup = summary.getByText("الحالة").parentElement;
+    const dueDateGroup = summary.getByText("تاريخ الاستحقاق").parentElement;
+    const titleValue = summary.getByText("mahmoud");
+
+    expect(titleGroup).toHaveClass("min-w-0", "space-y-1.5");
+    expect(titleValue).toHaveAttribute("dir", "auto");
+    expect(titleValue).toHaveClass("inline-block", "max-w-full", "text-base", "font-bold");
+    expect(titleValue.parentElement).toHaveClass("text-start");
+    expect(statusGroup).toHaveClass("min-w-0", "space-y-1.5");
+    expect(within(statusGroup!).getByText("قيد الانتظار")).toHaveAttribute("data-status", "PENDING");
+    expect(dueDateGroup).toHaveClass("min-w-0", "space-y-1.5");
+    expect(within(dueDateGroup!).getByText("01/09/2026")).toHaveAttribute("dir", "ltr");
+    expect(screen.getByText("راجع tires قبل التسليم")).toHaveAttribute("dir", "auto");
+    expect(summaryCard?.querySelector(".grid")).toHaveClass("grid-cols-1", "gap-x-8", "gap-y-5", "sm:grid-cols-2", "xl:grid-cols-3");
+    expect(titleGroup?.parentElement).toHaveClass("min-w-0");
   });
+
+  it.each(["فحص السيارة", "mahmoud", "فحص Engine"])("keeps the %s title aligned to its RTL summary label", (title) => {
+    mockTask(makeTask({ title }));
+    render(<TaskDetailPage params={{ id: "task-1" }} />);
+
+    const summaryCard = screen.getByRole("heading", { name: "ملخص المهمة" }).closest("section");
+    const titleValue = within(summaryCard!).getByText(title);
+
+    expect(titleValue).toHaveAttribute("dir", "auto");
+    expect(titleValue.parentElement).toHaveClass("text-start");
+  });
+
   it("shows the new recurrence and end-date summaries", () => {
     mockTask(makeTask({
       recurrenceInterval: 15,
@@ -123,6 +149,10 @@ describe("TaskDetailPage", () => {
     render(<TaskDetailPage params={{ id: "task-1" }} />);
     expect(screen.getAllByText("كل 15 يوم").length).toBeGreaterThan(0);
     expect(screen.getByText("حتى 31/12/2026")).toBeInTheDocument();
+    const summaryCard = screen.getByRole("heading", { name: "ملخص المهمة" }).closest("section");
+    const recurrenceValue = within(summaryCard!).getByText("كل 15 يوم");
+    expect(recurrenceValue).toHaveAttribute("dir", "auto");
+    expect(recurrenceValue.parentElement).toHaveClass("text-start");
   });
 
   it("shows an occurrence-count end summary", () => {
