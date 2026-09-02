@@ -33,7 +33,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
   ErrorState,
-  InfoBanner,
+  InlineFeedback,
   LoadingState,
 } from "@/components/ui/FeedbackState";
 import { SectionCard } from "@/components/ui/SectionCard";
@@ -477,9 +477,9 @@ export default function DashboardPage() {
                 )}
               </div>
             ) : (
-              <InfoBanner icon={CheckCircle2}>
+              <InlineFeedback variant="success" icon={CheckCircle2}>
                 لا توجد تنبيهات تشغيلية عاجلة حالياً.
-              </InfoBanner>
+              </InlineFeedback>
             )}
           </SectionCard>
         </section>
@@ -684,9 +684,9 @@ export default function DashboardPage() {
                 className="py-8"
               />
             ) : dashboard.activeRentals.length === 0 ? (
-              <InfoBanner icon={CheckCircle2}>
+              <InlineFeedback variant="info" icon={CheckCircle2}>
                 لا توجد إيجارات نشطة حالياً.
-              </InfoBanner>
+              </InlineFeedback>
             ) : (
               <div className="-mx-4 -my-4 divide-y divide-border sm:-mx-5">
                 {dashboard.activeRentals.slice(0, 4).map((rental) => (
@@ -737,9 +737,9 @@ export default function DashboardPage() {
               />
             ) : dashboard.upcomingMaintenance.length === 0 &&
               pendingTasks === 0 ? (
-              <InfoBanner icon={CheckCircle2}>
+              <InlineFeedback variant="info" icon={CheckCircle2}>
                 لا توجد مهام أو مواعيد صيانة قريبة.
-              </InfoBanner>
+              </InlineFeedback>
             ) : (
               <div className="-mx-4 -my-4 divide-y divide-border sm:-mx-5">
                 {dashboard.upcomingMaintenance.slice(0, 2).map((record) => {
@@ -809,7 +809,7 @@ export default function DashboardPage() {
               className="py-8"
             />
           ) : dashboard.recentActivity.length === 0 ? (
-            <InfoBanner icon={Clock3}>لا يوجد نشاط حديث لعرضه.</InfoBanner>
+            <InlineFeedback variant="info" icon={Clock3}>لا يوجد نشاط حديث لعرضه.</InlineFeedback>
           ) : (
             <div className="-mx-4 -my-4 divide-y divide-border sm:-mx-5">
               {dashboard.recentActivity.map((rental) => (

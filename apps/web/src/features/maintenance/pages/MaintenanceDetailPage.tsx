@@ -5,7 +5,7 @@ import { useGetVehicle } from "@workspace/api-client-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { ErrorState, InfoBanner, LoadingState } from "@/components/ui/FeedbackState";
+import { ErrorState, InlineFeedback, LoadingState } from "@/components/ui/FeedbackState";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { DetailSection } from "@/components/ui/SectionCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -65,7 +65,7 @@ export default function MaintenanceDetailPage({ params }: DetailPageParams) {
     <div className="min-h-full pb-8">
       <PageHeader title="تفاصيل الصيانة" showBack action={<StatusBadge status={record.status} />} />
       <div className="space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
-        {successMessage && <InfoBanner icon={CheckCircle2}>{successMessage}</InfoBanner>}
+        {successMessage && <InlineFeedback variant="success" icon={CheckCircle2} onDismiss={() => setSuccessMessage(null)}>{successMessage}</InlineFeedback>}
 
         <DetailSection className="shadow-none">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -95,7 +95,7 @@ export default function MaintenanceDetailPage({ params }: DetailPageParams) {
                   <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => { setCompleting(false); setActionError(null); }} disabled={mutations.complete.isPending}>إلغاء</Button><Button type="button" onClick={handleComplete} disabled={mutations.complete.isPending}>{mutations.complete.isPending ? "جارٍ الحفظ" : "تأكيد الإكمال"}</Button></div>
                 </div>
               ) : <Button type="button" onClick={() => { setCompleting(true); setActionError(null); }}><CheckCircle2 className="size-4" aria-hidden="true" />إكمال الصيانة</Button>)}
-              {!isOwner && record.status !== "COMPLETED" && <InfoBanner>لا تملك صلاحية إكمال الصيانة.</InfoBanner>}
+              {!isOwner && record.status !== "COMPLETED" && <InlineFeedback variant="info">لا تملك صلاحية إكمال الصيانة.</InlineFeedback>}
               {record.status === "COMPLETED" && <p className="ui-secondary-text">تم إكمال هذا السجل.</p>}
             </DetailSection>
 

@@ -29,7 +29,7 @@ import { ContractSection } from "@/features/contracts";
 import { Button } from "@/components/ui/button";
 import {
   ErrorState,
-  InfoBanner,
+  InlineFeedback,
   InlineError,
   LoadingState,
 } from "@/components/ui/FeedbackState";
@@ -219,7 +219,7 @@ export default function RentalDetailPage({ params }: Props) {
       />
       <div className="space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
         {successMsg && (
-          <InfoBanner icon={CheckCircle2}>{successMsg}</InfoBanner>
+          <InlineFeedback variant="success" icon={CheckCircle2} onDismiss={() => setSuccessMsg(null)}>{successMsg}</InlineFeedback>
         )}
 
         <DetailSection className="shadow-none">
@@ -330,7 +330,7 @@ export default function RentalDetailPage({ params }: Props) {
         )}
 
         {!isOwner && (
-          <InfoBanner>لا تملك صلاحية تنفيذ إجراءات العقد.</InfoBanner>
+          <InlineFeedback variant="info">لا تملك صلاحية تنفيذ إجراءات العقد.</InlineFeedback>
         )}
 
         <section
@@ -487,9 +487,9 @@ function RentalActions({
   }
 
   return compact ? null : (
-    <InfoBanner icon={ClipboardList}>
+    <InlineFeedback variant="info" icon={ClipboardList}>
       لا توجد إجراءات متاحة لهذه الحالة.
-    </InfoBanner>
+    </InlineFeedback>
   );
 }
 

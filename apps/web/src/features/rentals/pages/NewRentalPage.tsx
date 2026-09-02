@@ -18,7 +18,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
-  InfoBanner,
+  InlineFeedback,
   InlineError,
   LoadingState,
 } from "@/components/ui/FeedbackState";
@@ -418,7 +418,7 @@ export default function NewRentalPage() {
                 selectedVehicleId &&
                 availabilityQuery.data &&
                 (availabilityAvailable ? (
-                  <InfoBanner icon={Check}>متاحة للفترة المحددة</InfoBanner>
+                  <InlineFeedback variant="success" icon={Check}>متاحة للفترة المحددة</InlineFeedback>
                 ) : (
                   <InlineError className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5">
                     هذه المركبة غير متاحة في الفترة المحددة.
@@ -661,9 +661,9 @@ function CustomerOptions({
     );
   if (customers.length === 0)
     return (
-      <InfoBanner>
+      <InlineFeedback variant="info">
         لا توجد نتائج للعملاء. جرّب البحث باسم مختلف أو أضف عميلاً جديداً.
-      </InfoBanner>
+      </InlineFeedback>
     );
   return (
     <div className="divide-y divide-border rounded-lg border border-border">
@@ -717,11 +717,11 @@ function VehicleOptions({
     );
   if (vehicles.length === 0)
     return (
-      <InfoBanner>
+      <InlineFeedback variant="info">
         {periodSet
           ? "لا توجد مركبات متاحة في هذه الفترة."
           : "حدّد فترة الإيجار لعرض المركبات المتاحة."}
-      </InfoBanner>
+      </InlineFeedback>
     );
   return (
     <div className="divide-y divide-border rounded-lg border border-border">

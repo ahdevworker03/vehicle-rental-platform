@@ -155,6 +155,8 @@ describe("ReportsPage", () => {
     expect(click).toHaveBeenCalledOnce();
     expect(revokeObjectURL).toHaveBeenCalledWith("blob:report");
     expect(screen.getByText(/تم تجهيز ملف CSV/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "إغلاق" }));
+    expect(screen.queryByText(/تم تجهيز ملف CSV/)).not.toBeInTheDocument();
 
     click.mockRestore();
     vi.unstubAllGlobals();

@@ -6,7 +6,7 @@ import { useGetVehicle } from "@workspace/api-client-react";
 import { ExpenseCategoryBadge } from "@/features/expenses/components/ExpenseCategoryBadge";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { ErrorState, InfoBanner, InlineError, LoadingState } from "@/components/ui/FeedbackState";
+import { ErrorState, InlineFeedback, InlineError, LoadingState } from "@/components/ui/FeedbackState";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { DetailSection, SummaryActionPanel } from "@/components/ui/SectionCard";
 import { useExpense, useExpenseMutations } from "@/features/expenses/hooks";
@@ -98,7 +98,7 @@ export default function ExpenseDetailPage({ params }: DetailPageParams) {
     <div className="min-h-full pb-8">
       <PageHeader title="تفاصيل المصروف" showBack />
       <div className="space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
-        {successMsg && <InfoBanner icon={CheckCircle2}>{successMsg}</InfoBanner>}
+        {successMsg && <InlineFeedback variant="success" icon={CheckCircle2} onDismiss={() => setSuccessMsg(null)}>{successMsg}</InlineFeedback>}
 
         <DetailSection className="shadow-none">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

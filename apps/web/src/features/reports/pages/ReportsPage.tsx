@@ -17,7 +17,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { PeriodSelector, periodLabel } from "@/features/reports/components/PeriodSelector";
 import { buildBusinessReportHtml } from "@/features/reports/printable";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { ErrorState, InfoBanner, LoadingState } from "@/components/ui/FeedbackState";
+import { ErrorState, InlineFeedback, LoadingState } from "@/components/ui/FeedbackState";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { Button } from "@/components/ui/button";
 import { getApiErrorMessage } from "@/lib/api-error";
@@ -285,7 +285,7 @@ export default function ReportsPage() {
           />
         </SectionCard>
         {actionError && <ErrorState title="تعذر تنفيذ الإجراء" description={actionError} />}
-        {actionFeedback && !actionError && <InfoBanner>{actionFeedback}</InfoBanner>}
+        {actionFeedback && !actionError && <InlineFeedback variant="success" onDismiss={() => setActionFeedback(null)}>{actionFeedback}</InlineFeedback>}
 
         {isLoading ? (
           <section

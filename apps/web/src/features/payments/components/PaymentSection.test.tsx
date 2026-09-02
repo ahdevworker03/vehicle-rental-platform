@@ -181,6 +181,8 @@ describe("PaymentSection", () => {
     });
 
     expect(screen.getByText("تم تسجيل الدفعة.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "إغلاق" }));
+    expect(screen.queryByText("تم تسجيل الدفعة.")).not.toBeInTheDocument();
   });
 
   it("validates required fields before submitting", async () => {

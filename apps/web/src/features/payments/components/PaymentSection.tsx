@@ -11,7 +11,7 @@ import type { PaymentResponse } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import {
   ErrorState,
-  InfoBanner,
+  InlineFeedback,
   InlineError,
   LoadingState,
 } from "@/components/ui/FeedbackState";
@@ -162,7 +162,7 @@ export function PaymentSection({ rentalId, totalAmount }: PaymentSectionProps) {
           (formError ? (
             <InlineError>{formError}</InlineError>
           ) : (
-            <InfoBanner icon={CheckCircle2}>{successMsg}</InfoBanner>
+            <InlineFeedback variant="success" icon={CheckCircle2} onDismiss={() => setSuccessMsg(null)}>{successMsg}</InlineFeedback>
           ))}
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-4 border-b border-border pb-5 lg:grid-cols-4">
@@ -301,9 +301,9 @@ export function PaymentSection({ rentalId, totalAmount }: PaymentSectionProps) {
           <h3 className="ui-section-title">سجل المدفوعات</h3>
           {paymentList.length === 0 ? (
             <div className="mt-3">
-              <InfoBanner icon={Wallet}>
+              <InlineFeedback variant="info" icon={Wallet}>
                 لا توجد مدفوعات مسجلة. سجّل دفعة عند استلام مبلغ من العميل.
-              </InfoBanner>
+              </InlineFeedback>
             </div>
           ) : (
             <div className="mt-3 divide-y divide-border rounded-lg border border-border">

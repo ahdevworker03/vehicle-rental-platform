@@ -15,7 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ErrorState, InfoBanner, InlineError, LoadingState } from "@/components/ui/FeedbackState";
+import { ErrorState, InlineFeedback, InlineError, LoadingState } from "@/components/ui/FeedbackState";
 import { DetailSection, SummaryActionPanel } from "@/components/ui/SectionCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { FormField, inputClass } from "@/components/ui/FormField";
@@ -163,7 +163,7 @@ export default function TaskDetailPage({ params }: DetailPageParams) {
     <div className="min-h-full pb-8">
       <PageHeader title="تفاصيل المهمة" showBack />
       <div className="space-y-4 px-4 pb-6 pt-4 sm:px-6 lg:space-y-5">
-        {successMsg && <InfoBanner icon={CheckCircle2}>{successMsg}</InfoBanner>}
+        {successMsg && <InlineFeedback variant="success" icon={CheckCircle2} onDismiss={() => setSuccessMsg(null)}>{successMsg}</InlineFeedback>}
         {actionError && <InlineError className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5">{actionError}</InlineError>}
 
         <DetailSection className="shadow-none">
@@ -181,13 +181,13 @@ export default function TaskDetailPage({ params }: DetailPageParams) {
                 <div className="rounded-lg bg-muted/45 p-3"><KeyValue label="تاريخ الاستحقاق" value={formatTaskDueDate(task.dueDate)} numeric /></div>
                 <div className="flex flex-col items-start gap-1.5"><div className="ui-label">الحالة</div><StatusBadge status={task.status} /></div>
                 {overdue && <div><div className="ui-label mb-1.5">حالة الاستحقاق</div><StatusBadge status="OVERDUE" label="متأخرة" /></div>}
-                {recurring && !completed && <InfoBanner>مهمة {recurrenceLabel}. عند الإكمال، تُنشأ المهمة التالية ما دام التكرار فعالاً.</InfoBanner>}
+                {recurring && !completed && <InlineFeedback variant="info">مهمة {recurrenceLabel}. عند الإكمال، تُنشأ المهمة التالية ما دام التكرار فعالاً.</InlineFeedback>}
                 {isOwner && !completed && <Button type="button" variant="outline" className="w-full" onClick={beginEdit}><Pencil className="size-4" aria-hidden="true" />تعديل المهمة</Button>}
                 {isOwner && !completed && (confirmingComplete ? <div className="space-y-3 border-t border-border pt-4"><div><h3 className="text-sm font-semibold text-foreground">تأكيد إكمال المهمة</h3><p className="ui-secondary-text mt-1">سيتم تحويل حالة المهمة إلى مكتملة.</p></div><div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => { setConfirmingComplete(false); setActionError(null); }} disabled={mutations.complete.isPending}>إلغاء</Button><Button type="button" onClick={() => void handleComplete()} disabled={mutations.complete.isPending}>{mutations.complete.isPending ? "جارٍ الحفظ" : "تأكيد الإكمال"}</Button></div></div> : <Button type="button" className="w-full" onClick={() => { setConfirmingComplete(true); setActionError(null); }}><CheckCircle2 className="size-4" aria-hidden="true" />إكمال المهمة</Button>)}
                 {isOwner && !completed && recurring && <Button type="button" variant="outline" className="w-full" onClick={() => setStopOpen(true)}><Repeat2 className="size-4" aria-hidden="true" />إيقاف التكرار</Button>}
                 {isOwner && <Button type="button" variant="destructive" className="w-full" onClick={() => setDeleteOpen(true)}><Trash2 className="size-4" aria-hidden="true" />حذف المهمة</Button>}
-                {!isOwner && !completed && <InfoBanner>لا تملك صلاحية إكمال المهمة.</InfoBanner>}
-                {completed && <InfoBanner icon={CheckCircle2}>هذه المهمة مكتملة ومحفوظة ضمن السجل.</InfoBanner>}
+                {!isOwner && !completed && <InlineFeedback variant="info">لا تملك صلاحية إكمال المهمة.</InlineFeedback>}
+                {completed && <InlineFeedback variant="success" icon={CheckCircle2}>هذه المهمة مكتملة ومحفوظة ضمن السجل.</InlineFeedback>}
               </div>
             </SummaryActionPanel>
           </aside>

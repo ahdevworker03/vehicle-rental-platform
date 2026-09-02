@@ -15,7 +15,7 @@ import { SectionCard } from "@/components/ui/SectionCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import {
   ErrorState,
-  InfoBanner,
+  InlineFeedback,
   LoadingState,
 } from "@/components/ui/FeedbackState";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -617,11 +617,11 @@ export default function AnalyticsPage() {
           />
           </div>
         </div>
-        <InfoBanner>يعرض الملخص المالي شهر {ANALYTICS_MONTHS[selectedMonth]} {selectedYear}. تشمل رؤى المركبات بيانات السجلات المتاحة، وقد تختلف عن نطاق الشهر المحدد.</InfoBanner>
+        <InlineFeedback variant="info">يعرض الملخص المالي شهر {ANALYTICS_MONTHS[selectedMonth]} {selectedYear}. تشمل رؤى المركبات بيانات السجلات المتاحة، وقد تختلف عن نطاق الشهر المحدد.</InlineFeedback>
         {hasFinancialError && (
-          <InfoBanner className="border-status-danger/25 bg-status-danger-bg text-status-danger">
+          <InlineFeedback variant="error">
             تعذر تحديث بعض البيانات المالية: {financialError}
-          </InfoBanner>
+          </InlineFeedback>
         )}
         <section
           className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"

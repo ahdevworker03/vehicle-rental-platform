@@ -148,6 +148,22 @@ describe("AnalyticsPage insights", () => {
     expect(screen.getAllByText("آذار 2025").length).toBeGreaterThan(0);
   });
 
+  it("uses error feedback when financial data fails", async () => {
+    const { useExpenses } = await import("@/features/expenses/hooks");
+    vi.mocked(useExpenses).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error("تعذر تحميل المصروفات"),
+    } as ReturnType<typeof useExpenses>);
+
+    render(<AnalyticsPage />);
+
+    expect(
+      screen.getByText(/تعذر تحديث بعض البيانات المالية/).closest('[role="alert"]'),
+    ).toHaveClass("bg-status-danger-bg");
+  });
+
   it("shows loading state instead of empty insight values", async () => {
     const { useMaintenance } = await import("@/features/maintenance/hooks");
     vi.mocked(useMaintenance).mockReturnValue({
