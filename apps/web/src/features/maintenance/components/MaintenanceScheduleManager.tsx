@@ -1,6 +1,10 @@
 import { useState } from "react";
-import type { MaintenanceScheduleResponse, VehicleResponse } from "@workspace/api-client-react";
+import type {
+  MaintenanceScheduleResponse,
+  VehicleResponse,
+} from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { InlineError } from "@/components/ui/FeedbackState";
 import { inputClass } from "@/components/ui/FormField";
 import { MAINTENANCE_TYPES } from "@/lib/labels";
@@ -8,18 +12,299 @@ import { getApiErrorMessage } from "@/lib/api-error";
 import { useMaintenanceScheduleMutations } from "@/features/maintenance/hooks";
 
 type Basis = "DATE" | "MILEAGE" | "DATE_OR_MILEAGE";
-type Form = { vehicleId: string; maintenanceType: keyof typeof MAINTENANCE_TYPES; basis: Basis; dateInterval: string; dueDate: string; mileageInterval: string; dueMileage: string };
-const empty: Form = { vehicleId: "", maintenanceType: "PREVENTIVE_SERVICE", basis: "DATE", dateInterval: "", dueDate: "", mileageInterval: "", dueMileage: "" };
+type Form = {
+  vehicleId: string;
+  maintenanceType: keyof typeof MAINTENANCE_TYPES;
+  basis: Basis;
+  dateInterval: string;
+  dueDate: string;
+  mileageInterval: string;
+  dueMileage: string;
+};
+const empty: Form = {
+  vehicleId: "",
+  maintenanceType: "PREVENTIVE_SERVICE",
+  basis: "DATE",
+  dateInterval: "",
+  dueDate: "",
+  mileageInterval: "",
+  dueMileage: "",
+};
 
-function fromSchedule(schedule: MaintenanceScheduleResponse): Form { return { vehicleId: schedule.vehicleId, maintenanceType: schedule.maintenanceType, basis: schedule.scheduleType, dateInterval: String(schedule.dateIntervalDays ?? ""), dueDate: schedule.nextDueDate?.slice(0, 10) ?? "", mileageInterval: String(schedule.mileageInterval ?? ""), dueMileage: String(schedule.nextDueMileage ?? "") }; }
+function fromSchedule(schedule: MaintenanceScheduleResponse): Form {
+  return {
+    vehicleId: schedule.vehicleId,
+    maintenanceType: schedule.maintenanceType,
+    basis: schedule.scheduleType,
+    dateInterval: String(schedule.dateIntervalDays ?? ""),
+    dueDate: schedule.nextDueDate?.slice(0, 10) ?? "",
+    mileageInterval: String(schedule.mileageInterval ?? ""),
+    dueMileage: String(schedule.nextDueMileage ?? ""),
+  };
+}
 
-export function MaintenanceScheduleManager({ schedules, vehicles, isOwner }: { schedules: MaintenanceScheduleResponse[]; vehicles: VehicleResponse[]; isOwner: boolean }) {
+export function MaintenanceScheduleManager({
+  schedules,
+  vehicles,
+  isOwner,
+}: {
+  schedules: MaintenanceScheduleResponse[];
+  vehicles: VehicleResponse[];
+  isOwner: boolean;
+}) {
   const mutations = useMaintenanceScheduleMutations();
-  const [form, setForm] = useState<Form>(empty); const [editing, setEditing] = useState<string | null>(null); const [open, setOpen] = useState(false); const [error, setError] = useState<string | null>(null); const [deleting, setDeleting] = useState<string | null>(null);
-  const pending = mutations.create.isPending || mutations.update.isPending || mutations.remove.isPending;
-  const set = <K extends keyof Form>(key: K, value: Form[K]) => setForm((current) => ({ ...current, [key]: value }));
-  async function save() { setError(null); const date = form.basis !== "MILEAGE"; const mileage = form.basis !== "DATE"; if (!form.vehicleId || (date && (!form.dateInterval || !form.dueDate)) || (mileage && (!form.mileageInterval || form.dueMileage === ""))) { setError("أكمل الحقول المطلوبة لأساس الجدول المحدد."); return; } const data = { maintenance_type: form.maintenanceType, schedule_type: form.basis, date_interval_days: date ? Number(form.dateInterval) : null, next_due_date: date ? form.dueDate : null, mileage_interval: mileage ? Number(form.mileageInterval) : null, next_due_mileage: mileage ? Number(form.dueMileage) : null }; try { if (editing) await mutations.update.mutateAsync({ id: editing, data }); else await mutations.create.mutateAsync({ data: { ...data, vehicle_id: form.vehicleId, is_active: true } }); setOpen(false); setEditing(null); setForm(empty); } catch (cause) { setError(getApiErrorMessage(cause).title); } }
-  async function toggle(schedule: MaintenanceScheduleResponse) { try { await mutations.update.mutateAsync({ id: schedule.id, data: { is_active: !schedule.isActive } }); } catch (cause) { setError(getApiErrorMessage(cause).title); } }
-  async function remove(id: string) { try { await mutations.remove.mutateAsync({ id }); setDeleting(null); } catch (cause) { setError(getApiErrorMessage(cause).title); } }
-  return <div className="space-y-3">{error && <InlineError>{error}</InlineError>}{isOwner && <Button type="button" variant="outline" size="sm" onClick={() => { setOpen(true); setEditing(null); setForm(empty); setError(null); }}>إضافة جدول صيانة</Button>}{open && <div className="grid gap-3 rounded-lg border border-border bg-muted/35 p-4 sm:grid-cols-2"><select aria-label="المركبة" className={inputClass} value={form.vehicleId} onChange={(e) => set("vehicleId", e.target.value)} disabled={Boolean(editing)}><option value="">اختر مركبة</option>{vehicles.map((v) => <option key={v.id} value={v.id}>{v.make} {v.model} - {v.plateNumber}</option>)}</select><select aria-label="نوع الصيانة" className={inputClass} value={form.maintenanceType} onChange={(e) => set("maintenanceType", e.target.value as Form["maintenanceType"])}>{Object.entries(MAINTENANCE_TYPES).map(([key, value]) => <option key={key} value={key}>{value.label}</option>)}</select><select aria-label="أساس الجدول" className={inputClass} value={form.basis} onChange={(e) => set("basis", e.target.value as Basis)}><option value="DATE">بالتاريخ</option><option value="MILEAGE">بالعداد</option><option value="DATE_OR_MILEAGE">بالتاريخ أو العداد</option></select>{form.basis !== "MILEAGE" && <><input aria-label="فاصل الأيام" className={inputClass} type="number" min="1" placeholder="فاصل الأيام" value={form.dateInterval} onChange={(e) => set("dateInterval", e.target.value)} /><input aria-label="تاريخ الاستحقاق" className={inputClass} type="date" value={form.dueDate} onChange={(e) => set("dueDate", e.target.value)} /></>}{form.basis !== "DATE" && <><input aria-label="فاصل العداد" className={inputClass} type="number" min="1" placeholder="فاصل العداد" value={form.mileageInterval} onChange={(e) => set("mileageInterval", e.target.value)} /><input aria-label="عداد الاستحقاق" className={inputClass} type="number" min="0" placeholder="عداد الاستحقاق" value={form.dueMileage} onChange={(e) => set("dueMileage", e.target.value)} /></>}<div className="flex gap-2 sm:col-span-2"><Button type="button" onClick={() => void save()} disabled={pending}>{pending ? "جارٍ الحفظ" : "حفظ الجدول"}</Button><Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={pending}>إلغاء</Button></div></div>}<div className="divide-y divide-border">{schedules.map((s) => <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div><div className="font-semibold text-foreground">{MAINTENANCE_TYPES[s.maintenanceType].label}</div><div className="text-xs text-muted-foreground">{s.scheduleType} · {s.isActive ? "مفعّل" : "متوقف"}</div></div>{isOwner && <div className="flex gap-2"><Button type="button" size="sm" variant="outline" onClick={() => { setForm(fromSchedule(s)); setEditing(s.id); setOpen(true); }}>تعديل</Button><Button type="button" size="sm" variant="outline" onClick={() => void toggle(s)} disabled={pending}>{s.isActive ? "إيقاف" : "استئناف"}</Button>{deleting === s.id ? <><Button type="button" size="sm" variant="destructive" onClick={() => void remove(s.id)} disabled={pending}>تأكيد الحذف</Button><Button type="button" size="sm" variant="outline" onClick={() => setDeleting(null)}>إلغاء</Button></> : <Button type="button" size="sm" variant="outline" onClick={() => setDeleting(s.id)}>حذف</Button>}</div>}</div>)}</div></div>;
+  const [form, setForm] = useState<Form>(empty);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const pending =
+    mutations.create.isPending ||
+    mutations.update.isPending ||
+    mutations.remove.isPending;
+  const set = <K extends keyof Form>(key: K, value: Form[K]) =>
+    setForm((current) => ({ ...current, [key]: value }));
+  async function save() {
+    setError(null);
+    const date = form.basis !== "MILEAGE";
+    const mileage = form.basis !== "DATE";
+    if (
+      !form.vehicleId ||
+      (date && (!form.dateInterval || !form.dueDate)) ||
+      (mileage && (!form.mileageInterval || form.dueMileage === ""))
+    ) {
+      setError("أكمل الحقول المطلوبة لأساس الجدول المحدد.");
+      return;
+    }
+    const data = {
+      maintenance_type: form.maintenanceType,
+      schedule_type: form.basis,
+      date_interval_days: date ? Number(form.dateInterval) : null,
+      next_due_date: date ? form.dueDate : null,
+      mileage_interval: mileage ? Number(form.mileageInterval) : null,
+      next_due_mileage: mileage ? Number(form.dueMileage) : null,
+    };
+    try {
+      if (editing) await mutations.update.mutateAsync({ id: editing, data });
+      else
+        await mutations.create.mutateAsync({
+          data: { ...data, vehicle_id: form.vehicleId, is_active: true },
+        });
+      setOpen(false);
+      setEditing(null);
+      setForm(empty);
+    } catch (cause) {
+      setError(getApiErrorMessage(cause).title);
+    }
+  }
+  async function toggle(schedule: MaintenanceScheduleResponse) {
+    try {
+      await mutations.update.mutateAsync({
+        id: schedule.id,
+        data: { is_active: !schedule.isActive },
+      });
+    } catch (cause) {
+      setError(getApiErrorMessage(cause).title);
+    }
+  }
+  async function remove(id: string) {
+    try {
+      await mutations.remove.mutateAsync({ id });
+      setDeleting(null);
+    } catch (cause) {
+      setError(getApiErrorMessage(cause).title);
+    }
+  }
+  return (
+    <div className="space-y-3">
+      {error && <InlineError>{error}</InlineError>}
+      {isOwner && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setOpen(true);
+            setEditing(null);
+            setForm(empty);
+            setError(null);
+          }}
+        >
+          إضافة جدول صيانة
+        </Button>
+      )}
+      {open && (
+        <div className="grid gap-3 rounded-lg border border-border bg-muted/35 p-4 sm:grid-cols-2">
+          <select
+            aria-label="المركبة"
+            className={inputClass}
+            value={form.vehicleId}
+            onChange={(e) => set("vehicleId", e.target.value)}
+            disabled={Boolean(editing)}
+          >
+            <option value="">اختر مركبة</option>
+            {vehicles.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.make} {v.model} - {v.plateNumber}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="نوع الصيانة"
+            className={inputClass}
+            value={form.maintenanceType}
+            onChange={(e) =>
+              set("maintenanceType", e.target.value as Form["maintenanceType"])
+            }
+          >
+            {Object.entries(MAINTENANCE_TYPES).map(([key, value]) => (
+              <option key={key} value={key}>
+                {value.label}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="أساس الجدول"
+            className={inputClass}
+            value={form.basis}
+            onChange={(e) => set("basis", e.target.value as Basis)}
+          >
+            <option value="DATE">بالتاريخ</option>
+            <option value="MILEAGE">بالعداد</option>
+            <option value="DATE_OR_MILEAGE">بالتاريخ أو العداد</option>
+          </select>
+          {form.basis !== "MILEAGE" && (
+            <>
+              <input
+                aria-label="فاصل الأيام"
+                className={inputClass}
+                type="number"
+                min="1"
+                placeholder="فاصل الأيام"
+                value={form.dateInterval}
+                onChange={(e) => set("dateInterval", e.target.value)}
+              />
+            <DatePicker
+              aria-label="تاريخ الاستحقاق"
+              className={inputClass}
+              value={form.dueDate}
+              onChange={(value) => set("dueDate", value)}
+            />
+            </>
+          )}
+          {form.basis !== "DATE" && (
+            <>
+              <input
+                aria-label="فاصل العداد"
+                className={inputClass}
+                type="number"
+                min="1"
+                placeholder="فاصل العداد"
+                value={form.mileageInterval}
+                onChange={(e) => set("mileageInterval", e.target.value)}
+              />
+              <input
+                aria-label="عداد الاستحقاق"
+                className={inputClass}
+                type="number"
+                min="0"
+                placeholder="عداد الاستحقاق"
+                value={form.dueMileage}
+                onChange={(e) => set("dueMileage", e.target.value)}
+              />
+            </>
+          )}
+          <div className="flex gap-2 sm:col-span-2">
+            <Button
+              type="button"
+              onClick={() => void save()}
+              disabled={pending}
+            >
+              {pending ? "جارٍ الحفظ" : "حفظ الجدول"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={pending}
+            >
+              إلغاء
+            </Button>
+          </div>
+        </div>
+      )}
+      <div className="divide-y divide-border">
+        {schedules.map((s) => (
+          <div
+            key={s.id}
+            className="flex flex-wrap items-center justify-between gap-3 py-3"
+          >
+            <div>
+              <div className="font-semibold text-foreground">
+                {MAINTENANCE_TYPES[s.maintenanceType].label}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {s.scheduleType} · {s.isActive ? "مفعّل" : "متوقف"}
+              </div>
+            </div>
+            {isOwner && (
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setForm(fromSchedule(s));
+                    setEditing(s.id);
+                    setOpen(true);
+                  }}
+                >
+                  تعديل
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void toggle(s)}
+                  disabled={pending}
+                >
+                  {s.isActive ? "إيقاف" : "استئناف"}
+                </Button>
+                {deleting === s.id ? (
+                  <>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => void remove(s.id)}
+                      disabled={pending}
+                    >
+                      تأكيد الحذف
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setDeleting(null)}
+                    >
+                      إلغاء
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setDeleting(s.id)}
+                  >
+                    حذف
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

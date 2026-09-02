@@ -30,13 +30,26 @@ function mockCreate() {
   return create;
 }
 
+function selectDate(label: string | RegExp, value: string) {
+  fireEvent.click(screen.getByLabelText(label));
+
+  for (let index = 0; index < 24; index += 1) {
+    const day = document.querySelector<HTMLButtonElement>(`button[data-day="${value}"]`);
+    if (day) {
+      fireEvent.click(day);
+      return;
+    }
+    fireEvent.click(screen.getByRole("button", { name: /next month/i }));
+  }
+
+  throw new Error(`Could not find date ${value}`);
+}
+
 function enterDueDate() {
   fireEvent.change(screen.getByLabelText(/اسم المهمة/), {
     target: { value: "تجديد تأمين المركبة" },
   });
-  fireEvent.change(screen.getByLabelText(/تاريخ الاستحقاق/), {
-    target: { value: "2026-09-01" },
-  });
+  selectDate(/تاريخ الاستحقاق/, "2026-09-01");
 }
 
 function submit() {
@@ -60,9 +73,7 @@ describe("AddTaskPage", () => {
     const create = mockCreate();
     render(<AddTaskPage />);
     fireEvent.change(screen.getByLabelText(/اسم المهمة/), { target: { value: title } });
-    fireEvent.change(screen.getByLabelText(/تاريخ الاستحقاق/), {
-      target: { value: "2026-09-01" },
-    });
+    selectDate(/تاريخ الاستحقاق/, "2026-09-01");
     submit();
 
     expect(screen.getByText("أدخل اسم المهمة.")).toBeInTheDocument();
@@ -140,7 +151,7 @@ describe("AddTaskPage", () => {
     enterDueDate();
     fireEvent.change(screen.getByLabelText("التكرار"), { target: { value: "DAILY" } });
     fireEvent.change(screen.getByLabelText("ينتهي"), { target: { value: "DATE" } });
-    fireEvent.change(screen.getByLabelText(/تاريخ انتهاء التكرار/), { target: { value: "2026-12-31" } });
+    selectDate(/تاريخ انتهاء التكرار/, "2026-12-31");
     submit();
 
     await waitFor(() => expect(create.mutateAsync).toHaveBeenCalledWith({
@@ -168,7 +179,7 @@ describe("AddTaskPage", () => {
     enterDueDate();
     fireEvent.change(screen.getByLabelText("التكرار"), { target: { value: "MONTHLY" } });
     fireEvent.change(screen.getByLabelText("ينتهي"), { target: { value: "DATE" } });
-    fireEvent.change(screen.getByLabelText(/تاريخ انتهاء التكرار/), { target: { value: "2026-12-31" } });
+    selectDate(/تاريخ انتهاء التكرار/, "2026-12-31");
     fireEvent.change(screen.getByLabelText("ينتهي"), { target: { value: "COUNT" } });
     expect(screen.queryByLabelText(/تاريخ انتهاء التكرار/)).not.toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/عدد المرات/), { target: { value: "3" } });
@@ -185,7 +196,7 @@ describe("AddTaskPage", () => {
     enterDueDate();
     fireEvent.change(screen.getByLabelText("التكرار"), { target: { value: "DAILY" } });
     fireEvent.change(screen.getByLabelText("ينتهي"), { target: { value: "DATE" } });
-    fireEvent.change(screen.getByLabelText(/تاريخ انتهاء التكرار/), { target: { value: "2026-12-31" } });
+    selectDate(/تاريخ انتهاء التكرار/, "2026-12-31");
     fireEvent.change(screen.getByLabelText("ينتهي"), { target: { value: "NEVER" } });
     submit();
 
@@ -202,7 +213,7 @@ describe("AddTaskPage", () => {
     fireEvent.change(screen.getByLabelText("ينتهي"), { target: { value: "COUNT" } });
     fireEvent.change(screen.getByLabelText(/عدد المرات/), { target: { value: "5" } });
     fireEvent.change(screen.getByLabelText("ينتهي"), { target: { value: "DATE" } });
-    fireEvent.change(screen.getByLabelText(/تاريخ انتهاء التكرار/), { target: { value: "2026-12-31" } });
+    selectDate(/تاريخ انتهاء التكرار/, "2026-12-31");
     submit();
 
     await waitFor(() => expect(create.mutateAsync).toHaveBeenCalledWith({

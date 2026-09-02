@@ -5,6 +5,7 @@ import type { CreateTaskRequest } from "@workspace/api-client-react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { InlineError } from "@/components/ui/FeedbackState";
 import { FormField, inputClass } from "@/components/ui/FormField";
 import { FormSection } from "@/components/ui/FormSection";
@@ -84,7 +85,7 @@ export default function AddTaskPage() {
         {formError && <InlineError className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5">{formError}</InlineError>}
         <FormSection title="تفاصيل المهمة" description="المهمة الجديدة تُسجل بحالة قيد الانتظار حتى إكمالها.">
           <FormField label="اسم المهمة" required error={errors.title} className="md:col-span-2" htmlFor="task-title"><input id="task-title" type="text" required value={title} onChange={(event) => { setTitle(event.target.value); clearError("title"); }} placeholder="مثال: تجديد تأمين المركبة" aria-invalid={Boolean(errors.title)} className={errors.title ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass} /></FormField>
-          <FormField label="تاريخ الاستحقاق" required error={errors.dueDate} htmlFor="task-due-date"><input id="task-due-date" type="date" value={dueDate} onChange={(event) => { setDueDate(event.target.value); clearError("dueDate"); }} className={errors.dueDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass} /></FormField>
+          <FormField label="تاريخ الاستحقاق" required error={errors.dueDate} htmlFor="task-due-date"><DatePicker id="task-due-date" value={dueDate} onChange={(value) => { setDueDate(value); clearError("dueDate"); }} aria-invalid={Boolean(errors.dueDate)} className={errors.dueDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass} /></FormField>
           <FormField label="ملاحظات" hint="اختياري" className="md:col-span-2" htmlFor="task-notes"><textarea id="task-notes" rows={4} className={`${inputClass} resize-none`} placeholder="مثال: تجديد التأمين" value={notes} onChange={(event) => setNotes(event.target.value)} /></FormField>
           <TaskRecurrenceFields
             idPrefix="task"

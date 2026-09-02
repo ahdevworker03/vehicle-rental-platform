@@ -3,6 +3,7 @@ import { Plus, FileText, Trash2, Download, Loader2, Pencil } from "lucide-react"
 import type { DocumentResponse } from "@workspace/api-client-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { InlineFeedback } from "@/components/ui/FeedbackState";
+import { DatePicker } from "@/components/ui/date-picker";
 import { getApiErrorMessage } from "@/lib/api-error";
 import { DOCUMENT_CATEGORY_LABELS } from "@/lib/media-labels";
 import { formatDate } from "@/lib/format";
@@ -193,13 +194,12 @@ export function DocumentList({
               </button>
               {canMutate && (
                 onUpdateExpiry && editingExpiryId === doc.id ? (
-                  <div className="flex items-center gap-1">
-                    <input
+                  <div className="flex flex-wrap items-center gap-1">
+                    <DatePicker
                       aria-label="تاريخ انتهاء المستند"
-                      type="date"
-                      className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
+                      className="h-9 min-h-9 w-36 px-2 text-xs"
                       value={expiryDate}
-                      onChange={(event) => setExpiryDate(event.target.value)}
+                      onChange={setExpiryDate}
                     />
                     <button type="button" onClick={() => void handleUpdateExpiry(doc.id)} disabled={updating} className="rounded-lg px-2 py-1.5 text-xs font-semibold text-primary">حفظ</button>
                     <button type="button" onClick={() => setEditingExpiryId(null)} disabled={updating} className="rounded-lg px-2 py-1.5 text-xs text-muted-foreground">إلغاء</button>

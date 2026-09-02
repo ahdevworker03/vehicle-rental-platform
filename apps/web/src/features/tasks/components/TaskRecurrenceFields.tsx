@@ -1,4 +1,5 @@
 import { FormField, inputClass } from "@/components/ui/FormField";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   changeTaskRecurrenceEndMode,
   changeTaskRecurrenceMode,
@@ -89,14 +90,12 @@ export function TaskRecurrenceFields({ value, errors = {}, idPrefix, onChange }:
           </FormField>
           {value.endMode === "DATE" && (
             <FormField label="تاريخ انتهاء التكرار" required error={errors.endDate} htmlFor={endDateId}>
-              <input
+              <DatePicker
                 id={endDateId}
-                type="date"
-                dir="ltr"
-                className={inputClass}
+                className={errors.endDate ? `${inputClass} border-destructive focus:ring-destructive/30` : inputClass}
                 value={value.endDate}
                 aria-invalid={Boolean(errors.endDate)}
-                onChange={(event) => onChange({ ...value, endDate: event.target.value, endCount: "" })}
+                onChange={(endDate) => onChange({ ...value, endDate, endCount: "" })}
               />
             </FormField>
           )}

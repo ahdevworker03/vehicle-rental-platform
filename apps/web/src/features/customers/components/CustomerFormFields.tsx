@@ -1,4 +1,5 @@
 import { FormField, inputClass } from "@/components/ui/FormField";
+import { DatePicker } from "@/components/ui/date-picker";
 import { FormSection } from "@/components/ui/FormSection";
 
 export interface CustomerFormState {
@@ -38,7 +39,7 @@ export function CustomerFormFields({ form, errors, onChange }: CustomerFormField
       <FormSection title="الهوية والرخصة" description="تحقّق من بيانات الهوية ورخصة القيادة قبل إنشاء الإيجار.">
         <FormField label="رقم الهوية" required error={errors.national_id} htmlFor="customer-national-id"><input id="customer-national-id" dir="ltr" className={fieldClass(errors.national_id)} placeholder="رقم الهوية الوطنية" value={form.national_id} onChange={(event) => onChange("national_id", event.target.value)} autoComplete="off" /></FormField>
         <FormField label="رقم الرخصة" required error={errors.license_number} htmlFor="customer-license-number"><input id="customer-license-number" dir="ltr" className={fieldClass(errors.license_number)} placeholder="رقم الرخصة" value={form.license_number} onChange={(event) => onChange("license_number", event.target.value)} autoComplete="off" /></FormField>
-        <FormField label="تاريخ انتهاء الرخصة" required error={errors.license_expiry_date} htmlFor="customer-license-expiry" className="md:col-span-2"><input id="customer-license-expiry" type="date" dir="ltr" className={fieldClass(errors.license_expiry_date)} value={form.license_expiry_date} onChange={(event) => onChange("license_expiry_date", event.target.value)} /></FormField>
+        <FormField label="تاريخ انتهاء الرخصة" required error={errors.license_expiry_date} htmlFor="customer-license-expiry" className="md:col-span-2"><DatePicker id="customer-license-expiry" value={form.license_expiry_date} onChange={(value) => onChange("license_expiry_date", value)} aria-invalid={Boolean(errors.license_expiry_date)} className={fieldClass(errors.license_expiry_date)} /></FormField>
       </FormSection>
     </>
   );

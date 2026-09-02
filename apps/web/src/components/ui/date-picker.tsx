@@ -51,6 +51,7 @@ interface DatePickerProps {
   "aria-label"?: string;
   "aria-labelledby"?: string;
   "aria-describedby"?: string;
+  "aria-invalid"?: boolean;
 }
 
 function DatePicker({
@@ -65,6 +66,7 @@ function DatePicker({
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledby,
   "aria-describedby": ariaDescribedby,
+  "aria-invalid": ariaInvalid,
 }: DatePickerProps) {
   const selected = parseDateOnly(value);
   const minDate = parseDateOnly(min ?? "");
@@ -96,6 +98,7 @@ function DatePicker({
           aria-label={ariaLabel}
           aria-labelledby={ariaLabelledby}
           aria-describedby={ariaDescribedby}
+          aria-invalid={ariaInvalid}
           aria-haspopup="dialog"
           aria-expanded={open}
           aria-controls={id ? `${id}-popover` : undefined}

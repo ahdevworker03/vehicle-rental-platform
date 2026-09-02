@@ -9,6 +9,21 @@ import { useAuth } from "@/providers/AuthProvider";
 
 const mockedUseAuth = vi.mocked(useAuth);
 
+function selectDate(label: string, value: string) {
+  fireEvent.click(screen.getByLabelText(label));
+
+  for (let index = 0; index < 24; index += 1) {
+    const day = globalThis.document.querySelector<HTMLButtonElement>(`button[data-day="${value}"]`);
+    if (day) {
+      fireEvent.click(day);
+      return;
+    }
+    fireEvent.click(screen.getByRole("button", { name: /next month/i }));
+  }
+
+  throw new Error(`Could not find date ${value}`);
+}
+
 const document = {
   id: "document-1",
   category: "INSURANCE",
@@ -46,7 +61,7 @@ describe("DocumentList", () => {
 
     expect(screen.getByText(/تاريخ الانتهاء:/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "تعديل تاريخ الانتهاء" }));
-    fireEvent.change(screen.getByLabelText("تاريخ انتهاء المستند"), { target: { value: "2027-01-15" } });
+    selectDate("تاريخ انتهاء المستند", "2027-01-15");
     fireEvent.click(screen.getByRole("button", { name: "حفظ" }));
 
     await waitFor(() => expect(onUpdateExpiry).toHaveBeenCalledWith("document-1", "2027-01-15"));
