@@ -9,6 +9,11 @@ const VALID_LOG_LEVELS = [
   "trace",
 ] as const;
 
+const DEFAULT_CORS_ORIGINS = [
+  "http://localhost:5173",
+  "https://x1gtk7w1-5173.uks1.devtunnels.ms",
+] as const;
+
 type NodeEnv = (typeof VALID_NODE_ENVS)[number];
 type LogLevel = (typeof VALID_LOG_LEVELS)[number];
 
@@ -16,6 +21,30 @@ export interface EnvConfig {
   PORT: number;
   NODE_ENV: NodeEnv;
   LOG_LEVEL: LogLevel;
+  CORS_ORIGINS: string[];
+}
+
+function parseCorsOrigins(rawOrigins: string | undefined): string[] {
+  const origins = rawOrigins
+    ? rawOrigins.split(",").map((origin) => origin.trim()).filter(Boolean)
+    : [...DEFAULT_CORS_ORIGINS];
+
+  if (origins.length === 0) {
+    throw new Error("CORS_ORIGINS must include at least one origin.");
+  }
+
+  for (const origin of origins) {
+    try {
+      const url = new URL(origin);
+      if (url.origin !== origin || !["http:", "https:"].includes(url.protocol)) {
+        throw new Error();
+      }
+    } catch {
+      throw new Error(`Invalid CORS origin: "${origin}"`);
+    }
+  }
+
+  return origins;
 }
 
 function loadEnv(): EnvConfig {
@@ -53,6 +82,7 @@ function loadEnv(): EnvConfig {
     PORT: port,
     NODE_ENV: nodeEnv as NodeEnv,
     LOG_LEVEL: logLevel,
+    CORS_ORIGINS: parseCorsOrigins(process.env["CORS_ORIGINS"]),
   };
 }
 

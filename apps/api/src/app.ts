@@ -3,7 +3,7 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { notFoundHandler, errorHandler } from "./middleware";
-import { logger } from "./config";
+import { env, logger } from "./config";
 
 const app: Express = express();
 
@@ -26,7 +26,12 @@ app.use(
     },
   }),
 );
-app.use(cors());
+app.use(
+  cors({
+    origin: env.CORS_ORIGINS,
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
