@@ -333,7 +333,7 @@ export default function DashboardPage() {
         }
       />
 
-      <div className="space-y-4 px-4 pb-4 sm:px-6 lg:space-y-5 lg:pb-6">
+      <div className="space-y-4 px-4 pb-4 pt-4 sm:px-6 lg:space-y-5 lg:pb-6 lg:pt-5">
         <div
           role="group"
           aria-label="إجراءات سريعة"
