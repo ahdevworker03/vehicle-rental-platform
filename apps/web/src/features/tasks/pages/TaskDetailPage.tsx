@@ -42,7 +42,7 @@ interface DetailPageParams {
 }
 
 function KeyValue({ label, value, numeric = false }: { label: string; value?: string | null; numeric?: boolean }) {
-  return <div className="min-w-0"><div className="ui-label">{label}</div><div dir={numeric ? "ltr" : "auto"} className={`mt-1 break-words text-sm font-semibold text-foreground ${numeric ? "number-ltr text-end" : ""}`}>{value || "—"}</div></div>;
+  return <div className="min-w-0"><div className="ui-label">{label}</div><div dir={numeric ? "ltr" : "auto"} className={`mt-1 wrap-break-word text-sm font-semibold text-foreground ${numeric ? "number-ltr text-end" : ""}`}>{value || "—"}</div></div>;
 }
 
 export default function TaskDetailPage({ params }: DetailPageParams) {

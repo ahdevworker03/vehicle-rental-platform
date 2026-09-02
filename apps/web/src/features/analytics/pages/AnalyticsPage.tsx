@@ -214,7 +214,7 @@ function MetricCard({
     warning: "bg-status-warning-bg text-status-warning",
   };
   return (
-    <SectionCard className="min-h-[156px]">
+    <SectionCard className="min-h-39">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">{label}</p>
@@ -283,7 +283,7 @@ function PerformanceTrend({
       </div>
       <ChartContainer
         config={trendChartConfig}
-        className="h-[260px] w-full aspect-auto sm:h-[300px]"
+        className="h-65 w-full aspect-auto sm:h-75"
       >
         <LineChart
           data={chartData}
@@ -356,7 +356,7 @@ function PerformanceTrend({
       <details className="rounded-lg border border-border bg-muted/20 p-3 text-sm">
         <summary className="cursor-pointer font-semibold text-foreground">عرض البيانات الشهرية كجدول</summary>
         <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-[34rem] text-right text-xs">
+          <table className="w-full min-w-136 text-right text-xs">
             <thead className="border-b border-border text-muted-foreground"><tr><th className="pb-2 font-medium">الشهر</th><th className="pb-2 font-medium">الإيرادات</th><th className="pb-2 font-medium">المصروفات</th><th className="pb-2 font-medium">صافي الربح</th></tr></thead>
             <tbody>{points.map((point) => <tr key={point.period} className="border-b border-border/60 last:border-0"><td className="py-2">{point.period}</td><td dir="ltr" className="py-2 tabular-nums">{formatCurrency(point.revenue)}</td><td dir="ltr" className="py-2 tabular-nums">{formatCurrency(point.expenses)}</td><td dir="ltr" className="py-2 tabular-nums">{formatCurrency(point.netProfit)}</td></tr>)}</tbody>
           </table>

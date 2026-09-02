@@ -29,7 +29,7 @@ function AppSidebarLink({ item }: { item: NavigationItem }) {
     <SidebarMenuItem className="relative">
       {active && (
         <span
-          className="absolute inset-y-1 end-0 z-10 w-0.5 rounded-full bg-white"
+          className="absolute inset-y-1 inset-e-0 z-10 w-0.5 rounded-full bg-white"
           aria-hidden="true"
         />
       )}
@@ -40,7 +40,7 @@ function AppSidebarLink({ item }: { item: NavigationItem }) {
         className="gap-3 rounded-lg px-3"
       >
         <Link href={item.route} aria-current={active ? "page" : undefined}>
-          <Icon className="size-[18px]" aria-hidden="true" />
+          <Icon className="size-4.5" aria-hidden="true" />
           <span>{item.label}</span>
         </Link>
       </SidebarMenuButton>
