@@ -17,6 +17,7 @@ import type {
 function toResponse(record: TaskRecord): TaskResponse {
   return {
     id: record.id,
+    title: record.title,
     dueDate: record.due_date.toISOString(),
     status: record.status,
     recurrenceInterval: record.recurrence_interval,
@@ -115,6 +116,7 @@ async function createTask(
 
   const record = await repo.create({
     organization_id: orgId,
+    title: input.title,
     due_date: input.due_date,
     status: "PENDING",
     ...recurrence,
@@ -165,6 +167,7 @@ async function updateTask(
   validateRecurrence(recurrence);
 
   const updated = await repo.update(taskId, orgId, {
+    ...(input.title !== undefined ? { title: input.title } : {}),
     ...(input.due_date !== undefined ? { due_date: input.due_date } : {}),
     ...(input.notes !== undefined ? { notes: input.notes } : {}),
     ...(changesRecurrence ? recurrence : {}),
@@ -206,6 +209,7 @@ async function completeTask(
             await repo.create(
               {
                 organization_id: orgId,
+                title: record.title,
                 due_date: candidateDueDate,
                 status: "PENDING",
                 recurrence_interval: record.recurrence_interval,

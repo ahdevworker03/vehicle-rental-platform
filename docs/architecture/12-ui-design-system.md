@@ -227,7 +227,7 @@ Lead with:
 - Vehicle detail prioritizes availability, current rental, maintenance, mileage, documents, and photos.
 - Customer detail prioritizes active rental, outstanding balance, license validity, documents, and rental history.
 - Rental detail keeps total, deposit, paid amount, outstanding balance, contract state, and status-dependent actions visible. Contract generation and signature status are distinct.
-- Maintenance, task, and expense detail retains status, due/completion information, vehicle association, financial value, and notes before secondary metadata.
+- Maintenance, task, and expense detail retains status, due/completion information, vehicle association, financial value, and notes before secondary metadata. Task Detail uses the task title as its identity and presents notes as secondary content.
 
 ### 8.4 Forms and Create/Edit Flows
 
@@ -239,6 +239,7 @@ Lead with:
 - Confirmation is required for destructive, status-changing, or financially significant actions. The confirmation states the consequence and action target.
 - For supported Version 2 flows, reuse this pattern for registration, password reset, invitation acceptance, organization profile, document-expiry editing, recurring task settings, and maintenance schedule management.
 - Recurring task controls stay simple: interval plus day/week/month unit, with never, date, or occurrence-count end conditions. Do not expose cron, weekday rules, or other complex recurrence syntax.
+- Task create/edit forms place `اسم المهمة`, `تاريخ الاستحقاق`, `ملاحظات`, then recurrence controls in that order. The title is required primary identity; notes are optional supplementary content.
 
 ### 8.5 Reports and Analytics
 

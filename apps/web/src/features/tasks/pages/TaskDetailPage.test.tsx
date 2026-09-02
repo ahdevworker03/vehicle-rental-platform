@@ -1,7 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import TaskDetailPage from "./TaskDetailPage";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ApiError, type TaskResponse } from "@workspace/api-client-react";
+
+import TaskDetailPage from "./TaskDetailPage";
+
+const setLocationMock = vi.hoisted(() => vi.fn());
 
 function makeApiError(message: string): ApiError {
   const response = new Response(null, { status: 409, statusText: "Conflict" });
@@ -11,6 +14,11 @@ function makeApiError(message: string): ApiError {
     { method: "POST", url: "/api/tasks/task-1/complete" },
   );
 }
+
+vi.mock("wouter", async (importOriginal) => {
+  const original = await importOriginal<typeof import("wouter")>();
+  return { ...original, useLocation: () => ["/tasks/task-1", setLocationMock] };
+});
 
 vi.mock("@/features/tasks/hooks", () => ({
   useTask: vi.fn(),
@@ -28,17 +36,22 @@ const mockedUseTask = vi.mocked(useTask);
 const mockedUseTaskMutations = vi.mocked(useTaskMutations);
 const mockedUseAuth = vi.mocked(useAuth);
 
-function makeTask(overrides: Partial<TaskResponse>): TaskResponse {
+function makeTask(overrides: Partial<TaskResponse> = {}): TaskResponse {
   return {
     id: "task-1",
     dueDate: "2026-09-01T12:00:00Z",
     status: "PENDING",
-    recurrenceType: "NONE",
+    recurrenceInterval: null,
+    recurrenceUnit: null,
+    recurrenceEndDate: null,
+    recurrenceEndCount: null,
+    occurrenceNumber: 1,
     predecessorId: null,
     notes: "تجديد التأمين",
     createdAt: "2026-08-01T12:00:00Z",
     updatedAt: "2026-08-01T12:00:00Z",
     ...overrides,
+    title: overrides.title ?? "تجديد تأمين المركبة",
   };
 }
 
@@ -56,116 +69,178 @@ function mockTask(task: TaskResponse | null, overrides: Partial<ReturnType<typeo
   } as ReturnType<typeof useTask>);
 }
 
-function mockComplete() {
-  const complete = {
-    isPending: false,
-    mutateAsync: vi.fn().mockResolvedValue(undefined),
-  };
-  mockedUseTaskMutations.mockReturnValue({
-    complete,
-  } as unknown as ReturnType<typeof useTaskMutations>);
-  return complete;
-}
-
-function mockUpdate() {
-  const update = { isPending: false, mutateAsync: vi.fn().mockResolvedValue(undefined) };
-  mockedUseTaskMutations.mockReturnValue({
+function mockMutations() {
+  const mutations = {
+    create: { isPending: false, mutateAsync: vi.fn().mockResolvedValue(undefined) },
     complete: { isPending: false, mutateAsync: vi.fn().mockResolvedValue(undefined) },
-    update,
-  } as unknown as ReturnType<typeof useTaskMutations>);
-  return update;
+    update: { isPending: false, mutateAsync: vi.fn().mockResolvedValue(undefined) },
+    remove: { isPending: false, mutateAsync: vi.fn().mockResolvedValue(undefined) },
+  };
+  mockedUseTaskMutations.mockReturnValue(mutations as unknown as ReturnType<typeof useTaskMutations>);
+  return mutations;
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockAuth();
-  mockComplete();
-});
-
-it("edits a pending task with one of the supported recurrence values", async () => {
-  const update = mockUpdate();
-  mockTask(makeTask({ recurrenceType: "DAILY" }));
-  render(<TaskDetailPage params={{ id: "task-1" }} />);
-
-  fireEvent.click(screen.getByText("تعديل المهمة"));
-  fireEvent.change(screen.getByLabelText("التكرار"), { target: { value: "MONTHLY" } });
-  fireEvent.click(screen.getByText("حفظ التعديلات"));
-
-  await waitFor(() => {
-    expect(update.mutateAsync).toHaveBeenCalledWith({
-      id: "task-1",
-      data: expect.objectContaining({ recurrence_type: "MONTHLY" }),
-    });
-  });
+  mockMutations();
 });
 
 describe("TaskDetailPage", () => {
-  it("shows task details for a pending task", () => {
-    mockTask(makeTask());
+  it("uses the title as the task identity and keeps notes in their section", () => {
+    mockTask(makeTask({ title: "فحص السيارة", notes: "راجع الإطارات أيضاً" }));
     render(<TaskDetailPage params={{ id: "task-1" }} />);
-    expect(screen.getAllByText("تجديد التأمين").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("قيد الانتظار").length).toBeGreaterThan(0);
+
+    expect(screen.getAllByText("فحص السيارة").length).toBeGreaterThan(0);
+    expect(screen.getByText("راجع الإطارات أيضاً")).toBeInTheDocument();
   });
 
-  it("shows the completion action for a pending task", () => {
-    mockTask(makeTask({ status: "PENDING" }));
+  it("keeps the title when notes are unavailable", () => {
+    mockTask(makeTask({ title: "تجديد الترخيص", notes: null }));
     render(<TaskDetailPage params={{ id: "task-1" }} />);
-    expect(screen.getByText("إكمال المهمة")).toBeInTheDocument();
+
+    expect(screen.getAllByText("تجديد الترخيص").length).toBeGreaterThan(0);
+    expect(screen.getByText("لا توجد ملاحظات لهذه المهمة.")).toBeInTheDocument();
+  });
+
+  it("keeps due-date labels and numeric values in matching field structure", () => {
+    mockTask(makeTask());
+    render(<TaskDetailPage params={{ id: "task-1" }} />);
+
+    const dueLabels = screen.getAllByText("تاريخ الاستحقاق");
+    expect(dueLabels).toHaveLength(2);
+    for (const label of dueLabels) {
+      expect(label.parentElement?.className).toContain("min-w-0");
+      expect(label.nextElementSibling?.className).toContain("text-end");
+    }
+  });
+  it("shows the new recurrence and end-date summaries", () => {
+    mockTask(makeTask({
+      recurrenceInterval: 15,
+      recurrenceUnit: "DAY",
+      recurrenceEndDate: "2026-12-31",
+    }));
+    render(<TaskDetailPage params={{ id: "task-1" }} />);
+    expect(screen.getAllByText("كل 15 يوم").length).toBeGreaterThan(0);
+    expect(screen.getByText("حتى 31/12/2026")).toBeInTheDocument();
+  });
+
+  it("shows an occurrence-count end summary", () => {
+    mockTask(makeTask({ recurrenceInterval: 1, recurrenceUnit: "WEEK", recurrenceEndCount: 5 }));
+    render(<TaskDetailPage params={{ id: "task-1" }} />);
+    expect(screen.getAllByText("أسبوعي").length).toBeGreaterThan(0);
+    expect(screen.getByText("بعد 5 مرات")).toBeInTheDocument();
+  });
+
+  it("shows previous-occurrence context for a generated task", () => {
+    mockTask(makeTask({ occurrenceNumber: 2, predecessorId: "previous-task-id" }));
+    render(<TaskDetailPage params={{ id: "task-1" }} />);
+    expect(screen.getByText("المهمة السابقة")).toBeInTheDocument();
+    expect(screen.getByText("التكرار رقم 1")).toBeInTheDocument();
+  });
+
+  it("does not show previous-occurrence context for an original task", () => {
+    mockTask(makeTask());
+    render(<TaskDetailPage params={{ id: "task-1" }} />);
+    expect(screen.queryByText("المهمة السابقة")).not.toBeInTheDocument();
+  });
+
+  it("shows Stop Recurrence only for a pending recurring task", () => {
+    mockTask(makeTask({ recurrenceInterval: 2, recurrenceUnit: "WEEK" }));
+    const { rerender } = render(<TaskDetailPage params={{ id: "task-1" }} />);
+    expect(screen.getByRole("button", { name: "إيقاف التكرار" })).toBeInTheDocument();
+
+    mockTask(makeTask());
+    rerender(<TaskDetailPage params={{ id: "task-1" }} />);
+    expect(screen.queryByRole("button", { name: "إيقاف التكرار" })).not.toBeInTheDocument();
+  });
+
+  it("stops recurrence by clearing all recurrence fields", async () => {
+    const mutations = mockMutations();
+    mockTask(makeTask({ recurrenceInterval: 1, recurrenceUnit: "MONTH", recurrenceEndCount: 5 }));
+    render(<TaskDetailPage params={{ id: "task-1" }} />);
+    fireEvent.click(screen.getByRole("button", { name: "إيقاف التكرار" }));
+    expect(screen.getByText(/ستبقى المهمة الحالية وسجل المهام السابقة/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "تأكيد الإيقاف" }));
+
+    await waitFor(() => expect(mutations.update.mutateAsync).toHaveBeenCalledWith({
+      id: "task-1",
+      data: {
+        recurrence_interval: null,
+        recurrence_unit: null,
+        recurrence_end_date: null,
+        recurrence_end_count: null,
+      },
+    }));
+  });
+
+  it("does not expose Stop Recurrence for a completed recurring task", () => {
+    mockTask(makeTask({ status: "COMPLETED", recurrenceInterval: 1, recurrenceUnit: "DAY" }));
+    render(<TaskDetailPage params={{ id: "task-1" }} />);
+    expect(screen.queryByRole("button", { name: "إيقاف التكرار" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "إكمال المهمة" })).not.toBeInTheDocument();
+    expect(screen.getAllByText("يومي").length).toBeGreaterThan(0);
+  });
+
+  it("deletes only the selected task and navigates back to the list", async () => {
+    const mutations = mockMutations();
+    mockTask(makeTask({ recurrenceInterval: 1, recurrenceUnit: "DAY" }));
+    render(<TaskDetailPage params={{ id: "task-1" }} />);
+    fireEvent.click(screen.getByRole("button", { name: "حذف المهمة" }));
+    expect(screen.getByText(/ستُحذف المهمة المحددة من القوائم والعروض المعتادة فقط/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "تأكيد الحذف" }));
+
+    await waitFor(() => expect(mutations.remove.mutateAsync).toHaveBeenCalledWith({ id: "task-1" }));
+    expect(setLocationMock).toHaveBeenCalledWith("/tasks");
   });
 
   it("completes a pending task via the dedicated completion API", async () => {
-    const complete = mockComplete();
-    mockTask(makeTask({ status: "PENDING" }));
-
+    const mutations = mockMutations();
+    mockTask(makeTask());
     render(<TaskDetailPage params={{ id: "task-1" }} />);
-    fireEvent.click(screen.getByText("إكمال المهمة"));
-    fireEvent.click(screen.getByText("تأكيد الإكمال"));
-
-    await waitFor(() => {
-      expect(complete.mutateAsync).toHaveBeenCalledWith({ id: "task-1" });
-    });
+    fireEvent.click(screen.getByRole("button", { name: "إكمال المهمة" }));
+    fireEvent.click(screen.getByRole("button", { name: "تأكيد الإكمال" }));
+    await waitFor(() => expect(mutations.complete.mutateAsync).toHaveBeenCalledWith({ id: "task-1" }));
   });
 
-  it("shows success feedback after completion", async () => {
-    mockComplete();
-    mockTask(makeTask({ status: "PENDING" }));
-
+  it("edits a pending task with interval recurrence fields", async () => {
+    const mutations = mockMutations();
+    mockTask(makeTask({ recurrenceInterval: 1, recurrenceUnit: "DAY" }));
     render(<TaskDetailPage params={{ id: "task-1" }} />);
-    fireEvent.click(screen.getByText("إكمال المهمة"));
-    fireEvent.click(screen.getByText("تأكيد الإكمال"));
+    fireEvent.click(screen.getByRole("button", { name: "تعديل المهمة" }));
+    fireEvent.change(screen.getByLabelText(/اسم المهمة/), { target: { value: "تجديد الفحص" } });
+    fireEvent.change(screen.getByLabelText("التكرار"), { target: { value: "CUSTOM" } });
+    fireEvent.change(screen.getByLabelText(/الفاصل/), { target: { value: "4" } });
+    fireEvent.change(screen.getByLabelText(/الوحدة/), { target: { value: "MONTH" } });
+    fireEvent.click(screen.getByRole("button", { name: "حفظ التعديلات" }));
 
-    expect(await screen.findByText("تم إكمال المهمة.")).toBeInTheDocument();
-  });
-
-  it("does not show an active completion action for a completed task", () => {
-    mockTask(makeTask({ status: "COMPLETED" }));
-    render(<TaskDetailPage params={{ id: "task-1" }} />);
-    expect(screen.getAllByText("مكتملة").length).toBeGreaterThan(0);
-    expect(screen.queryByText("إكمال المهمة")).not.toBeInTheDocument();
-    expect(screen.getByText("هذه المهمة مكتملة ولا تتطلب إجراءً إضافياً.")).toBeInTheDocument();
+    await waitFor(() => expect(mutations.update.mutateAsync).toHaveBeenCalledWith({
+      id: "task-1",
+      data: expect.objectContaining({ title: "تجديد الفحص", recurrence_interval: 4, recurrence_unit: "MONTH" }),
+    }));
   });
 
   it("shows an API error without false success", async () => {
-    const complete = mockComplete();
-    complete.mutateAsync.mockRejectedValue(makeApiError("المهمة مكتملة بالفعل"));
-    mockTask(makeTask({ status: "PENDING" }));
-
+    const mutations = mockMutations();
+    mutations.complete.mutateAsync.mockRejectedValue(makeApiError("المهمة مكتملة بالفعل"));
+    mockTask(makeTask());
     render(<TaskDetailPage params={{ id: "task-1" }} />);
-    fireEvent.click(screen.getByText("إكمال المهمة"));
-    fireEvent.click(screen.getByText("تأكيد الإكمال"));
-
+    fireEvent.click(screen.getByRole("button", { name: "إكمال المهمة" }));
+    fireEvent.click(screen.getByRole("button", { name: "تأكيد الإكمال" }));
     expect(await screen.findByText("المهمة مكتملة بالفعل")).toBeInTheDocument();
-    expect(screen.queryByText("تم إكمال المهمة بنجاح")).not.toBeInTheDocument();
+    expect(screen.queryByText("تم إكمال المهمة.")).not.toBeInTheDocument();
   });
 
-  it("does not show a completion action for a non-owner", () => {
+  it("does not show owner actions for an employee", () => {
     mockAuth("EMPLOYEE");
-    mockTask(makeTask({ status: "PENDING" }));
+    mockTask(makeTask({ recurrenceInterval: 1, recurrenceUnit: "DAY" }));
     render(<TaskDetailPage params={{ id: "task-1" }} />);
-    expect(screen.queryByText("إكمال المهمة")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "إكمال المهمة" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "إيقاف التكرار" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "حذف المهمة" })).not.toBeInTheDocument();
   });
 
-  it("shows the error/empty state when the task is not found", () => {
+  it("shows the error state when the task is not found", () => {
     mockTask(null, { isError: true, error: new Error("Task not found") });
     render(<TaskDetailPage params={{ id: "task-1" }} />);
     expect(screen.getByText(/تعذر تحميل المهمة/)).toBeInTheDocument();

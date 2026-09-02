@@ -390,9 +390,15 @@ This document describes the currently implemented PostgreSQL/Prisma model. Imple
 
 **Relationships:** Belongs to one organization; optionally references one predecessor task and can have at most one direct successor. The self-FK uses `RESTRICT`.
 
+**Implemented:** A required, non-empty `title` is the primary human-readable
+task identity. `notes` remain optional supplementary description and are not
+task identity. Existing titles were backfilled from trimmed non-empty notes,
+otherwise using `مهمة بدون عنوان`, while preserving `notes` unchanged.
+
 | Field | Type | Required | Default | Notes |
 |---|---:|---:|---:|---|
 | `id`, `organization_id` | UUID | Yes | `uuid()` / - | Primary key and tenant FK. |
+| `title` | String | Yes | - | Non-empty primary human-readable identity. |
 | `due_date` | DateTime | Yes | - | Due/business date. |
 | `status` | `TaskStatus` | Yes | `PENDING` | Pending or completed. |
 | `recurrence_interval`, `recurrence_unit` | Int, enum | No, No | `null` / `null` | No recurrence when absent; otherwise a positive interval in days, weeks, or months. |
@@ -404,7 +410,7 @@ This document describes the currently implemented PostgreSQL/Prisma model. Imple
 
 **Constraints and indexes:** `@unique(predecessor_id)` ensures a task has at most one direct successor. Indexes: `organization_id`, `deleted_at`, `status`, and `due_date`.
 
-**Business rules:** A task has no recurrence when its recurrence configuration is absent; otherwise the interval is positive and the unit is `DAY`, `WEEK`, or `MONTH`. Daily, weekly, and monthly presets use interval one. The end condition is never, an inclusive Beirut-local business date, or a positive occurrence count. "After N occurrences" includes the original task: the original is occurrence 1, so an end count of 5 permits at most four successors. `occurrence_number` starts at 1 and each successor receives its predecessor's number plus 1. Do not create a successor when the current occurrence has reached `recurrence_end_count`, or when the successor's Beirut-local business date would be after `recurrence_end_date`; equality is allowed. Completing the current recurring occurrence atomically preserves it as `COMPLETED` history and creates exactly one next `PENDING` occurrence when recurrence remains active and its end condition permits it. The successor copies notes and recurrence configuration. Its due date is calculated using `Asia/Beirut` business date/time semantics, including timezone transitions; persisted timestamps may remain UTC. Stopping recurrence preserves the current task and history and prevents future successors. Normal deletion soft-deletes only the selected occurrence by setting `deleted_at`; it is not whole-series deletion and does not hard-delete records. There is no background scheduler, notification delivery, complex recurrence syntax, or vehicle/rental/maintenance/user association.
+**Business rules:** A task has no recurrence when its recurrence configuration is absent; otherwise the interval is positive and the unit is `DAY`, `WEEK`, or `MONTH`. Daily, weekly, and monthly presets use interval one. The end condition is never, an inclusive Beirut-local business date, or a positive occurrence count. "After N occurrences" includes the original task: the original is occurrence 1, so an end count of 5 permits at most four successors. `occurrence_number` starts at 1 and each successor receives its predecessor's number plus 1. Do not create a successor when the current occurrence has reached `recurrence_end_count`, or when the successor's Beirut-local business date would be after `recurrence_end_date`; equality is allowed. Completing the current recurring occurrence atomically preserves it as `COMPLETED` history and creates exactly one next `PENDING` occurrence when recurrence remains active and its end condition permits it. The successor copies the title, notes, and recurrence configuration. Its due date is calculated using `Asia/Beirut` business date/time semantics, including timezone transitions; persisted timestamps may remain UTC. Stopping recurrence preserves the current task and history and prevents future successors. Normal deletion soft-deletes only the selected occurrence by setting `deleted_at`; it is not whole-series deletion and does not hard-delete records. There is no background scheduler, notification delivery, complex recurrence syntax, or vehicle/rental/maintenance/user association.
 
 ## 7. Media Models
 

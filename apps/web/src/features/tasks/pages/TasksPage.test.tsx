@@ -23,10 +23,17 @@ function makeTask(overrides: Partial<TaskResponse>): TaskResponse {
     id: `t-${Math.random()}`,
     dueDate: "2026-09-01T12:00:00Z",
     status: "PENDING",
+    recurrenceInterval: null,
+    recurrenceUnit: null,
+    recurrenceEndDate: null,
+    recurrenceEndCount: null,
+    occurrenceNumber: 1,
+    predecessorId: null,
     notes: null,
     createdAt: "2026-08-01T12:00:00Z",
     updatedAt: "2026-08-01T12:00:00Z",
     ...overrides,
+    title: overrides.title ?? "مهمة تجريبية",
   };
 }
 
@@ -57,12 +64,81 @@ describe("TasksPage", () => {
   it("renders API data", () => {
     mockQuery({
       data: {
-        data: [makeTask({ id: "t1", notes: "تجديد التأمين", status: "PENDING" })],
+        data: [makeTask({ id: "t1", title: "تجديد التأمين", notes: "تفصيل اختياري", status: "PENDING" })],
       },
     });
 
     render(<TasksPage />);
     expect(screen.getAllByText("تجديد التأمين").length).toBeGreaterThan(0);
+    expect(screen.queryByText("تفصيل اختياري")).not.toBeInTheDocument();
+  });
+
+  it("uses the same fixed width and logical alignment for due-date headers and cells", () => {
+    mockQuery({
+      data: { data: [makeTask({ id: "aligned", title: "فحص المركبة" })] },
+    });
+    render(<TasksPage />);
+
+    expect(screen.getByTestId("tasks-due-date-header").className).toContain("w-[18%] text-start");
+    expect(screen.getByTestId("tasks-due-date-cell").className).toContain("w-[18%] text-start");
+  });
+
+  it("uses a shared RTL-start-aligned identity wrapper for desktop titles and IDs", () => {
+    const shortTitle = "فحص";
+    const longTitle = "Annual vehicle insurance renewal review before the policy expiration date";
+    mockQuery({
+      data: {
+        data: [
+          makeTask({ id: "short123-task", title: shortTitle }),
+          makeTask({ id: "longabcd-task", title: longTitle }),
+        ],
+      },
+    });
+
+    render(<TasksPage />);
+
+    const desktopTitle = screen
+      .getAllByText(longTitle)
+      .find((element) => element.classList.contains("break-words"));
+    const desktopIds = ["#short123", "#longabcd"].map((id) =>
+      screen.getAllByText(id).find((element) => element.classList.contains("text-right")),
+    );
+
+    expect(desktopTitle).toHaveClass("break-words", "text-start");
+    desktopIds.forEach((id) => {
+      expect(id).toHaveClass("number-ltr", "text-right");
+      expect(id?.parentElement).toHaveClass("flex", "flex-1", "min-w-0", "text-start");
+    });
+  });
+
+  it("renders tasks that use the interval recurrence response shape", () => {
+    mockQuery({
+      data: {
+        data: [makeTask({ id: "recurring", title: "متابعة التأمين", recurrenceInterval: 2, recurrenceUnit: "WEEK", recurrenceEndCount: 5 })],
+      },
+    });
+    render(<TasksPage />);
+    expect(screen.getAllByText("متابعة التأمين").length).toBeGreaterThan(0);
+  });
+
+  it("keeps mobile task titles ahead of secondary metadata and status", () => {
+    const title = "مهمة متابعة دورية طويلة لملف التأمين الخاص بالمركبة";
+    mockQuery({
+      data: { data: [makeTask({ id: "mobile-task", title, status: "COMPLETED" })] },
+    });
+
+    render(<TasksPage />);
+
+    const mobileTitle = screen
+      .getAllByText(title)
+      .find((element) => element.classList.contains("line-clamp-2"));
+    const mobileId = screen
+      .getAllByText("#mobile-t")
+      .find((element) => element.classList.contains("truncate"));
+
+    expect(mobileTitle).toHaveClass("text-end");
+    expect(mobileTitle?.parentElement).toHaveClass("flex-1", "min-w-0");
+    expect(mobileId).toHaveClass("max-w-full", "text-start", "truncate");
   });
 
   it("shows a loading state without rendering an empty state", () => {
@@ -93,13 +169,13 @@ describe("TasksPage", () => {
     mockQuery({
       data: {
         data: [
-          makeTask({ id: "t1", notes: "تجديد التأمين" }),
-          makeTask({ id: "t2", notes: "فحص السيارة" }),
+          makeTask({ id: "t1", title: "تجديد التأمين" }),
+          makeTask({ id: "t2", title: "فحص السيارة" }),
         ],
       },
     });
     render(<TasksPage />);
-    fireEvent.change(screen.getByPlaceholderText("ابحث في الملاحظات..."), {
+    fireEvent.change(screen.getByPlaceholderText("ابحث في المهام..."), {
       target: { value: "تأمين" },
     });
     act(() => {
@@ -113,8 +189,8 @@ describe("TasksPage", () => {
     mockQuery({
       data: {
         data: [
-          makeTask({ id: "t1", status: "PENDING", notes: "أ" }),
-          makeTask({ id: "t2", status: "COMPLETED", notes: "ب" }),
+          makeTask({ id: "t1", status: "PENDING", title: "أ" }),
+          makeTask({ id: "t2", status: "COMPLETED", title: "ب" }),
         ],
       },
     });
@@ -130,8 +206,8 @@ describe("TasksPage", () => {
     mockQuery({
       data: {
         data: [
-          makeTask({ id: "overdue", dueDate: "2026-08-10T12:00:00Z", notes: "متأخرة" }),
-          makeTask({ id: "upcoming", dueDate: "2026-08-20T12:00:00Z", notes: "قادمة" }),
+          makeTask({ id: "overdue", dueDate: "2026-08-10T12:00:00Z", title: "متأخرة" }),
+          makeTask({ id: "upcoming", dueDate: "2026-08-20T12:00:00Z", title: "قادمة" }),
         ],
       },
     });
@@ -148,15 +224,15 @@ describe("TasksPage", () => {
     mockQuery({
       data: {
         data: [
-          makeTask({ id: "t1", status: "PENDING", notes: "تجديد التأمين" }),
-          makeTask({ id: "t2", status: "COMPLETED", notes: "تجديد التأمين" }),
-          makeTask({ id: "t3", status: "PENDING", notes: "فحص" }),
+          makeTask({ id: "t1", status: "PENDING", title: "تجديد التأمين" }),
+          makeTask({ id: "t2", status: "COMPLETED", title: "تجديد التأمين" }),
+          makeTask({ id: "t3", status: "PENDING", title: "فحص" }),
         ],
       },
     });
     render(<TasksPage />);
     fireEvent.click(screen.getByRole("button", { name: "قيد الانتظار" }));
-    fireEvent.change(screen.getByPlaceholderText("ابحث في الملاحظات..."), {
+    fireEvent.change(screen.getByPlaceholderText("ابحث في المهام..."), {
       target: { value: "تأمين" },
     });
     act(() => {

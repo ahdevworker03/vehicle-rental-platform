@@ -194,7 +194,9 @@ The platform should assist businesses with operational reminders.
 ### Requirements
 
 - Create tasks.
+- Require a short task title as the primary human-readable task identity.
 - Assign due dates.
+- Keep optional task notes as supplementary description, separate from the title.
 - Create tasks with no recurrence or an interval recurrence measured in days, weeks, or months.
 - Support simple recurrence presets: daily (1 day), weekly (1 week), and monthly (1 month).
 - Support custom recurrence intervals such as every 15 days, every 2 weeks, or every 4 months.

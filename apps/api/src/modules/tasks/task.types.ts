@@ -4,6 +4,7 @@ export type TaskRecurrenceUnit = "DAY" | "WEEK" | "MONTH";
 export interface TaskRecord {
   id: string;
   organization_id: string;
+  title: string;
   due_date: Date;
   status: TaskStatus;
   recurrence_interval: number | null;
@@ -20,6 +21,7 @@ export interface TaskRecord {
 
 export interface TaskResponse {
   id: string;
+  title: string;
   dueDate: string;
   status: TaskStatus;
   recurrenceInterval: number | null;
@@ -34,6 +36,7 @@ export interface TaskResponse {
 }
 
 export interface CreateTaskInput {
+  title: string;
   due_date: Date;
   notes?: string;
   recurrence_interval?: number | null;
@@ -43,6 +46,7 @@ export interface CreateTaskInput {
 }
 
 export interface UpdateTaskInput {
+  title?: string;
   due_date?: Date;
   notes?: string | null;
   recurrence_interval?: number | null;

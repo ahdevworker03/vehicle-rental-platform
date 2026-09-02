@@ -5204,6 +5204,9 @@ components:
       properties:
         id:
           type: string
+        title:
+          type: string
+          minLength: 1
         dueDate:
           type: string
           format: date-time
@@ -5243,6 +5246,7 @@ components:
           format: date-time
       required:
         - id
+        - title
         - dueDate
         - status
         - recurrenceInterval
@@ -5275,6 +5279,9 @@ components:
     CreateTaskRequest:
       type: object
       properties:
+        title:
+          type: string
+          minLength: 1
         due_date:
           type: string
           format: date-time
@@ -5301,11 +5308,15 @@ components:
           nullable: true
           description: Total occurrences including the original; requires recurrence and is mutually exclusive with recurrence_end_date.
       required:
+        - title
         - due_date
 
     UpdateTaskRequest:
       type: object
       properties:
+        title:
+          type: string
+          minLength: 1
         due_date:
           type: string
           format: date-time

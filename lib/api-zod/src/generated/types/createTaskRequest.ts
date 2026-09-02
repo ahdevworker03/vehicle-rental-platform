@@ -8,6 +8,8 @@
 import type { CreateTaskRequestRecurrenceUnit } from './createTaskRequestRecurrenceUnit';
 
 export interface CreateTaskRequest {
+  /** @minLength 1 */
+  title: string;
   due_date: Date;
   notes?: string;
   /**

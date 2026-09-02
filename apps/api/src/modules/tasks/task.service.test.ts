@@ -22,6 +22,7 @@ describe("task service", () => {
   async function createTaskInOrg(
     orgId: string,
     overrides: {
+      title?: string;
       dueDate?: Date;
       notes?: string;
       recurrenceInterval?: number;
@@ -34,6 +35,7 @@ describe("task service", () => {
     return prisma.task.create({
       data: {
         organization_id: orgId,
+        title: overrides.title ?? "Test task",
         due_date: overrides.dueDate ?? new Date("2026-09-01T09:00:00Z"),
         status: "PENDING",
         recurrence_interval: overrides.recurrenceInterval ?? null,
@@ -49,10 +51,12 @@ describe("task service", () => {
   describe("create", () => {
     it("creates a task for the authenticated organization as PENDING", async () => {
       const task = await createTask(ctx.orgId, {
+        title: "Oil change",
         due_date: new Date("2026-09-01T09:00:00Z"),
         notes: "Oil change reminder",
       });
 
+      expect(task.title).toBe("Oil change");
       expect(task.dueDate).toBe("2026-09-01T09:00:00.000Z");
       expect(task.status).toBe("PENDING");
       expect(task.notes).toBe("Oil change reminder");
@@ -63,6 +67,7 @@ describe("task service", () => {
 
     it("defaults notes to null when not provided", async () => {
       const task = await createTask(ctx.orgId, {
+        title: "Task without notes",
         due_date: new Date("2026-09-01T09:00:00Z"),
       });
 
@@ -122,13 +127,15 @@ describe("task service", () => {
   });
 
   describe("update", () => {
-    it("updates the due date and notes of a task", async () => {
+    it("updates the title, due date, and notes of a task", async () => {
       const created = await createTaskInOrg(ctx.orgId);
       const updated = await updateTask(created.id, ctx.orgId, {
+        title: "Updated task",
         due_date: new Date("2026-10-01T09:00:00Z"),
         notes: "Updated reminder",
       });
 
+      expect(updated.title).toBe("Updated task");
       expect(updated.dueDate).toBe("2026-10-01T09:00:00.000Z");
       expect(updated.notes).toBe("Updated reminder");
     });
@@ -183,6 +190,7 @@ describe("task service", () => {
       "creates the next %s %s occurrence from the completed due date",
       async (recurrenceInterval, recurrenceUnit, expectedDueDate) => {
         const task = await createTaskInOrg(ctx.orgId, {
+          title: "Recurring task",
           recurrenceInterval,
           recurrenceUnit,
           notes: "Recurring reminder",
@@ -195,6 +203,7 @@ describe("task service", () => {
           where: { predecessor_id: task.id },
         });
         expect(successor.organization_id).toBe(ctx.orgId);
+        expect(successor.title).toBe("Recurring task");
         expect(successor.status).toBe("PENDING");
         expect(successor.recurrence_interval).toBe(recurrenceInterval);
         expect(successor.recurrence_unit).toBe(recurrenceUnit);

@@ -6,7 +6,7 @@ import {
   Circle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatDateAr } from "@/lib/format";
+import { formatTaskDueDate } from "@/features/tasks/recurrence";
 import { isTaskOverdue } from "@/features/tasks/selectors";
 import type { TaskResponse } from "@workspace/api-client-react";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -35,7 +35,7 @@ interface TaskCardProps {
 }
 
 /**
- * Task list row. Displays due date, status, and notes. A pending task that is
+ * Task list row. Displays title, due date, status, and optional notes. A pending task that is
  * overdue is presented with an overdue style derived from `due_date` — this does
  * not persist or introduce any new Task status.
  */
@@ -63,7 +63,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2 mb-1">
           <span className="text-sm font-bold text-foreground truncate">
-            {task.notes ? task.notes : "مهمة بدون ملاحظات"}
+            {task.title}
           </span>
           <StatusBadge status={overdue ? "OVERDUE" : task.status} />
         </div>
@@ -71,7 +71,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         <div className="flex items-center justify-between gap-2">
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Calendar className="w-3.5 h-3.5" strokeWidth={1.5} />
-            {formatDateAr(task.dueDate)}
+            {formatTaskDueDate(task.dueDate)}
             {overdue && (
               <span className="text-xs font-bold text-[hsl(var(--status-danger))]">متأخرة</span>
             )}

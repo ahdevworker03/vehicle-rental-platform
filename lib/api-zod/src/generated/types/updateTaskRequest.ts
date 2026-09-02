@@ -8,6 +8,8 @@
 import type { UpdateTaskRequestRecurrenceUnit } from './updateTaskRequestRecurrenceUnit';
 
 export interface UpdateTaskRequest {
+  /** @minLength 1 */
+  title?: string;
   due_date?: Date;
   notes?: string | null;
   /** @minimum 1 */

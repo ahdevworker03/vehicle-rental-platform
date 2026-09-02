@@ -16,6 +16,7 @@ const dateOnlySchema = z
   .optional();
 
 const positiveIntegerSchema = z.number().int().min(1).nullable().optional();
+const titleSchema = z.string().trim().min(1);
 
 function recurrenceIssue(
   input: {
@@ -40,6 +41,7 @@ function recurrenceIssue(
 }
 
 export const createTaskSchema = CreateTaskBody.extend({
+  title: titleSchema,
   recurrence_interval: positiveIntegerSchema,
   recurrence_end_date: dateOnlySchema,
   recurrence_end_count: positiveIntegerSchema,
@@ -54,6 +56,7 @@ export const createTaskSchema = CreateTaskBody.extend({
 });
 
 export const updateTaskSchema = UpdateTaskBody.extend({
+  title: titleSchema.optional(),
   recurrence_interval: positiveIntegerSchema,
   recurrence_end_date: dateOnlySchema,
   recurrence_end_count: positiveIntegerSchema,

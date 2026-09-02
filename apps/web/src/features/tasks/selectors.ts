@@ -14,14 +14,12 @@ export function matchesStatusFilter(
 }
 
 /**
- * Free-text search over the fields actually available on the Task model.
- * There is no title field; search matches the task notes only (and the id as a
- * fallback so a task is reachable by its identifier). An empty term matches all.
+ * Free-text search over the task identity, optional notes, and identifier.
  */
 export function matchesSearch(task: TaskResponse, search: string): boolean {
   const q = search.trim().toLowerCase();
   if (!q) return true;
-  return (task.notes ?? "").toLowerCase().includes(q) || task.id.toLowerCase().includes(q);
+  return task.title.toLowerCase().includes(q) || (task.notes ?? "").toLowerCase().includes(q) || task.id.toLowerCase().includes(q);
 }
 
 /**
@@ -37,20 +35,29 @@ export function filterTasks(
   );
 }
 
+function beirutDateKey(value: Date): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    numberingSystem: "latn",
+    timeZone: "Asia/Beirut",
+  }).formatToParts(value);
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? "";
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
+export function isTaskDueToday(task: TaskResponse, now: () => Date = () => new Date()): boolean {
+  return task.status !== "COMPLETED" && beirutDateKey(new Date(task.dueDate)) === beirutDateKey(now());
+}
+
 /**
  * Derived overdue presentation state from `due_date`, without persisting any
  * new status. A pending task whose due date is before today is overdue.
  */
 export function isTaskOverdue(task: TaskResponse, now: () => Date = () => new Date()): boolean {
   if (task.status === "COMPLETED") return false;
-  const due = new Date(task.dueDate).getTime();
-  const today = now();
-  const startOfToday = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate(),
-  ).getTime();
-  return due < startOfToday;
+  return beirutDateKey(new Date(task.dueDate)) < beirutDateKey(now());
 }
 
 export function getPendingTaskCount(tasks: TaskResponse[]): number {

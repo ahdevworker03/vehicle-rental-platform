@@ -16,9 +16,11 @@ import * as zod from 'zod';
 
 
 
+
 export const ListTasksResponse = zod.object({
   "data": zod.array(zod.object({
   "id": zod.string(),
+  "title": zod.string().min(1),
   "dueDate": zod.coerce.date(),
   "status": zod.enum(['PENDING', 'COMPLETED']),
   "recurrenceInterval": zod.number().min(1).nullable(),
@@ -40,7 +42,9 @@ export const ListTasksResponse = zod.object({
 
 
 
+
 export const CreateTaskBody = zod.object({
+  "title": zod.string().min(1),
   "due_date": zod.coerce.date(),
   "notes": zod.string().optional(),
   "recurrence_interval": zod.number().min(1).nullish().describe('Must be provided with recurrence_unit, or both must be null\/absent.'),
@@ -54,9 +58,11 @@ export const CreateTaskBody = zod.object({
 
 
 
+
 export const CreateTaskResponse = zod.object({
   "data": zod.object({
   "id": zod.string(),
+  "title": zod.string().min(1),
   "dueDate": zod.coerce.date(),
   "status": zod.enum(['PENDING', 'COMPLETED']),
   "recurrenceInterval": zod.number().min(1).nullable(),
@@ -83,9 +89,11 @@ export const GetTaskParams = zod.object({
 
 
 
+
 export const GetTaskResponse = zod.object({
   "data": zod.object({
   "id": zod.string(),
+  "title": zod.string().min(1),
   "dueDate": zod.coerce.date(),
   "status": zod.enum(['PENDING', 'COMPLETED']),
   "recurrenceInterval": zod.number().min(1).nullable(),
@@ -111,7 +119,9 @@ export const UpdateTaskParams = zod.object({
 
 
 
+
 export const UpdateTaskBody = zod.object({
+  "title": zod.string().min(1).optional(),
   "due_date": zod.coerce.date().optional(),
   "notes": zod.string().nullish(),
   "recurrence_interval": zod.number().min(1).nullish(),
@@ -125,9 +135,11 @@ export const UpdateTaskBody = zod.object({
 
 
 
+
 export const UpdateTaskResponse = zod.object({
   "data": zod.object({
   "id": zod.string(),
+  "title": zod.string().min(1),
   "dueDate": zod.coerce.date(),
   "status": zod.enum(['PENDING', 'COMPLETED']),
   "recurrenceInterval": zod.number().min(1).nullable(),
@@ -163,9 +175,11 @@ export const CompleteTaskParams = zod.object({
 
 
 
+
 export const CompleteTaskResponse = zod.object({
   "data": zod.object({
   "id": zod.string(),
+  "title": zod.string().min(1),
   "dueDate": zod.coerce.date(),
   "status": zod.enum(['PENDING', 'COMPLETED']),
   "recurrenceInterval": zod.number().min(1).nullable(),

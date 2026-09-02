@@ -81,12 +81,17 @@ function makeTask(overrides: Partial<TaskResponse>): TaskResponse {
     id: `t-${Math.random()}`,
     dueDate: "2026-09-01T12:00:00Z",
     status: "PENDING",
-    recurrenceType: "NONE",
+    recurrenceInterval: null,
+    recurrenceUnit: null,
+    recurrenceEndDate: null,
+    recurrenceEndCount: null,
+    occurrenceNumber: 1,
     predecessorId: null,
     notes: null,
     createdAt: "2026-08-01T12:00:00Z",
     updatedAt: "2026-08-01T12:00:00Z",
     ...overrides,
+    title: overrides.title ?? "مهمة تجريبية",
   };
 }
 

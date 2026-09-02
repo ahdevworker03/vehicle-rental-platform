@@ -30,6 +30,7 @@ async function findById(
 async function create(
   data: {
     organization_id: string;
+    title: string;
     due_date: Date;
     status: TaskStatus;
     recurrence_interval: number | null;
@@ -49,6 +50,7 @@ async function update(
   taskId: string,
   orgId: string,
   data: {
+    title?: string;
     due_date?: Date;
     status?: TaskStatus;
     recurrence_interval?: number | null;

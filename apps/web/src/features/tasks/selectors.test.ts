@@ -4,6 +4,7 @@ import {
   matchesStatusFilter,
   matchesSearch,
   filterTasks,
+  isTaskDueToday,
   isTaskOverdue,
   getPendingTaskCount,
 } from "./selectors";
@@ -13,10 +14,17 @@ function makeTask(overrides: Partial<TaskResponse>): TaskResponse {
     id: `t-${Math.random()}`,
     dueDate: "2026-09-01T12:00:00Z",
     status: "PENDING",
+    recurrenceInterval: null,
+    recurrenceUnit: null,
+    recurrenceEndDate: null,
+    recurrenceEndCount: null,
+    occurrenceNumber: 1,
+    predecessorId: null,
     notes: null,
     createdAt: "2026-08-01T12:00:00Z",
     updatedAt: "2026-08-01T12:00:00Z",
     ...overrides,
+    title: overrides.title ?? "مهمة تجريبية",
   };
 }
 
@@ -34,8 +42,8 @@ describe("matchesStatusFilter", () => {
 });
 
 describe("matchesSearch", () => {
-  it("matches the notes field", () => {
-    expect(matchesSearch(makeTask({ notes: "تذكير التأمين" }), "تأمين")).toBe(true);
+  it("matches the title field", () => {
+    expect(matchesSearch(makeTask({ title: "تذكير التأمين" }), "تأمين")).toBe(true);
   });
 
   it("returns true for an empty search term", () => {
@@ -44,15 +52,15 @@ describe("matchesSearch", () => {
   });
 
   it("does not match when the term is absent", () => {
-    expect(matchesSearch(makeTask({ notes: "زيت" }), "إطارات")).toBe(false);
+    expect(matchesSearch(makeTask({ title: "زيت" }), "إطارات")).toBe(false);
   });
 });
 
 describe("filterTasks", () => {
   const tasks = [
-    makeTask({ id: "t1", status: "PENDING", notes: "تجديد التأمين" }),
-    makeTask({ id: "t2", status: "COMPLETED", notes: "تجديد التأمين" }),
-    makeTask({ id: "t3", status: "PENDING", notes: "فحص السيارة" }),
+    makeTask({ id: "t1", status: "PENDING", title: "تجديد التأمين" }),
+    makeTask({ id: "t2", status: "COMPLETED", title: "تجديد التأمين" }),
+    makeTask({ id: "t3", status: "PENDING", title: "فحص السيارة" }),
   ];
 
   it("applies the status filter only", () => {
@@ -97,6 +105,17 @@ describe("isTaskOverdue", () => {
     expect(
       isTaskOverdue(makeTask({ status: "PENDING", dueDate: "2026-09-10T12:00:00Z" }), now),
     ).toBe(false);
+  });
+
+  it("uses the Beirut business date across a UTC calendar boundary", () => {
+    const task = makeTask({ dueDate: "2026-09-05T12:00:00Z" });
+    const beforeBeirutMidnight = () => new Date("2026-09-05T20:30:00Z");
+    const afterBeirutMidnight = () => new Date("2026-09-05T22:30:00Z");
+
+    expect(isTaskDueToday(task, beforeBeirutMidnight)).toBe(true);
+    expect(isTaskOverdue(task, beforeBeirutMidnight)).toBe(false);
+    expect(isTaskDueToday(task, afterBeirutMidnight)).toBe(false);
+    expect(isTaskOverdue(task, afterBeirutMidnight)).toBe(true);
   });
 });
 

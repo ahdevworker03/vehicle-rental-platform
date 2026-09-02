@@ -10,6 +10,8 @@ import type { TaskResponseStatus } from './taskResponseStatus';
 
 export interface TaskResponse {
   id: string;
+  /** @minLength 1 */
+  title: string;
   dueDate: Date;
   status: TaskResponseStatus;
   /** @minimum 1 */

@@ -230,6 +230,13 @@ any previously unused token for the same user.
 
 ## Task Recurrence
 
+The approved pending Task title migration adds a required, non-empty `title`
+field as the primary human-readable task identity. `notes` remain an optional,
+independent supplementary description. Existing rows with non-empty notes use
+those notes as their initial title; rows without notes use `مهمة بدون عنوان`.
+The migration preserves the existing `notes` values unchanged before enforcing
+the required title.
+
 Tasks support no recurrence or an interval recurrence measured in days, weeks,
 or months. The recurrence configuration includes an interval, a unit, and an
 end condition: never, on a specific date, or after a specified number of
@@ -245,10 +252,10 @@ occurrences permits at most four successors.
 A nullable unique `predecessor_id` self-reference forms an occurrence chain and
 ensures that a completed task has at most one direct successor. Completion and
 creation of a recurring successor occur in one serializable transaction. The
-successor copies the recurring task's notes and recurrence configuration and
-derives its due date using `Asia/Beirut` business date/time semantics. Persisted
-timestamps may remain UTC, but recurrence must not use fixed UTC offsets or UTC
-calendar arithmetic.
+successor copies the recurring task's title, notes, and recurrence configuration,
+then derives its due date using `Asia/Beirut` business date/time semantics.
+Persisted timestamps may remain UTC, but recurrence must not use fixed UTC
+offsets or UTC calendar arithmetic.
 
 Completing the current occurrence preserves it as `COMPLETED` history and
 creates exactly one next `PENDING` occurrence while recurrence remains active.

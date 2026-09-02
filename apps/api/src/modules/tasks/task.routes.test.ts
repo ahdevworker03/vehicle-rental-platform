@@ -36,6 +36,7 @@ describe("task routes", () => {
       .post("/api/tasks")
       .set("Authorization", `Bearer ${token}`)
       .send({
+        title: "Renew insurance",
         due_date: "2026-09-01T09:00:00Z",
         ...overrides,
       });
@@ -46,6 +47,7 @@ describe("task routes", () => {
     const res = await createTask({ notes: "Insurance renewal" });
 
     expect(res.status).toBe(201);
+    expect(res.body.data.title).toBe("Renew insurance");
     expect(res.body.data.dueDate).toBe("2026-09-01T09:00:00.000Z");
     expect(res.body.data.status).toBe("PENDING");
     expect(res.body.data.notes).toBe("Insurance renewal");
@@ -53,6 +55,38 @@ describe("task routes", () => {
     expect(res.body.data.recurrenceUnit).toBeNull();
     expect(res.body.data.occurrenceNumber).toBe(1);
     expect(res.body.data.predecessorId).toBeNull();
+  });
+
+  it.each([
+    ["missing", undefined],
+    ["empty", ""],
+    ["whitespace-only", "   "],
+  ])("rejects a %s title", async (_case, title) => {
+    const body: Record<string, unknown> = {
+      due_date: "2026-09-01T09:00:00Z",
+    };
+    if (title !== undefined) body.title = title;
+
+    const res = await request(app)
+      .post("/api/tasks")
+      .set("Authorization", `Bearer ${token}`)
+      .send(body);
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe("VALIDATION_ERROR");
+  });
+
+  it("keeps title and notes independent", async () => {
+    const withoutNotes = await createTask({ title: "Vehicle inspection" });
+    const withDifferentNotes = await createTask({
+      title: "Collect payment",
+      notes: "Call the customer first",
+    });
+
+    expect(withoutNotes.body.data.title).toBe("Vehicle inspection");
+    expect(withoutNotes.body.data.notes).toBeNull();
+    expect(withDifferentNotes.body.data.title).toBe("Collect payment");
+    expect(withDifferentNotes.body.data.notes).toBe("Call the customer first");
   });
 
   it("creates and completes a recurring task through the API", async () => {
@@ -72,6 +106,7 @@ describe("task routes", () => {
     const successor = await prisma.task.findFirstOrThrow({
       where: { predecessor_id: created.body.data.id },
     });
+    expect(successor.title).toBe("Renew insurance");
     expect(successor.due_date.toISOString()).toBe("2026-09-08T09:00:00.000Z");
   });
 
@@ -92,7 +127,7 @@ describe("task routes", () => {
     const res = await request(app)
       .post("/api/tasks")
       .set("Authorization", `Bearer ${token}`)
-      .send({ due_date: "not-a-date" });
+      .send({ title: "Invalid date task", due_date: "not-a-date" });
     expect(res.status).toBe(422);
   });
 
@@ -172,10 +207,23 @@ describe("task routes", () => {
     const res = await request(app)
       .patch(`/api/tasks/${id}`)
       .set("Authorization", `Bearer ${token}`)
-      .send({ notes: "Updated" });
+      .send({ title: "Updated title", notes: "Updated" });
 
     expect(res.status).toBe(200);
+    expect(res.body.data.title).toBe("Updated title");
     expect(res.body.data.notes).toBe("Updated");
+  });
+
+  it("rejects a whitespace-only title update", async () => {
+    const created = await createTask();
+
+    const res = await request(app)
+      .patch(`/api/tasks/${created.body.data.id}`)
+      .set("Authorization", `Bearer ${token}`)
+      .send({ title: "   " });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe("VALIDATION_ERROR");
   });
 
   it("updates recurrence for a pending task", async () => {
@@ -268,6 +316,7 @@ describe("task routes", () => {
     const otherTask = await prisma.task.create({
       data: {
         organization_id: otherOrg.id,
+        title: "Other organization task",
         due_date: new Date("2026-09-01T09:00:00Z"),
         status: "PENDING",
         notes: null,

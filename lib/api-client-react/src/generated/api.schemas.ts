@@ -892,6 +892,8 @@ export const TaskResponseRecurrenceUnit = {
 
 export interface TaskResponse {
   id: string;
+  /** @minLength 1 */
+  title: string;
   dueDate: string;
   status: TaskResponseStatus;
   /** @minimum 1 */
@@ -929,6 +931,8 @@ export const CreateTaskRequestRecurrenceUnit = {
 } as const;
 
 export interface CreateTaskRequest {
+  /** @minLength 1 */
+  title: string;
   due_date: string;
   notes?: string;
   /**
@@ -957,6 +961,8 @@ export const UpdateTaskRequestRecurrenceUnit = {
 } as const;
 
 export interface UpdateTaskRequest {
+  /** @minLength 1 */
+  title?: string;
   due_date?: string;
   notes?: string | null;
   /** @minimum 1 */
