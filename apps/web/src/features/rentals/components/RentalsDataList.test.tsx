@@ -51,11 +51,45 @@ describe("RentalsDataList", () => {
     render(<RentalsDataList items={[item(125)]} onOpen={vi.fn()} />);
 
     const badge = screen.getAllByText("رصيد مستحق")[0];
-    const paymentSummary = badge.parentElement?.parentElement;
+    const paymentSummary = badge.parentElement?.parentElement?.parentElement;
 
     expect(paymentSummary?.textContent).toContain("USD 400");
     expect(paymentSummary?.textContent).toContain("المتبقي:");
     expect(paymentSummary?.textContent).toContain("USD 125");
+  });
+
+  it("keeps payment status in a stable horizontal desktop slot", () => {
+    const paid = item(0);
+    const outstanding = item(125);
+    paid.rental = { ...rental, id: "rental-paid" } as RentalResponse;
+    outstanding.rental = { ...rental, id: "rental-outstanding" } as RentalResponse;
+
+    render(
+      <RentalsDataList items={[paid, outstanding]} onOpen={vi.fn()} />,
+    );
+
+    const table = screen.getByRole("table");
+    const slots = screen.getAllByTestId("payment-status-slot").filter((slot) =>
+      table.contains(slot),
+    );
+
+    expect(slots).toHaveLength(2);
+    expect(slots[0]).toHaveClass("shrink-0");
+    expect(slots[1]).toHaveClass("shrink-0");
+    expect(slots[0].parentElement).toHaveClass(
+      "flex",
+      "items-center",
+      "justify-between",
+      "gap-3",
+    );
+    expect(slots[0].parentElement).toHaveTextContent("المتبقي:");
+    expect(slots[1].parentElement).toHaveClass(
+      "flex",
+      "items-center",
+      "justify-between",
+      "gap-3",
+    );
+    expect(slots[1].parentElement).toHaveTextContent("المتبقي:");
   });
 
   it("defines stable columns for every rental table header", () => {

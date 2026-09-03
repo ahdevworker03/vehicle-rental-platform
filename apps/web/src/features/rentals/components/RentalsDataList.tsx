@@ -68,9 +68,11 @@ function RentalStatusCluster({ rental }: { rental: RentalResponse }) {
 function PaymentSummary({
   item,
   compact = false,
+  desktop = false,
 }: {
   item: RentalListItem;
   compact?: boolean;
+  desktop?: boolean;
 }) {
   if (item.outstandingBalance === null) {
     return (
@@ -84,29 +86,41 @@ function PaymentSummary({
   }
 
   const paymentStatus = item.outstandingBalance === 0 ? "PAID" : "OUTSTANDING";
+  const paymentStatusSlot = (
+    <div data-testid="payment-status-slot" className="shrink-0">
+      <StatusBadge status={paymentStatus} />
+    </div>
+  );
 
   return (
-    <div
-      className={cn(
-        "min-w-0 text-right",
-        compact ? "space-y-1" : "space-y-1.5",
-      )}
-    >
+    <div className={cn("min-w-0 text-right", !desktop && (compact ? "space-y-1" : "space-y-1.5"))}>
       <div
         dir="ltr"
         className="number-ltr text-right text-sm font-semibold text-foreground"
       >
         {formatCurrency(item.rental.totalAmount)}
       </div>
-      <div>
-        <StatusBadge status={paymentStatus} />
-      </div>
-      <div className="text-xs text-muted-foreground">
-        <span>المتبقي: </span>
-        <span dir="ltr" className="number-ltr inline-block whitespace-nowrap">
-          {formatCurrency(item.outstandingBalance)}
-        </span>
-      </div>
+      {desktop ? (
+        <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+          <span>
+            <span>المتبقي: </span>
+            <span dir="ltr" className="number-ltr inline-block whitespace-nowrap">
+              {formatCurrency(item.outstandingBalance)}
+            </span>
+          </span>
+          {paymentStatusSlot}
+        </div>
+      ) : (
+        <>
+          <div>{paymentStatusSlot}</div>
+          <div className="text-xs text-muted-foreground">
+            <span>المتبقي: </span>
+            <span dir="ltr" className="number-ltr inline-block whitespace-nowrap">
+              {formatCurrency(item.outstandingBalance)}
+            </span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -282,7 +296,7 @@ export function RentalsDataList({ items, onOpen }: RentalsDataListProps) {
                   <RentalDate value={item.rental.expectedReturnDate} />
                 </TableCell>
                 <TableCell className="py-3.5 text-start align-middle">
-                  <PaymentSummary item={item} />
+                  <PaymentSummary item={item} desktop />
                 </TableCell>
                 <TableCell className="py-3.5 align-middle text-end whitespace-nowrap">
                   <PrimaryAction
