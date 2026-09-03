@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { CustomerResponse } from "@workspace/api-client-react";
 import { CustomersDataList } from "./CustomersDataList";
@@ -17,15 +17,32 @@ const customer = {
 } as CustomerResponse;
 
 describe("CustomersDataList", () => {
-  it("keeps Arabic identity and LTR renter identifiers readable", () => {
+  it("groups the customer identity without duplicating the phone number", () => {
     render(<CustomersDataList customers={[customer]} onOpen={vi.fn()} />);
 
-    expect(screen.getAllByText("أحمد حسن").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("123456789").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("DL-9988").length).toBeGreaterThan(0);
+    const table = screen.getByRole("table");
+    const identityCell = table.querySelector<HTMLTableCellElement>("tbody td")!;
+    const identity = within(identityCell).getByText("أحمد حسن");
+
+    expect(identityCell).not.toHaveTextContent(customer.phone);
+    expect(identity.parentElement).toHaveClass("min-w-0", "text-start");
+    expect(identity.parentElement).not.toHaveClass("flex-1");
+    expect(identity).toHaveClass("break-words");
+    const identityWrapper = identityCell.querySelector("div");
+    expect(identityWrapper).toHaveClass(
+      "flex",
+      "min-w-0",
+      "items-start",
+      "gap-3",
+    );
+    expect(identityWrapper).not.toHaveClass("xl:min-w-[18rem]");
+    expect(identityCell.querySelector("svg")?.parentElement).toHaveClass(
+      "size-9",
+      "shrink-0",
+    );
   });
 
-  it("keeps long mixed-direction identity and identifier values constrained", () => {
+  it("keeps long mixed-direction names wrapping and identifiers LTR-isolated", () => {
     const longCustomer = {
       ...customer,
       id: "customer-2",
@@ -40,20 +57,30 @@ describe("CustomersDataList", () => {
     const names = screen.getAllByText(
       "شركة النخبة الدولية لتأجير المركبات Al Noor Fleet Management",
     );
-    expect(names[0].className).toContain(
-      "truncate text-sm font-medium text-foreground",
-    );
-    expect(screen.getAllByText("+961701234567890")[0].className).toContain(
-      "number-ltr mt-0.5 block truncate text-right",
-    );
-    expect(screen.getAllByText("12345678901234567890")[0].className).toContain(
-      "number-ltr block whitespace-nowrap text-end text-sm font-medium",
-    );
-    expect(
-      screen.getAllByText("LB-DRIVER-LICENSE-2026-998877")[0].className,
-    ).toContain(
-      "number-ltr block whitespace-nowrap text-end text-sm font-medium",
-    );
+    expect(names[0]).toHaveClass("break-words", "text-sm", "font-medium");
+
+    const table = screen.getByRole("table");
+    for (const value of [
+      longCustomer.phone,
+      longCustomer.nationalId,
+      longCustomer.licenseNumber,
+    ]) {
+      const identifier = within(table).getByText(value);
+      expect(identifier).toHaveAttribute("dir", "ltr");
+      expect(identifier).toHaveClass("identifier-ltr", "whitespace-nowrap");
+    }
+  });
+
+  it("preserves desktop customer table widths and actions", () => {
+    render(<CustomersDataList customers={[customer]} onOpen={vi.fn()} />);
+
+    const table = screen.getByRole("table");
+    expect(table).toHaveClass("min-w-[62rem]", "table-fixed");
+    expect(within(table).getByRole("columnheader", { name: "العميل" })).toHaveClass("w-[20rem]");
+    expect(within(table).getByRole("columnheader", { name: "رقم الهاتف" })).toHaveClass("w-[10rem]", "text-start");
+    expect(within(table).getByRole("columnheader", { name: "رقم الهوية" })).toHaveClass("w-[12rem]", "text-start");
+    expect(within(table).getByRole("columnheader", { name: "رقم الرخصة" })).toHaveClass("w-[12rem]", "text-start");
+    expect(within(table).getByRole("columnheader", { name: "الإجراء" })).toHaveClass("w-[10rem]");
   });
 
   it("opens the selected customer", () => {

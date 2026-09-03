@@ -20,26 +20,14 @@ function CustomerIdentity({ customer }: { customer: CustomerResponse }) {
   const fullName = `${customer.firstName} ${customer.lastName}`.trim();
 
   return (
-    <div
-      className="grid min-w-0 grid-cols-[minmax(0,1fr)_2.25rem] items-center gap-3 xl:min-w-[18rem]"
-      dir="rtl"
-    >
-      <span className="min-w-0 text-right">
-        <span
-          dir="auto"
-          className="block truncate text-sm font-medium text-foreground"
-        >
-          {fullName}
-        </span>
-        <span
-          dir="ltr"
-          className="number-ltr mt-0.5 block truncate text-right text-xs text-muted-foreground"
-        >
-          {customer.phone}
-        </span>
-      </span>
+    <div className="flex min-w-0 items-start gap-3" dir="rtl">
       <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
         <UserRound className="size-4" aria-hidden="true" />
+      </span>
+      <span className="min-w-0 text-start">
+        <span dir="auto" className="block break-words text-sm font-medium text-foreground">
+          {fullName}
+        </span>
       </span>
     </div>
   );
@@ -49,7 +37,7 @@ function IdentityValue({ value }: { value: string }) {
   return (
     <span
       dir="ltr"
-      className="number-ltr block whitespace-nowrap text-end text-sm font-medium text-foreground"
+      className="identifier-ltr block whitespace-nowrap text-end text-sm font-medium text-foreground"
     >
       {value}
     </span>
@@ -67,13 +55,13 @@ export function CustomersDataList({
           <TableHeader className="bg-muted/45">
             <TableRow>
               <TableHead className="w-[20rem] min-w-[20rem]">العميل</TableHead>
-              <TableHead className="w-[10rem] min-w-[10rem] text-end">
+              <TableHead className="w-[10rem] min-w-[10rem] text-start">
                 رقم الهاتف
               </TableHead>
-              <TableHead className="w-[12rem] min-w-[12rem] text-end">
+              <TableHead className="w-[12rem] min-w-[12rem] text-start">
                 رقم الهوية
               </TableHead>
-              <TableHead className="w-[12rem] min-w-[12rem] text-end">
+              <TableHead className="w-[12rem] min-w-[12rem] text-start">
                 رقم الرخصة
               </TableHead>
               <TableHead className="w-[10rem] min-w-[10rem] text-end">
@@ -126,6 +114,12 @@ export function CustomersDataList({
             <CustomerIdentity customer={customer} />
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
+                <div className="ui-label">رقم الهاتف</div>
+                <div className="mt-1">
+                  <IdentityValue value={customer.phone} />
+                </div>
+              </div>
+              <div>
                 <div className="ui-label">رقم الهوية</div>
                 <div className="mt-1">
                   <IdentityValue value={customer.nationalId} />
@@ -174,7 +168,7 @@ export function CustomersDataList({
             <div className="flex items-center justify-between gap-3">
               <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
                 <Phone className="size-3.5 shrink-0" aria-hidden="true" />
-                <span dir="ltr" className="number-ltr truncate">
+                <span dir="ltr" className="identifier-ltr truncate">
                   {customer.phone}
                 </span>
               </span>

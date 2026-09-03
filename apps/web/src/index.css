@@ -225,6 +225,7 @@
 @layer utilities {
   .number-ltr { direction: ltr; unicode-bidi: plaintext; }
   .date-token-ltr { direction: ltr; unicode-bidi: isolate; }
+  .identifier-ltr { direction: ltr; unicode-bidi: isolate; }
   input[type='search']::-webkit-search-cancel-button { @apply hidden; }
   [contenteditable][data-placeholder]:empty::before {
     content: attr(data-placeholder);
