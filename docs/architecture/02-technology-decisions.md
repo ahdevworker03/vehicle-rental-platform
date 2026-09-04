@@ -40,11 +40,17 @@
 | 34 | [Decision](#decision) |
 | 35 | [Alternatives Considered](#alternatives-considered) |
 | 36 | [Why REST](#why-rest) |
-| 37 | [Authentication](#authentication) |
+| 37 | [Object Storage](#object-storage) |
 | 38 | [Decision](#decision) |
 | 39 | [Why](#why) |
-| 40 | [Future Review](#future-review) |
-| 41 | [Guiding Principle](#guiding-principle) |
+| 40 | [Docker](#docker) |
+| 41 | [Decision](#decision) |
+| 42 | [Why](#why) |
+| 43 | [Authentication](#authentication) |
+| 44 | [Decision](#decision) |
+| 45 | [Why](#why) |
+| 46 | [Future Review](#future-review) |
+| 47 | [Guiding Principle](#guiding-principle) |
 
 ## Purpose
 
@@ -82,6 +88,8 @@ Every technology should:
 | ORM                       | Prisma                   |
 | API Style                 | REST                     |
 | Authentication            | JWT (planned)            |
+| Object Storage            | S3-compatible (Cloudflare R2) |
+| Production Packaging      | Docker                   |
 
 ---
 
@@ -319,6 +327,46 @@ Prisma is a productivity tool—not a replacement for understanding databases.
 - Easier to learn while building the project.
 
 GraphQL or gRPC may be evaluated if future requirements justify them.
+
+---
+
+# Object Storage
+
+## Decision
+
+**S3-compatible object storage (Cloudflare R2)**
+
+### Why
+
+- S3-compatible interface keeps the existing storage-provider abstraction portable across providers.
+- Durable, off-server storage so uploaded files do not depend on the VPS filesystem.
+- Cloudflare R2 is the approved provider for private vehicle photos, private customer/vehicle documents, signed rental documents/contracts, and other user-uploaded production files.
+- Access to tenant-owned private objects remains controlled through authenticated server-side authorization and tenant isolation, not public object URLs.
+
+### Alternatives Considered
+
+- Local filesystem (development only; not durable enough for production).
+- Other S3-compatible providers (the compatible interface means the provider can change without rewriting application code).
+
+---
+
+# Docker
+
+## Decision
+
+**Docker for production application packaging and deployment.**
+
+### Why
+
+- Reproducible, immutable application images.
+- Consistent runtime between CI, staging, and production.
+- Packages the Node.js/Express API, Prisma runtime, and required runtime dependencies as one deployable unit.
+- Enables non-root execution, health checks, and graceful shutdown to be defined and verified in the image.
+
+### Alternatives Considered
+
+- Bare Node.js process on the server (less reproducible across environments).
+- Platform-managed application hosting (removes control over runtime and complicates the current VPS-based topology).
 
 ---
 

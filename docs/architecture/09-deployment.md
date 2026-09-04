@@ -62,10 +62,28 @@ The deployed platform consists of:
 - Backend API
 - PostgreSQL Database
 - Object Storage
+- Edge / Network Layer
 - Email Service
 - Monitoring and Logging Services
 
 Each component has a clearly defined responsibility.
+
+The approved production topology deploys each component as follows:
+
+| Component               | Technology                          | Production Location                                      |
+| ----------------------- | ----------------------------------- | -------------------------------------------------------- |
+| Frontend                | React + TypeScript + Vite           | Cloudflare Pages (assets delivered via Cloudflare CDN)   |
+| Backend API             | Node.js + Express + Prisma + Docker | Hetzner VPS (Nuremberg, Germany)                         |
+| Database                | PostgreSQL                          | Same Hetzner VPS as the API (private/internal access)    |
+| Object Storage          | S3-compatible (Cloudflare R2)       | Cloudflare R2                                            |
+| Edge / Network          | Cloudflare                          | DNS, proxying, TLS, DDoS, edge rate limiting             |
+| VPS Runtime             | Docker (Docker Compose)             | Hetzner VPS (API, Prisma runtime, PostgreSQL, reverse proxy) |
+
+The initial backend/database capacity target is approximately 4 vCPU, 8 GB RAM, and 80 GB storage. The exact Hetzner plan may evolve; the architecture records the required capacity and provider rather than a specific plan identifier.
+
+The frontend is independently deployable from the API and must not be hosted from the production VPS unless a future measurable requirement justifies changing that decision.
+
+The API and PostgreSQL initially share one VPS as an intentional simplicity and cost decision, not a permanent architectural constraint. PostgreSQL remains the authoritative system of record.
 
 ---
 
@@ -124,6 +142,12 @@ Application updates should not require manual server configuration whenever poss
 
 # Database Deployment
 
+PostgreSQL is initially deployed on the same Hetzner VPS as the backend API. This co-location is an approved simplicity and cost decision, not a permanent architectural constraint.
+
+PostgreSQL must not be publicly exposed. Database access is internal/private to the server/application environment, and backend application credentials remain secret and environment-configured.
+
+PostgreSQL remains the authoritative system of record for the platform.
+
 Database schema changes should be managed through version-controlled migrations.
 
 Schema changes should:
@@ -138,15 +162,21 @@ Database updates should be coordinated with application deployments.
 
 # File Storage
 
+Production file storage uses S3-compatible object storage on Cloudflare R2, so uploaded files do not depend on the VPS filesystem for durability.
+
 User-uploaded files should be stored separately from the application.
 
 Application deployments should never affect uploaded files.
 
-Object storage should support:
+Cloudflare R2 stores:
 
-- Images
-- Documents
-- Future file types
+- Private vehicle photos
+- Private customer/vehicle documents
+- Signed rental documents/contracts where applicable
+- Other user-uploaded production files
+- Off-server PostgreSQL backups
+
+Access to tenant-owned private objects is controlled through authenticated server-side authorization and tenant isolation rules, not through public object URLs.
 
 ---
 
@@ -183,12 +213,17 @@ Sensitive information must never be written to application logs.
 
 Production data should be backed up automatically.
 
+Because PostgreSQL and the API initially share one VPS, the VPS is a single failure domain. Backups must therefore leave the VPS; Cloudflare R2 is the approved off-server backup destination. A backup stored only on the VPS is not an acceptable production backup.
+
 Backup procedures should:
 
-- Run regularly.
+- Run automatically.
+- Leave the VPS (to Cloudflare R2).
 - Be monitored.
 - Be tested periodically.
 - Support reliable restoration.
+
+Backup retention is defined during Milestone 6, and restore procedures are tested before production approval.
 
 Business continuity depends on verified backups.
 
@@ -222,6 +257,15 @@ The platform should allow independent scaling of:
 
 Scaling decisions should minimize operational complexity while maintaining application performance.
 
+The initial single-VPS backend/database topology is approved and is not considered a scalability blocker. Scaling remains evidence-based, in this order:
+
+1. Vertically resize the Hetzner VPS when CPU, memory, or storage measurements justify it.
+2. Move PostgreSQL to separate infrastructure when database capacity, reliability, performance, or operational requirements justify separation.
+3. Add additional API instances and load balancing only when measured traffic requires horizontal scaling.
+4. Introduce Redis, queues, workers, Kubernetes, distributed databases, or other infrastructure only when a concrete requirement or measured bottleneck justifies them.
+
+Future scaling infrastructure is not pre-built.
+
 ---
 
 # Security
@@ -235,6 +279,8 @@ Production deployments should enforce:
 - Secure secret management.
 
 Security applies to every deployed environment.
+
+Cloudflare provides the edge/network layer: DNS, proxying, HTTPS/TLS, DDoS protection, and appropriate edge-level rate limiting for public traffic before it reaches the VPS. Cloudflare protections do not replace backend security. Express remains responsible for authentication, authorization, organization isolation, validation, business-rule enforcement, and API-level protection.
 
 ---
 
