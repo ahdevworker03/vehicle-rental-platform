@@ -43,7 +43,7 @@ This skill guides the agent in designing, managing, and optimizing monorepos usi
 
 ### Tooling Selection
 
-- **IF** the monorepo contains a mix of frontend (React) and backend (Express/Prisma) applications with shared TypeScript packages, **THEN** use Turborepo (from Vercel) for its simplicity, excellent caching, and integration with Vercel deployments.
+- **IF** the monorepo contains a mix of frontend (React) and backend (Express/Prisma) applications with shared TypeScript packages, **THEN** use Turborepo for its simplicity and excellent caching.
 - **IF** the monorepo has many advanced features (e.g., distributed caching, granular dependency graph visualization, extensive plugin system), **THEN** consider Nx, but be aware it has a steeper learning curve.
 - **IF** the team has limited monorepo experience, **THEN** start with Turborepo and extend as needed.
 

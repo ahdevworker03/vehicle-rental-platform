@@ -56,10 +56,13 @@
       "enabled": true
     },
 
-    "vercel": {
+    "cloudflare": {
       "type": "remote",
-      "url": "https://mcp.vercel.com",
-      "enabled": true
+      "url": "https://mcp.cloudflare.com/mcp",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer {env:CLOUDFLARE_API_TOKEN}"
+      }
     },
 
     "postgresql": {

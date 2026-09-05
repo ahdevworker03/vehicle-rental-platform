@@ -1,9 +1,6 @@
 [mcp_servers.context7]
 url = "https://mcp.context7.com/mcp"
 
-[mcp_servers.vercel]
-url = "https://mcp.vercel.com"
-
 [mcp_servers.github]
 url = "https://api.githubcopilot.com/mcp/"
 bearer_token_env_var = "GITHUB_TOKEN"
@@ -24,6 +21,13 @@ enabled = true
 [mcp_servers."21st"]
 url = "https://21st.dev/api/mcp"
 enabled = true
+
+[mcp_servers.cloudflare]
+url = "https://mcp.cloudflare.com/mcp"
+enabled = true
+
+[mcp_servers.cloudflare.headers]
+Authorization = "Bearer ${env:CLOUDFLARE_API_TOKEN}"
 
 [mcp_servers.openapi]
 command = "uvx"

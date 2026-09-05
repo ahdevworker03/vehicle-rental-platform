@@ -1,6 +1,6 @@
 ---
 name: mcp-routing
-description: Load when choosing or configuring MCP servers for this repository, especially `.codex/config.toml`, Context7, GitHub, Playwright, PostgreSQL, Docker, Vercel, or OpenAPI. Determines whether an MCP should be used and selects the appropriate server.
+description: Load when choosing or configuring MCP servers for this repository, especially `.codex/config.toml`, Context7, GitHub, Playwright, PostgreSQL, Docker, Cloudflare, or OpenAPI. Determines whether an MCP should be used and selects the appropriate server.
 ---
 
 # MCP
@@ -70,7 +70,7 @@ Examples:
 - Reading a GitHub Pull Request
 - Querying a PostgreSQL database
 - Running browser automation
-- Deploying to Vercel
+- Deploying to Cloudflare
 
 MCPs allow the agent to **perform actions** beyond reasoning.
 
@@ -116,7 +116,7 @@ Examples:
 - PostgreSQL
 - Docker
 - OpenAPI
-- Vercel
+- Cloudflare
 - Tailwind CSS
 - shadcn/ui
 
@@ -183,7 +183,7 @@ Examples:
 - project configuration
 - production inspection
 
-**THEN** use the **Vercel MCP**.
+**THEN** use the **Cloudflare MCP**.
 
 ---
 
@@ -235,7 +235,7 @@ See:
 - `docs/mcps/postgresql.md`
 - `docs/mcps/playwright.md`
 - `docs/mcps/docker.md`
-- `docs/mcps/vercel.md`
+- `docs/mcps/cloudflare.md`
 
 These documents contain MCP-specific setup, configuration, permissions, authentication, and maintenance guidance.
 

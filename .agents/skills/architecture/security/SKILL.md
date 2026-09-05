@@ -74,7 +74,7 @@ This skill guides the agent in implementing comprehensive security measures acro
 ### Infrastructure Security
 
 - **IF** deploying to production, **THEN** always use HTTPS (TLS 1.2 or higher) for all traffic.
-- **IF** using environment variables, **THEN** store secrets in a secure store (Vercel Secrets, AWS Secrets Manager, Docker Secrets) — never in code.
+- **IF** using environment variables, **THEN** store secrets in a secure store (Cloudflare Workers Secrets, AWS Secrets Manager, Docker Secrets) — never in code.
 - **IF** using containers (Docker), **THEN** use minimal base images, scan for vulnerabilities, and run as a non-root user.
 - **IF** using CI/CD, **THEN** never expose secrets in logs; use CI/CD secret stores.
 - **IF** using cloud services, **THEN** follow the principle of least privilege for IAM roles.

@@ -1,6 +1,6 @@
 ---
 name: environment-config
-description: Environment configuration for this repository, including `.env.example`, `apps/api` and `apps/web` env vars, Vercel/Docker secrets, and Codex/MCP config values. Applicable when setting up environment variables, validating configuration at startup, managing secrets, or structuring environment-specific settings.
+description: Environment configuration for this repository, including `.env.example`, `apps/api` and `apps/web` env vars, Cloudflare/Docker secrets, and Codex/MCP config values. Applicable when setting up environment variables, validating configuration at startup, managing secrets, or structuring environment-specific settings.
 ---
 
 # Environment Configuration
@@ -47,7 +47,7 @@ This skill guides the agent in managing environment configuration across develop
 ### Loading Environment Variables
 
 - **IF** using Node.js, **THEN** use `dotenv` to load environment variables from `.env` files in development.
-- **IF** in production, **THEN** environment variables should be set by the deployment platform (Vercel, Docker, Kubernetes, systemd) rather than loaded from a file.
+- **IF** in production, **THEN** environment variables should be set by the deployment platform (Cloudflare, Docker, Kubernetes, systemd) rather than loaded from a file.
 - **IF** using multiple `.env` files (e.g., `.env.development`, `.env.production`), **THEN** use `dotenv-flow` or `dotenv-expand` to manage them.
 - **ALWAYS** load environment variables at the very beginning of the application entry point before any other code runs.
 
@@ -67,7 +67,7 @@ This skill guides the agent in managing environment configuration across develop
 ### Secret Management
 
 - **IF** using Docker, **THEN** pass secrets via environment variables or Docker secrets (not via `.env` files in production).
-- **IF** using cloud platforms, **THEN** use platform-specific secret management (Vercel Secrets, AWS Secrets Manager, Azure Key Vault).
+- **IF** using cloud platforms, **THEN** use platform-specific secret management (Cloudflare Workers Secrets, AWS Secrets Manager, Azure Key Vault).
 - **IF** using CI/CD, **THEN** store secrets in CI/CD environment variables (GitHub Actions secrets, GitLab CI variables).
 - **NEVER** commit `.env` files with real secrets to version control.
 
@@ -231,7 +231,7 @@ export type Config = typeof config;
 - [Zod Documentation – Environment Variables](https://zod.dev/)
 - [Node.js process.env Documentation](https://nodejs.org/api/process.html#processenv)
 - [Docker Environment Variables](https://docs.docker.com/compose/environment-variables/)
-- [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables)
+- [Cloudflare Environment Variables](https://developers.cloudflare.com/workers/configuration/environment-variables/)
 - [GitHub Actions Secrets](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions)
 - [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/)
 - [OCI Configuration Management](https://docs.docker.com/engine/swarm/secrets/)

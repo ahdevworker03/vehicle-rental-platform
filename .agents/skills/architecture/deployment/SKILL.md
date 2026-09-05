@@ -1,20 +1,20 @@
 ---
 name: deployment
-description: Deployment strategy for this repository, especially Vercel for `apps/web` and container or server deployment for `apps/api`. Applicable when deploying applications to production, configuring CI/CD pipelines, setting up environment-specific configurations, planning deployment strategies, or implementing rollback procedures.
+description: Deployment strategy for this repository, especially container or server deployment for `apps/api` and `apps/web`. Applicable when deploying applications to production, configuring CI/CD pipelines, setting up environment-specific configurations, planning deployment strategies, or implementing rollback procedures.
 ---
 
 # Deployment
 
 ## Purpose
 
-This skill guides the agent in deploying production-ready applications following industry best practices and official documentation from Vercel, Docker, and related tools. It covers environment configuration, CI/CD integration, deployment strategies, security hardening, monitoring, and rollback procedures. The goal is to ensure reliable, secure, and repeatable deployments with minimal downtime and risk.
+This skill guides the agent in deploying production-ready applications following industry best practices and official documentation from Cloudflare, Docker, and related tools. It covers environment configuration, CI/CD integration, deployment strategies, security hardening, monitoring, and rollback procedures. The goal is to ensure reliable, secure, and repeatable deployments with minimal downtime and risk.
 
 ---
 
 ## When to Load
 
 - User is setting up deployment pipelines, configuring environments, or planning production releases.
-- User mentions: `deployment`, `deploy`, `production`, `staging`, `environment`, `CI/CD`, `build`, `release`, `rollback`, `zero-downtime`, `container`, `Docker`, `Vercel`.
+- User mentions: `deployment`, `deploy`, `production`, `staging`, `environment`, `CI/CD`, `build`, `release`, `rollback`, `zero-downtime`, `container`, `Docker`, `Cloudflare`, `Wrangler`, `Pages`, `Workers`.
 - User is configuring environment variables, build scripts, or deployment scripts.
 - User is planning the release process or setting up monitoring for production.
 - User is implementing rollback strategies or backup procedures.
@@ -48,7 +48,7 @@ This skill guides the agent in deploying production-ready applications following
 
 - **IF** an application has multiple environments (development, staging, production), **THEN** use environment variables to manage environment-specific configuration.
 - **IF** using environment variables, **THEN** validate their presence and format at application startup – fail fast with a clear error.
-- **IF** dealing with secrets (database passwords, API keys, tokens), **THEN** never commit them to version control. Use environment variables, secret management services (e.g., Vercel Secrets, Docker Secrets, AWS Secrets Manager), or CI/CD secret stores.
+- **IF** dealing with secrets (database passwords, API keys, tokens), **THEN** never commit them to version control. Use environment variables, secret management services (e.g., Cloudflare Workers Secrets, Docker Secrets, AWS Secrets Manager), or CI/CD secret stores.
 - **IF** a configuration value changes per environment, **THEN** use environment variables – not build-time constants or separate config files.
 
 ### Deployment Strategy Selection
@@ -58,19 +58,17 @@ This skill guides the agent in deploying production-ready applications following
   - **Canary**: Gradually roll out to a subset of users before full deployment.
   - **Rolling**: Update instances incrementally behind a load balancer.
 - **IF** the application is stateless (e.g., API-first, microservices), **THEN** containerization with Docker makes it easier to deploy and scale consistently.
-- **IF** the application is a frontend SPA, **THEN** use Vercel's platform for optimized builds, atomic deployments, and instant rollbacks.
+- **IF** the application is a frontend SPA, **THEN** deploy to **Cloudflare Pages** for optimized builds, atomic deployments, and instant rollbacks.
 
 ### CI/CD Pipeline
 
 - **IF** automating deployments, **THEN** use GitHub Actions (preferred) or similar CI/CD tools.
 - **ALWAYS** run linting, type checking, unit tests, and build in the pipeline before deployment.
 - **IF** building a Docker image, **THEN** build and push the image to a container registry (e.g., Docker Hub, GitHub Container Registry) in the pipeline.
-- **IF** using Vercel, **THEN** connect the repository and let Vercel handle builds and deployments via the platform's native Git integration.
 
 ### Health Checks
 
 - **ALWAYS** implement a health check endpoint (`/health` or `/api/health`) that returns the status of the application and its dependencies (database, external services).
-- **IF** deploying to Vercel, **THEN** Vercel handles health checks automatically for serverless functions.
 - **IF** deploying a containerized application, **THEN** configure health checks in the Dockerfile or orchestration configuration.
 
 ### Database Migrations in Deployment
@@ -96,7 +94,7 @@ This skill guides the agent in deploying production-ready applications following
 1. **Set up logging** – Use structured logging (e.g., with `pino`, `winston`) and send logs to a centralized system (e.g., Datadog, Logtail, AWS CloudWatch).
 2. **Instrument metrics** – Track key metrics: request latency, error rates, database query performance, memory usage, and CPU utilization.
 3. **Set up alerts** – Configure alerts for critical metrics exceeding thresholds (e.g., error rate > 5%, latency > 500ms).
-4. **Monitor deployment rollouts** – Use deployment monitoring to track the success of a deployment (e.g., Vercel's Deployment Overview) and automatically roll back on failures.
+4. **Monitor deployment rollouts** – Use deployment monitoring to track the success of a deployment and automatically roll back on failures.
 
 ### Rollback Procedures
 
@@ -109,7 +107,7 @@ This skill guides the agent in deploying production-ready applications following
 
 1. **Use secret management** – Store secrets in the CI/CD environment or a secret management service, never in code or `.env` files committed to the repo.
 2. **Run security scans** – Scan dependencies for vulnerabilities (`npm audit`, `yarn audit`) in the CI/CD pipeline.
-3. **Use HTTPS** – Always use HTTPS in production. Vercel automatically provides TLS certificates. For custom servers, obtain certificates and enforce HTTPS.
+3. **Use HTTPS** – Always use HTTPS in production. Obtain certificates and enforce HTTPS.
 4. **Limit access** – Restrict deployment permissions to a minimal set of users and services. Use fine-grained access control in CI/CD.
 
 ---
@@ -146,8 +144,8 @@ This skill guides the agent in deploying production-ready applications following
 
 ## Related Skills
 
+- `cloudflare` – for deploying to Cloudflare Pages and Workers.
 - `docker` – for containerizing the application for consistent deployments.
-- `vercel` – for deploying frontend SPAs with Vercel's platform.
 - `github-actions` – for automating CI/CD pipelines.
 - `logging-monitoring` – for setting up production logging and alerting.
 - `migrations` – for managing database migrations during deployments.
@@ -158,8 +156,8 @@ This skill guides the agent in deploying production-ready applications following
 
 ## Official References
 
-- [Vercel Documentation – Deployments](https://vercel.com/docs/deployments)
-- [Vercel Documentation – Environment Variables](https://vercel.com/docs/projects/environment-variables)
+- [Cloudflare Pages Documentation](https://developers.cloudflare.com/pages/)
+- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
 - [Docker Documentation – Dockerfile Reference](https://docs.docker.com/engine/reference/builder/)
 - [Docker Documentation – Best Practices for Writing Dockerfiles](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
@@ -167,6 +165,5 @@ This skill guides the agent in deploying production-ready applications following
 - [Twelve-Factor App – Config](https://12factor.net/config)
 - [Twelve-Factor App – Build, Release, Run](https://12factor.net/build-release-run)
 - [OWASP – Deployment Security](https://cheatsheetseries.owasp.org/cheatsheets/Deployment_Cheat_Sheet.html)
-- [Vercel Security Overview](https://vercel.com/security)
 - [Docker Security Best Practices](https://docs.docker.com/engine/security/)
 - [GitHub Actions – Security Hardening](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
