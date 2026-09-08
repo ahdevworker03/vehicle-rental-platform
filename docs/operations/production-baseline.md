@@ -197,26 +197,76 @@ behavior.
 
 Recorded on 2026-09-04 from the clean pre-Step-57 worktree:
 
-| Check                                                     | Result                                                                                                                                                                  |
-| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm test`                                               | Passed: 239 API tests and 281 web tests                                                                                                                                 |
-| `pnpm typecheck`                                          | Passed                                                                                                                                                                  |
-| `pnpm lint`                                               | Passed                                                                                                                                                                  |
-| `pnpm build`                                              | Passed; Vite emitted existing source-map resolution and over-500 kB chunk warnings                                                                                      |
-| `prettier --check docs/operations/production-baseline.md` | Passed                                                                                                                                                                  |
-| `git diff --check`                                        | Passed                                                                                                                                                                  |
-| OpenAPI code generation                                   | Blocked: Orval adds a trailing blank line to `lib/api-zod/src/generated/platform/platform.ts`; `tsc --build` rejects that generated output with `new blank line at EOF` |
+| Check                                                     | Result                                                                                                          |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `pnpm test`                                               | Passed: 239 API tests and 281 web tests                                                                         |
+| `pnpm typecheck`                                          | Passed                                                                                                          |
+| `pnpm lint`                                               | Passed                                                                                                          |
+| `pnpm build`                                              | Passed; Vite emitted existing source-map resolution and over-500 kB chunk warnings                              |
+| `prettier --check docs/operations/production-baseline.md` | Passed                                                                                                          |
+| `git diff --check`                                        | Passed                                                                                                          |
+| OpenAPI code generation                                   | Passed after deterministic Orval output normalization; two consecutive runs leave generated artifacts unchanged |
 
-The generated output was restored after this check, so the baseline record is
-the only worktree change. The generator reproducibility defect must be fixed
-at its source before Step 58/65 exit verification; generated files must not be
-hand-edited to conceal it.
+### Empty-Database Migration Rehearsal
+
+Recorded on 2026-09-05 against local Docker PostgreSQL 16.14. The existing
+local test topology (`postgresql://postgres@localhost:5432`) was used, but a
+separate database named `vehicle_rental_step57_rehearsal` was created for this
+rehearsal. The normal development, test, staging, and production databases
+were not used.
+
+| Evidence                     | Result                                                                                                                                                                                                              |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Empty-state verification     | The new database had zero `public` tables and no `_prisma_migrations` table before deployment                                                                                                                       |
+| Migration command            | `DATABASE_URL=<rehearsal URL> pnpm --filter @workspace/db exec prisma migrate deploy`                                                                                                                               |
+| Committed migrations applied | 32, from `20260808171411_init` through `20260901161000_normalize_task_title_backfill`                                                                                                                               |
+| Final migration status       | `prisma migrate status` reported `Database schema is up to date!`                                                                                                                                                   |
+| Schema compatibility         | `prisma migrate diff --from-config-datasource --to-schema=prisma/schema.prisma --exit-code` reported `No difference detected.`                                                                                      |
+| Prisma schema validation     | Passed                                                                                                                                                                                                              |
+| Task recurrence cutover      | The incompatible recurrence migration and its two Task-title follow-ups applied from zero; final `Task` columns include non-null `title` and `occurrence_number`, plus nullable recurrence interval/unit/end fields |
+| API smoke test               | Not run: the existing API test suite hard-codes `vehicle_rental_test` and is not a safe mechanism for this temporary database                                                                                       |
+| Cleanup                      | `DROP DATABASE vehicle_rental_step57_rehearsal` succeeded and a post-drop query confirmed the database no longer exists                                                                                             |
+
+Prisma emitted only its routine notice that version 8.0.0-rc.13 is available;
+no migration warning or repair was required.
+
+### Staging Provisioning Assessment
+
+Recorded on 2026-09-05 from this workspace. No staging resource was created,
+changed, or claimed as verified. The available evidence is insufficient to
+safely perform provider-side provisioning.
+
+| Area                  | Verified result                                                                                                                                                                                                                                                                         |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cloudflare access     | Neither `wrangler` nor `cloudflared` is installed, the repository has no Cloudflare Pages or Wrangler configuration, and no Cloudflare MCP resource is connected.                                                                                                                       |
+| Hetzner access        | `hcloud` is not installed. SSH is available, but the only resolved host is `localhost`; no staging VPS host or SSH target is configured.                                                                                                                                                |
+| Deployment automation | No `.github/workflows` deployment workflow, Cloudflare deployment configuration, reverse-proxy configuration, or deploy script exists in the repository.                                                                                                                                |
+| API container         | `pnpm --filter @workspace/api-server run build` passed. Two non-interactive `docker build --no-cache --file apps/api/Dockerfile ... .` builds passed after the build context excluded host `node_modules`; the locked dependency installation remains `pnpm install --frozen-lockfile`. |
+| API runtime           | A minimal container start exited with `ERR_MODULE_NOT_FOUND` for `argon2`; the final runner stage does not contain that externalized runtime dependency. This is separate from the resolved non-interactive builder failure and remains a Step 65 runtime-image limitation.             |
+| Compose baseline      | `docker compose --file apps/api/docker-compose.yml config` passed, but the rendered configuration publishes PostgreSQL on host port `5432`, uses the development `postgres` password, and sets `NODE_ENV=development`. It is not acceptable staging configuration.                      |
+| Application readiness | The repository exposes `GET /api/healthz`, which returns `{ "status": "ok" }`. It does not validate database, storage, or configuration readiness. The storage provider remains local filesystem only.                                                                                  |
+
+The following operator-owned inputs are required before staging provisioning can
+continue:
+
+- Cloudflare account access for a dedicated Pages project, private R2 bucket,
+  scoped R2 credentials, and staging DNS/TLS records.
+- Hetzner project access for a dedicated Nuremberg staging VPS, its SSH target,
+  and firewall/network configuration that leaves PostgreSQL private.
+- Approved isolated staging hostnames, database name and credentials, R2 bucket
+  name and credentials, frontend API origin, and non-production JWT/refresh
+  secrets in a secure secret store.
+- A reviewed staging Compose/runtime configuration that does not publish
+  PostgreSQL, does not embed credentials, starts a reverse proxy with HTTPS,
+  and includes all runtime dependencies required to start the API image.
+
+These are blockers for provider walkthrough, HTTPS reachability, migration on
+staging, secret loading, R2 reachability, database privacy, and authenticated
+staging smoke evidence. They are documented here rather than bypassed with
+development credentials or a public database.
 
 ### Pending External Evidence
 
-- Rehearse all migrations against an empty disposable PostgreSQL database and
-  record migration status. No disposable database URL was available during
-  this documentation implementation.
 - Capture the approved staging bundle, request-count, API-timing, search, and
   synchronization measurements against the representative pilot dataset.
 - Walk through Cloudflare, Hetzner, R2, Resend, DNS, TLS, backup, restore, and

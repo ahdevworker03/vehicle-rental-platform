@@ -24,7 +24,8 @@ const zodTransformer: InputTransformerFn = (config) => {
 
   for (const item of Object.values(paths) as Array<Record<string, unknown>>) {
     for (const method of ["get", "post", "put", "patch", "delete"] as const) {
-      const operation = item[method] as { requestBody?: { content?: Record<string, unknown> } } | undefined;
+      const operation = item[method] as
+        { requestBody?: { content?: Record<string, unknown> } } | undefined;
       const content = operation?.requestBody?.content;
 
       if (content && "multipart/form-data" in content) {
@@ -45,13 +46,11 @@ export default defineConfig({
       },
     },
     output: {
-      workspace: apiClientReactSrc,
-      target: "generated",
+      target: path.resolve(apiClientReactSrc, "generated"),
       client: "react-query",
       mode: "tags-split",
       baseUrl: "/api",
       clean: true,
-      prettier: true,
       override: {
         fetch: {
           includeHttpResponseReturnType: false,
@@ -71,21 +70,22 @@ export default defineConfig({
       },
     },
     output: {
-      workspace: apiZodSrc,
       client: "zod",
-      target: "generated",
-      schemas: { path: "generated/types", type: "typescript" },
+      target: path.resolve(apiZodSrc, "generated"),
+      schemas: {
+        path: path.resolve(apiZodSrc, "generated/types"),
+        type: "typescript",
+      },
       mode: "tags-split",
       clean: true,
-      prettier: true,
       override: {
         zod: {
           version: 3,
           coerce: {
-            query: ['boolean', 'number', 'string', 'date'],
-            param: ['boolean', 'number', 'string'],
-            body: ['bigint', 'date'],
-            response: ['bigint', 'date'],
+            query: ["boolean", "number", "string", "date"],
+            param: ["boolean", "number", "string"],
+            body: ["bigint", "date"],
+            response: ["bigint", "date"],
           },
         },
         useDates: true,
