@@ -1,5 +1,4 @@
 import { Link, useLocation } from "wouter";
-import { Building2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -19,9 +18,13 @@ export function TabletNavigationRail() {
   return (
     <aside className="hidden h-dvh w-20 shrink-0 flex-col border-s border-sidebar-border bg-sidebar text-sidebar-foreground md:flex lg:hidden">
       <div className="flex h-16 shrink-0 items-center justify-center border-b border-sidebar-border">
-        <span className="flex size-10 items-center justify-center rounded-xl bg-white/10 text-white">
-          <Building2 className="size-5" aria-hidden="true" />
-          <span className="sr-only">نظام التأجير</span>
+        <span className="flex size-10 items-center justify-center rounded-xl bg-white/10">
+          <img
+            src="/brand/symbols/markab-symbol.png"
+            alt=""
+            className="size-8 object-contain"
+          />
+          <span className="sr-only">مَركب</span>
         </span>
       </div>
 

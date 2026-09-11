@@ -83,7 +83,7 @@
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
   --card-border: 220 16% 90%;
-  --sidebar: 220 47% 27%;
+  --sidebar: 216 72% 21%;
   --sidebar-foreground: 214 100% 96%;
   --sidebar-border: 219 39% 35%;
   --sidebar-primary: 0 0% 100%;
@@ -212,6 +212,9 @@
 }
 
 @layer components {
+  .markab-auth-logo-dark { display: none; }
+  .dark .markab-auth-logo-light { display: none; }
+  .dark .markab-auth-logo-dark { display: block; }
   .ui-page-title { @apply text-xl font-bold tracking-tight text-foreground sm:text-2xl; }
   .ui-section-title { @apply text-base font-bold text-foreground; }
   .ui-label { @apply text-sm font-medium text-foreground; }

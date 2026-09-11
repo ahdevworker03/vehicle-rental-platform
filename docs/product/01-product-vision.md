@@ -1,4 +1,4 @@
-# Product Vision
+# Markab Product Vision
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@
 
 ## Purpose
 
-The purpose of this product is to simplify and modernize the daily operations of vehicle rental businesses through a single, reliable, and easy-to-use platform.
+Markab (مَركب) is an Arabic-first, multi-tenant vehicle-rental management SaaS. Its purpose is to simplify and modernize the daily operations of vehicle rental businesses through a single, reliable, and easy-to-use platform.
 
 Many businesses still rely on notebooks, spreadsheets, phone calls, WhatsApp conversations, and manual processes to manage rentals, customers, payments, and vehicle availability. These methods become difficult to maintain as the business grows and often lead to lost information, scheduling conflicts, operational inefficiencies, and poor visibility into the business.
 

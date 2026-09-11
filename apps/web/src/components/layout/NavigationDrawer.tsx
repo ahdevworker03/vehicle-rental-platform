@@ -1,5 +1,4 @@
 import { Link, useLocation } from "wouter";
-import { Building2 } from "lucide-react";
 import {
   Sheet,
   SheetClose,
@@ -38,10 +37,15 @@ export function NavigationDrawer({
       >
         <SheetHeader className="border-b border-border px-5 py-5 text-start">
           <div className="flex items-center gap-3 pe-12">
-            <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Building2 className="size-5" aria-hidden="true" />
+            <div className="flex size-10 items-center justify-center rounded-xl bg-primary">
+              <img
+                src="/brand/symbols/markab-symbol.png"
+                alt=""
+                className="size-8 object-contain"
+              />
             </div>
             <div>
+              <p className="text-xs font-semibold text-primary">مَركب</p>
               <SheetTitle>{title}</SheetTitle>
               <SheetDescription id="navigation-drawer-description">
                 إدارة عمليات تأجير المركبات

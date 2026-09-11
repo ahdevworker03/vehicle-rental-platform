@@ -14,13 +14,13 @@
 | 8 | [Repository Rules](#repository-rules) |
 | 9 | [Long-Term Goal](#long-term-goal) |
 
-This repository contains the production codebase for the Vehicle Rental Management Platform.
+This repository contains the production codebase for Markab (مَركب), a vehicle rental management platform.
 
 The project follows a documentation-first, API-first, and monorepo architecture. Repository documentation is the primary source of truth for architecture, workflows, and development decisions.
 
 ## Product Vision
 
-Build a production-ready SaaS platform for vehicle rental businesses.
+Build Markab, a production-ready SaaS platform for vehicle rental businesses.
 
 The platform is designed to be:
 

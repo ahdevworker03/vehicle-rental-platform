@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Building2, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { LogoutButton } from "./LogoutButton";
 import { useTheme } from "@/providers/ThemeProvider";
 import {
@@ -64,12 +64,16 @@ export function AppSidebar() {
     >
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-xl bg-white/10 text-white">
-            <Building2 className="size-5" aria-hidden="true" />
+          <div className="flex size-10 items-center justify-center rounded-xl bg-white/10">
+            <img
+              src="/brand/symbols/markab-symbol.png"
+              alt=""
+              className="size-8 object-contain"
+            />
           </div>
           <div className="min-w-0 leading-tight">
             <p className="truncate text-sm font-bold text-white">
-              نظام التأجير
+              مَركب
             </p>
             <p className="mt-1 truncate text-xs text-sidebar-foreground/65">
               إدارة تأجير المركبات

@@ -59,9 +59,19 @@ export default function LoginPage() {
     <div className="min-h-dvh flex items-center justify-center px-4 py-8 bg-background">
       <form className="w-full max-w-sm space-y-6" onSubmit={(event) => { event.preventDefault(); void handleSubmit(); }}>
         <div className="text-center space-y-2">
+          <img
+            src="/brand/logos/markab-logo-ar.png"
+            alt="مَركب"
+            className="markab-auth-logo-light mx-auto h-auto w-36"
+          />
+          <img
+            src="/brand/logos/markab-logo-monochrome-light.png"
+            alt="مَركب Markab"
+            className="markab-auth-logo-dark mx-auto h-auto w-28 object-contain"
+          />
           <h1 className="text-2xl font-bold text-foreground">تسجيل الدخول</h1>
           <p className="text-sm text-muted-foreground">
-            أدخل بياناتك للوصول إلى النظام
+            أدخل بياناتك للوصول إلى مَركب
           </p>
         </div>
 

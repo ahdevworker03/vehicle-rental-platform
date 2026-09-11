@@ -1,53 +1,37 @@
 # Markab Brand Identity
 
-## Product Name
+## Identity
 
-- English: Markab
-- Arabic: مَركب
-- Launch domain: markab-lb.com
+- English name: **Markab**
+- Arabic name: **مَركب**
+- Launch domain: **markab-lb.com**
+- Positioning: B2B vehicle-rental and vehicle-operations SaaS.
+- Approved logo direction: **Modern M + Road**.
 
-## Positioning
+Markab is the platform identity, not the identity of an individual tenant rental business.
 
-Markab is a B2B vehicle-rental and vehicle-operations SaaS platform.
+## Approved assets
 
-## Logo
+Approved source assets live in `apps/web/public/brand/` and must not be recreated or altered.
 
-Approved direction: Modern M + Road.
+- Use the bilingual logo on wide branded surfaces.
+- Use the Arabic logo on Arabic-first branded surfaces.
+- Use the symbol for compact navigation and favicon contexts.
+- App icons use a navy background with the approved Markab symbol. Do not use a black background.
 
-Use:
+## Color and type direction
 
-- bilingual logo for wide branded surfaces
-- Arabic logo for Arabic-first product surfaces
-- symbol for compact navigation and favicon
+| Token | Value |
+| --- | --- |
+| Primary Navy | `#0F2D5B` |
+| Accent Blue | `#2563EB` |
+| Secondary Cyan | `#06B6D4` |
+| Neutral | `#E5E7EB` |
+| Text Dark | `#0B1220` |
+| Muted | `#6B7280` |
 
-## App Icon
+Use Inter for English and Tajawal for Arabic when typography can be adopted safely across the design system. Markab remains Arabic-first and RTL.
 
-- rounded square
-- navy background
-- approved Markab symbol
-- black background is not allowed
+## Tenant documents
 
-## Colors
-
-- Primary Navy: #0F2D5B
-- Accent Blue: #2563EB
-- Secondary Cyan: #06B6D4
-- Neutral: #E5E7EB
-- Text Dark: #0B1220
-- Muted: #6B7280
-
-## Typography
-
-- English: Inter
-- Arabic: Tajawal
-- Existing product typography should not be globally changed without explicit review.
-
-## Product Usage
-
-Markab is Arabic-first.
-Compact UI surfaces should prefer the symbol or Arabic lockup.
-
-## Tenant Documents
-
-Tenant identity remains primary in contracts, reports, and customer-facing documents.
-Markab branding, if present, must be secondary.
+Tenant identity remains primary in contracts, reports, and customer-facing documents. If Markab branding is added there, it must remain secondary.
