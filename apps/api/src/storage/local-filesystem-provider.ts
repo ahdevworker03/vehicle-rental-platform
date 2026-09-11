@@ -33,11 +33,6 @@ export class LocalFilesystemProvider implements StorageProvider {
     await writeFile(filePath, data);
   }
 
-  async getUrl(key: string): Promise<string> {
-    const filePath = this.resolvePath(key);
-    return `file://${filePath}`;
-  }
-
   async retrieve(key: string): Promise<Buffer> {
     const filePath = this.resolvePath(key);
     try {

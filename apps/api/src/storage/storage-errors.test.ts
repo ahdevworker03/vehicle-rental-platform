@@ -11,7 +11,6 @@ import type { StorageProvider } from "./storage-provider";
 function storageProvider(overrides: Partial<StorageProvider>): StorageProvider {
   return {
     store: vi.fn(),
-    getUrl: vi.fn(),
     retrieve: vi.fn(),
     delete: vi.fn(),
     ...overrides,
@@ -24,9 +23,9 @@ describe("storage error boundary", () => {
       retrieve: vi.fn().mockRejectedValue(new StorageObjectNotFoundError()),
     });
 
-    await expect(retrieveStoredFile(provider, "org/missing.pdf")).rejects.toMatchObject<
-      Partial<AppError>
-    >({
+    await expect(
+      retrieveStoredFile(provider, "org/missing.pdf"),
+    ).rejects.toMatchObject<Partial<AppError>>({
       statusCode: 404,
       code: "FILE_NOT_FOUND",
       message: "The requested file is no longer available.",

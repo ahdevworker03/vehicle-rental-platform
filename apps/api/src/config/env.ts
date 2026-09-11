@@ -9,6 +9,8 @@ const VALID_LOG_LEVELS = [
   "trace",
 ] as const;
 
+const VALID_STORAGE_PROVIDERS = ["local", "r2"] as const;
+
 const DEFAULT_CORS_ORIGINS = [
   "http://localhost:5173",
   "https://x1gtk7w1-5173.uks1.devtunnels.ms",
@@ -16,17 +18,31 @@ const DEFAULT_CORS_ORIGINS = [
 
 type NodeEnv = (typeof VALID_NODE_ENVS)[number];
 type LogLevel = (typeof VALID_LOG_LEVELS)[number];
+type StorageProviderName = (typeof VALID_STORAGE_PROVIDERS)[number];
+
+interface R2Config {
+  accountId: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  bucket: string;
+}
 
 export interface EnvConfig {
   PORT: number;
   NODE_ENV: NodeEnv;
   LOG_LEVEL: LogLevel;
   CORS_ORIGINS: string[];
+  STORAGE_PROVIDER: StorageProviderName;
+  STORAGE_DIR?: string;
+  R2?: R2Config;
 }
 
 function parseCorsOrigins(rawOrigins: string | undefined): string[] {
   const origins = rawOrigins
-    ? rawOrigins.split(",").map((origin) => origin.trim()).filter(Boolean)
+    ? rawOrigins
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean)
     : [...DEFAULT_CORS_ORIGINS];
 
   if (origins.length === 0) {
@@ -36,7 +52,10 @@ function parseCorsOrigins(rawOrigins: string | undefined): string[] {
   for (const origin of origins) {
     try {
       const url = new URL(origin);
-      if (url.origin !== origin || !["http:", "https:"].includes(url.protocol)) {
+      if (
+        url.origin !== origin ||
+        !["http:", "https:"].includes(url.protocol)
+      ) {
         throw new Error();
       }
     } catch {
@@ -47,8 +66,20 @@ function parseCorsOrigins(rawOrigins: string | undefined): string[] {
   return origins;
 }
 
-function loadEnv(): EnvConfig {
-  const rawPort = process.env["PORT"];
+function requiredR2Value(environment: NodeJS.ProcessEnv, name: string): string {
+  const value = environment[name]?.trim();
+
+  if (!value) {
+    throw new Error(`${name} is required when STORAGE_PROVIDER=r2.`);
+  }
+
+  return value;
+}
+
+export function loadEnv(
+  environment: NodeJS.ProcessEnv = process.env,
+): EnvConfig {
+  const rawPort = environment["PORT"];
 
   if (!rawPort) {
     throw new Error(
@@ -62,7 +93,7 @@ function loadEnv(): EnvConfig {
     throw new Error(`Invalid PORT value: "${rawPort}"`);
   }
 
-  const nodeEnv = process.env["NODE_ENV"] ?? "development";
+  const nodeEnv = environment["NODE_ENV"] ?? "development";
 
   if (!VALID_NODE_ENVS.includes(nodeEnv as NodeEnv)) {
     throw new Error(
@@ -70,7 +101,7 @@ function loadEnv(): EnvConfig {
     );
   }
 
-  const logLevel = (process.env["LOG_LEVEL"] ?? "info") as LogLevel;
+  const logLevel = (environment["LOG_LEVEL"] ?? "info") as LogLevel;
 
   if (!VALID_LOG_LEVELS.includes(logLevel)) {
     throw new Error(
@@ -78,11 +109,33 @@ function loadEnv(): EnvConfig {
     );
   }
 
+  const storageProvider = (environment["STORAGE_PROVIDER"] ??
+    "local") as StorageProviderName;
+
+  if (!VALID_STORAGE_PROVIDERS.includes(storageProvider)) {
+    throw new Error(
+      `Invalid STORAGE_PROVIDER value: "${storageProvider}". Must be one of: ${VALID_STORAGE_PROVIDERS.join(", ")}`,
+    );
+  }
+
+  const r2 =
+    storageProvider === "r2"
+      ? {
+          accountId: requiredR2Value(environment, "R2_ACCOUNT_ID"),
+          accessKeyId: requiredR2Value(environment, "R2_ACCESS_KEY_ID"),
+          secretAccessKey: requiredR2Value(environment, "R2_SECRET_ACCESS_KEY"),
+          bucket: requiredR2Value(environment, "R2_BUCKET"),
+        }
+      : undefined;
+
   return {
     PORT: port,
     NODE_ENV: nodeEnv as NodeEnv,
     LOG_LEVEL: logLevel,
-    CORS_ORIGINS: parseCorsOrigins(process.env["CORS_ORIGINS"]),
+    CORS_ORIGINS: parseCorsOrigins(environment["CORS_ORIGINS"]),
+    STORAGE_PROVIDER: storageProvider,
+    STORAGE_DIR: environment["STORAGE_DIR"],
+    R2: r2,
   };
 }
 
