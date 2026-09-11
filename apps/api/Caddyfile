@@ -1,0 +1,3 @@
+{$STAGING_API_HOST} {
+	reverse_proxy api:3000
+}
